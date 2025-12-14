@@ -7,6 +7,7 @@ import 'package:domandito/core/utils/shared_prefrences.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:domandito/main.dart';
 import 'package:domandito/modules/ask/models/q_model.dart';
+import 'package:domandito/modules/signin/models/user_model.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
@@ -65,7 +66,6 @@ Future<DateTime?> getNetworkTime() async {
 
     final dateHeader = response.headers['date'];
     if (dateHeader != null) {
-
       // parse HTTP date
       final dateTimeUtc = HttpDate.parse(dateHeader);
 
@@ -104,6 +104,26 @@ Future<QuestionModel?> getQuestionData({required String questionId}) async {
     return null;
 
     // debugPrint("Error loading restaurant: $e");
+  }
+}
+
+Future<UserModel?> getProfileByUserNameForDeepLink({required String userUserName}) async {
+  try {
+    final doc = await FirebaseFirestore.instance
+        .collection('users')
+        .where('userName', isEqualTo: userUserName)
+        .limit(1)
+        .get();
+    if (doc.docs.isNotEmpty) {
+      final user = UserModel.fromFirestore(doc.docs.first);
+      return user;
+      // await getQuestionsCount();
+    } else {
+      return null;
+    }
+  } catch (e) {
+    debugPrint("Error fetching profile: $e");
+    return null;
   }
 }
 

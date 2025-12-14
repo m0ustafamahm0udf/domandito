@@ -1,6 +1,4 @@
 import 'package:domandito/modules/landing/views/landing_screen.dart';
-import 'package:domandito/modules/security/screens/security_warning_screen.dart';
-import 'package:domandito/modules/security/services/security_service.dart';
 import 'package:domandito/modules/signin/signin_screen.dart';
 import 'package:domandito/shared/widgets/web.dart';
 import 'package:easy_localization/easy_localization.dart';

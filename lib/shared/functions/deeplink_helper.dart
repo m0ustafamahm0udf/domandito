@@ -106,12 +106,17 @@ class DeepLinkHelper {
       if (userUserName == MySharedPreferences.userUserName) {
         return;
       }
-      Future.delayed(Duration(milliseconds: 100), () async {
-        pushScreen(
-          navigatorKey.currentState!.context,
-          screen: ProfileScreen(userId: '', userUserName: userUserName),
-        );
-      });
+      final res = await getProfileByUserNameForDeepLink(
+        userUserName: userUserName,
+      );
+      if (res != null) {
+        Future.delayed(Duration(milliseconds: 100), () async {
+          pushScreen(
+            navigatorKey.currentState!.context,
+            screen: ProfileScreen(userId: res.id, userUserName: ''),
+          );
+        });
+      }
     }
   }
 }

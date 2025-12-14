@@ -91,7 +91,7 @@ class AppConstance {
 
   static const String product = "PRODUCT";
   static const String offer = "OFFER";
-  static const String shareLink = "domandito-rbuqt.ondigitalocean.app/";
+  static const String shareLink = "https://domandito-rbuqt.ondigitalocean.app/";
 
   static const String digitaloceanspacesLink =
       "https://domandito.ams3.digitaloceanspaces.com/";
