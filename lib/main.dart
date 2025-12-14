@@ -71,12 +71,16 @@ void main() async {
   // final Locale deviceLocale = WidgetsBinding.instance.window.locale;
   if (kIsWeb) {
     runApp(
-      MaterialApp(
-          debugShowCheckedModeBanner: false,
-          home: Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          ),
-        )
+      EasyLocalization(
+        supportedLocales: const [Locale('en'), Locale('ar')],
+        saveLocale: true,
+        fallbackLocale: const Locale('ar'),
+        path: "assets/languages",
+        useOnlyLangCode: true,
+        // startLocale: deviceLocale.toString().split('_').first.toString() == 'ar' ? const Locale('ar') : const Locale('en'),
+        startLocale: Locale('en'),
+        child: OneNotification(builder: (x, _) => const MyApp()),
+      ),
     );
   } else {
     runApp(
