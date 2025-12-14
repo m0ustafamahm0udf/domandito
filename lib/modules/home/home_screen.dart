@@ -60,6 +60,7 @@ import 'package:domandito/core/utils/shared_prefrences.dart';
 import 'package:domandito/modules/ask/models/q_model.dart';
 import 'package:domandito/modules/profile/view/profile_screen.dart';
 import 'package:domandito/modules/search/search.dart';
+import 'package:domandito/modules/signin/signin_screen.dart';
 import 'package:domandito/shared/models/follow_model.dart';
 import 'package:domandito/shared/style/app_colors.dart';
 import 'package:domandito/shared/widgets/custom_network_image.dart';
@@ -168,7 +169,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   backgroundColor: WidgetStatePropertyAll(AppColors.white),
                 ),
                 onPressed: () {
-                  MySharedPreferences.clearProfile(context: context);
+                  // MySharedPreferences.clearProfile(context: context);
+                  // context.toAndRemoveAll(SignInScreen());
+                  pushReplacementWithoutNavBar(context, MaterialPageRoute(builder: (context) => SignInScreen()));
                 },
                 icon: Directionality(
                   textDirection: TextDirection.rtl,
