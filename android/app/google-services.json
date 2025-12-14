@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "623808187900",
+    "project_id": "domandito-281cc",
+    "storage_bucket": "domandito-281cc.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:623808187900:android:47f1e0531eea8b98b0b679",
+        "android_client_info": {
+          "package_name": "com.m0ustafamahm0ud.domandito"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "623808187900-7nug1ufc6cag9pju9di6uqckvoncqcrq.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.m0ustafamahm0ud.domandito",
+            "certificate_hash": "0f143e613a3fd3c1c6bc378c9580b174833519aa"
+          }
+        },
+        {
+          "client_id": "623808187900-gsa0ldhtii8mhgv55vbfqqdrc4vhjf6c.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAk_tlqSqqi9BYvt6NYC0cdHSHfiyNSEho"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "623808187900-gsa0ldhtii8mhgv55vbfqqdrc4vhjf6c.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "623808187900-c8oha1qpgdstqhqoqbud6p45hjj60cdl.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.domandito"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

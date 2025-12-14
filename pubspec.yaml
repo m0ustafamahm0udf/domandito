@@ -1,0 +1,109 @@
+name: domandito
+description: "A new Flutter project."
+
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.9.0
+
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+  http: ^1.5.0
+  path: ^1.9.1
+  image_picker: ^1.2.0
+  permission_handler: ^12.0.1
+  change_app_package_name: ^1.5.0
+  firebase_core: ^4.1.0
+  cloud_firestore: ^6.0.1
+  flutter_overlay_loader: ^2.0.0
+  lottie: ^3.3.2
+  easy_localization: ^3.0.8
+  connectivity_plus: ^6.1.1
+  # connectivity_builder: ^0.2.1
+  file_picker: ^10.3.3
+  url_launcher: ^6.3.2
+  geolocator: ^14.0.2
+  share_plus: ^12.0.0
+  flutter_bloc: ^9.1.1
+  shared_preferences: ^2.5.3
+  equatable: ^2.0.7
+  cached_network_image: ^3.4.1
+  one_context: ^4.1.0
+  animate_do: ^4.2.0
+  svg_flutter: ^0.0.1
+  bloc: ^9.0.0
+  glass: ^2.0.0+2
+  location: ^8.0.1
+  uuid: ^4.5.1
+  internet_connection_checker: ^3.0.1
+  blur: ^4.0.2
+  sign_in_with_apple: ^7.0.1
+  google_sign_in: ^6.2.2
+  firebase_auth: ^6.1.0
+  crypto: ^3.0.6
+  firebase_messaging: ^16.0.1
+  googleapis_auth: ^2.0.0
+  persistent_bottom_nav_bar_v2: ^6.1.0
+  animated_flip_counter: ^0.3.4
+  bounce: ^1.0.2
+  toastification: ^3.0.3
+  path_provider: ^2.1.5
+  collection: ^1.19.1
+  get: ^4.7.2
+  gms_check: ^1.0.4
+  intl: ^0.20.2
+  device_info_plus: ^12.1.0
+  app_links: ^6.4.1
+  flutter_local_notifications: ^19.4.2
+  flutter_native_splash: ^2.4.6
+  flutter_launcher_icons: ^0.14.4
+  ntp: ^2.0.0
+  safe_device: ^1.3.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
+    - assets/icons/
+    - assets/fonts/
+    - assets/languages/
+
+  fonts:
+
+    - family: Ruwudu
+      fonts:
+        - asset: assets/fonts/Ruwudu/Ruwudu-Regular.ttf
+          weight: 400
+
+    - family: Rubik
+      fonts:
+        - asset: assets/fonts/Rubik/Rubik-Regular.ttf
+
+    - family: Dancing_Script
+      fonts:
+        - asset: assets/fonts/Dancing_Script/DancingScript-Regular.ttf
+
+
+flutter_native_splash:
+  image: assets/images/splash.png
+  color: "#dd324f"
+  # android_12:
+  #   color: "#ffffff"
+  #   image: assets/images/splash.png
+  # android: true
+  ios: true
+  web: true
+  android: false
