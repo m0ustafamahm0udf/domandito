@@ -70,7 +70,7 @@ void main() async {
   await GmsCheck().checkGmsAvailability();
   // final Locale deviceLocale = WidgetsBinding.instance.window.locale;
   if (kIsWeb) {
-    runApp(
+  runApp(
       EasyLocalization(
         supportedLocales: const [Locale('en'), Locale('ar')],
         saveLocale: true,
@@ -79,9 +79,7 @@ void main() async {
         useOnlyLangCode: true,
         // startLocale: deviceLocale.toString().split('_').first.toString() == 'ar' ? const Locale('ar') : const Locale('en'),
         startLocale: Locale('en'),
-        child: OneNotification(
-          builder: (x, _) => WebFixedSizeWrapper(child: const MyApp()),
-        ),
+        child: OneNotification(builder: (x, _) => WebFixedSizeWrapper(child: const MyApp())),
       ),
     );
   } else {
