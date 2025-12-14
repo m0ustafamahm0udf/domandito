@@ -260,7 +260,7 @@ class GSignin {
       AppConstance().showErrorToast(
         context,
         msg: !context.isCurrentLanguageAr()
-            ? 'An error occurred while logging in'
+            ? e.toString()
             : 'حدث خطأ أثناء تسجيل الدخول',
       );
       print('FirebaseAuthException: ${e.code} - ${e.message}');
@@ -268,7 +268,7 @@ class GSignin {
       AppConstance().showErrorToast(
         context,
         msg: !context.isCurrentLanguageAr()
-            ? 'An error occurred while logging in'
+            ? e.toString()
             : 'حدث خطأ أثناء تسجيل الدخول',
       );
       print('Other Exception: $e');
