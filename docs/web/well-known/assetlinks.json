@@ -1,0 +1,14 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.m0ustafamahm0ud.domandito",
+      "sha256_cert_fingerprints": [
+        "1E:EA:52:E9:13:0B:96:C6:AF:14:CB:BF:71:9A:91:99:69:42:5C:58:BC:F5:F0:42:FE:A6:74:E7:66:3C:47:36"
+      ]
+    }
+  }
+]

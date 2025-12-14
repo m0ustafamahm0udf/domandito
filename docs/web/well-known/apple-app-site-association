@@ -1,0 +1,25 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appIDs": [
+          "UB7HL9MB7F.com.m0ustafamahm0ud.domandito"
+        ],
+        "paths": [
+          "*"
+        ],
+        "components": [
+          {
+            "/": "/*"
+          }
+        ]
+      }
+    ]
+  },
+  "webcredentials": {
+    "apps": [
+      "UB7HL9MB7F.com.m0ustafamahm0ud.domandito"
+    ]
+  }
+}

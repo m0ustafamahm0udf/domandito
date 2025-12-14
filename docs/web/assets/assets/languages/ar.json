@@ -1,0 +1,277 @@
+{
+  "Welcome to CPV Arabia": "مرحبًا بك في CPV Arabia",
+  "Skip": "تخطي",
+  "Required": "مطلوب",
+  "Budgeting": "التقويم",
+  "Managing your projects just got a lot simpler.": "إدارة مشاريعك أصبحت أكثر بساطة.",
+  "Track and manage your projects seamlessly.": "تتبع وأدر مشاريعك بكل سهولة.",
+  "Projects Summary": "ملخص المشاريع",
+
+ 
+  "Active Projects": "مشاريع نشطة",
+  "In Progress Projects": "مشاريع قيد التنفيذ",
+  "Pending Projects": "مشاريع معلقة",
+  "Completed Projects": "مشاريع مكتملة",
+  "Completed": "مكتملة",
+  "Active": "نشطة",
+
+  "Login": "تسجيل الدخول",
+  "Create an account": "إنشاء حساب",
+  "Hi, Welcome Back!": "مرحبًا، أهلاً بعودتك!",
+  "Sign in to your account.": "قم بتسجيل الدخول إلى حسابك.",
+  "Phone Number": "رقم الهاتف",
+  "Password": "كلمة المرور",
+  "Password must be at least 8 characters long,\ncontain an uppercase letter, a lowercase letter,\na number, and a special character.":"يجب أن تكون كلمة المرور مكونة من 8 أحرف على الأقل،\nوتحتوي على حرف كبير، وحرف صغير، ورقم، وحرف خاص.",
+  "Forgot Password?": "نسيت كلمة المرور؟",
+  "Password does not match": "كلمة المرور غير متطابقة",
+  "Don’t have account?": "لا تملك حسابًا؟",
+  "Go Home": "ذهاب الى الصفحة الرئيسية",
+  "Your account has been successfully created!": "تم انشاء حسابك بنجاح!",
+  "Your password has been successfully set!": "تم تعيين كلمة المرور الخاصة بك بنجاح!",
+
+
+  
+  "OTP Verification": "التحقق من OTP",
+  "An authentication code has been sent to": "تم إرسال رمز التحقق إلى",
+  "Don’t receive OTP?": "لم تستلم رمز التحقق؟",
+  "Resend code": "اعادة ارسال الرمز",
+  "Verify": "تحقق",
+  "History": "التاريخ",
+  "Pending": "معلق",
+  "Approved": "موافق",
+  "Approve": "موافق",
+  "Rejected": "مرفوض",
+  "Reject": "رفض",
+
+ 
+  "Account Verified": "تم التحقق من الحساب",
+  "Continue": "متابعة",
+
+  
+  "Invitations and Requests": "الدعوات والطلبات",
+  "Requests": "الطلبات",
+  "Confirm": "تاكيد",
+  "Invitations": "الدعوات",
+  "Cancel": "الغاء",
+
+
+  "Password Recovery": "استعادة كلمة المرور",
+  "Enter your Phone number to recover your password": "أدخل رقم هاتفك لاستعادة كلمة المرور الخاصة بك",
+  "Reset your password": "إعادة تعيين كلمة المرور الخاصة بك",
+  "At least 8 characters, with uppercase and lowercase letters": "على الأقل 8 أحرف، بحروف كبيرة وصغيرة",
+  "New Password": "كلمة المرور الجديدة",
+  "Confirm Password": "تأكيد كلمة المرور",
+  "Verify your identity": "تحقق من هويتك",
+  "We have just sent a code to": "لقد قمنا بارسال رمز إلى",
+
+
+ 
+  "Getting Started": "ابدأ الآن",
+  "Create an account to continue!": "قم بإنشاء حساب للمتابعة!",
+  "Full Name": "الاسم الكامل",
+  "ID Number": "رقم الهوية",
+  "I confirm that the provided information is accurate and my responsibility": "أؤكد أن المعلومات المقدمة صحيحة ومسؤوليتي",
+  "Agree With Terms & Conditions": "وافق على الشروط والاتفاقيات",
+  "Sign Up": "تسجيل حساب",
+  "Already have an account?": "هل لديك حساب بالفعل؟",
+
+  "Add a photo": "إضافة صورة",
+  "Add a profile photo to continue!": "إضافة صورة الملف الشخصي للمتابعة!",
+  "Choose a photo": "اختر صورة",
+  "Maybe later": "ربما في وقت لاحق",
+  "Take a photo": "إلتقط صورة",
+  "Add From Gallery": "أضف من المعرض",
+
+
+  "Request for Manager Role": "طلب لدور مدير",
+  "Requested By": "طلب من",
+  "Role Assignment": "تعيين الدور",
+  "Reference No.": "رقم المرجع",
+  "Submitted on": "تاريخ الطلب",
+  "Invitation ": " دعوة",
+  "Type": "النوع",
+  "Status": "الحالة",
+  "Edited": "تم التعديل",
+  "Filters": "الفلاتر",
+  "Find location": "ابحث عن الموقع",
+  "Select period": "اختر الفترة",
+  "Select on map": "اختر على الخريطة",
+  "Start Date": "تاريخ البدء",
+  "End Date": "تاريخ الانتهاء",
+  "Show Results": "عرض النتائج",
+  "Reset": "إعادة تعيين",
+  "Edited By": "تم التعديل بواسطة",
+  "Previous Role": "الدور السابق",
+  "New Role": "الدور الجديد",
+"Good morning,": "صباح الخير،",
+"Good evening,": "مساء الخير،",
+"Tickets": "التذاكر",
+"Reports": "التقارير",
+"Reserve a visit": "حجز زيارة",
+"Projects": "المشاريع",
+"Notification": "الإشعارات",
+"Profile": "الحساب",
+"Owner": "المالك",
+"Contractor": "المقاول",
+  
+"Role": "الدور" ,
+"Search by Project ID, User Name, or Role" : "البحث عن طريف رقم المشروع او اسم المستخدم او الدور ",
+"Your Unactivated Projects" : "المشاريع غير المفعلة",
+"Assign Role for the Selected Project" : "تعيين دور للمشروع المحدد",
+"Confirm Project Location" : "تأكيد مكان المشروع" ,
+"Super Admin": "المشرف العام",
+  "Admin": "المشرف",
+  "Viewer": "المشاهد",
+  "Full access to project details and actions": "وصول كامل لتفاصيل المشروع والإجراءات",
+  "Manage specific project tasks": "إدارة مهام محددة في المشروع",
+  "View only permissions": "أذونات عرض فقط",
+  "Use the map to locate and confirm your project location. You can zoom and drag to adjust.": "استخدم الخريطة لتحديد موقع مشروعك وتأكيده. يمكنك التكبير والسحب لتعديل الموقع.",
+  "Current Location": "الموقع الحالي",
+  "Location detail": "تفاصيل الموقع",
+  "Choose your location": "اختر موقعك",
+  "The project with Reference No": "المشروع برقم المرجع",
+  "has been successfully added": "تمت إضافته بنجاح",
+"Location":"الموقع",
+"Details": "التفاصيل",
+"Description": "الوصف",
+"Confirm Role":"تاكيد الدور",
+"Back":"العوده",
+"Enter the project Reference No. to add it to your account":"ادخل رقم المشروع لكي تقوم باضافته لحسابك"
+,"project Reference No" : "رقم المشروع ",
+"Verify later": "التاكيد لاحقا",
+"Add Another Project": "اضافة مشروع اخر ",
+"The project withReference No.":"المشروع برقم المرجع",
+"has been successfully added.":"تمت اضافته بنجاح ",
+"Location services are disabled." : "تم تعطيل خدمات الموقع." ,  
+"Location permissions are denied" : "تم رفض أذونات الوصول إلى الموقع." ,  
+"Location permissions are permanently denied, we cannot request permissions." : "تم رفض أذونات الوصول إلى الموقع بشكل دائم، ولا يمكننا طلب الأذونات."  
+,"open location":"فتح الموقع",
+"Save Changes": "حفظ التغييرات",
+"Edit Profile": "تعديل الملف الشخصي",
+"About CPV app": "عن تطبيق CPV",
+"Terms and Conditions": "الشروط والأحكام",
+"Privacy": "الخصوصية",
+"Choose the language familiar to you": "اختر اللغة",
+"Settings": "الاعدادات",
+"Logout": "تسجيل الخروج",
+"Delete account": "حذف الحساب",
+"Change password": "تغيير كلمة المرور",
+"Change Language": "تغيير اللغة",
+"Dark Mode": "الوضع الداكن",
+"Notifications": "الإشعارات",
+"Enter old password": "أدخل كلمة المرور القديمة",
+"Enter new password": "أدخل كلمة المرور الجديدة",
+"Confirm password": "تأكيد كلمة المرور",
+"6 characters minimum": "6 أحرف على الأقل",
+"must contain one number": "يجب أن يحتوي على رقم واحد",
+"one uppercase": "حرف كبير واحد",
+"Your Privacy Matters At CPV App, we are committed to protecting your privacy and ensuring that your personal data is handled securely and transparently.": "خصوصيتك تهمنا. في تطبيق CPV، نحن ملتزمون بحماية خصوصيتك وضمان التعامل مع بياناتك الشخصية بأمان وشفافية.",
+"We may collect the following types of information:": "قد نقوم بجمع الأنواع التالية من المعلومات:",
+"Personal Information: Name, email address, phone number, and ID number.": "المعلومات الشخصية: الاسم، عنوان البريد الإلكتروني، رقم الهاتف، ورقم الهوية.",
+"Usage Data: Information automatically collected when you use the App, including IP address, device type, operating system, and usage statistics.": "بيانات الاستخدام: المعلومات التي يتم جمعها تلقائيًا عند استخدام التطبيق، بما في ذلك عنوان IP، نوع الجهاز، نظام التشغيل، وإحصائيات الاستخدام.",
+"Location Data: If you enable location services, we may collect location data to enhance the app’s functionality.": "بيانات الموقع: إذا قمت بتمكين خدمات الموقع، فقد نجمع بيانات الموقع لتحسين وظائف التطبيق.",
+"How We Use Your Data:": "كيفية استخدامنا لبياناتك:",
+"Your data is used to:": "تُستخدم بياناتك من أجل:",
+"Provide personalized project management services": "تقديم خدمات إدارة المشاريع المخصصة",
+"Send notifications about updates or features.": "إرسال إشعارات حول التحديثات أو الميزات.",
+"How We Protect Your Data:": "كيف نحمي بياناتك:",
+"All sensitive information is encrypted using the latest security standards.": "يتم تشفير جميع المعلومات الحساسة باستخدام أحدث معايير الأمان.",
+"Regular audits and security checks are conducted to ensure data protection.": "تُجرى عمليات تدقيق وفحوصات أمنية منتظمة لضمان حماية البيانات.",
+"Your data is never shared with third parties without your explicit consent.": "لا تتم مشاركة بياناتك مع أطراف ثالثة دون موافقتك الصريحة.",
+"Your Rights:": "حقوقك:",
+"You have the right to:": "لديك الحق في:",
+"Access and review your personal data.": "الوصول إلى بياناتك الشخصية ومراجعتها.",
+"Request data deletion or correction.": "طلب حذف أو تصحيح البيانات.",
+"Opt-out of receiving marketing emails.": "إلغاء الاشتراك في تلقي رسائل البريد الإلكتروني التسويقية.",
+"Contact Us:": "اتصل بنا:",
+"If you have questions about our privacy practices, please contact us:": "إذا كان لديك أسئلة حول ممارسات الخصوصية لدينا، يرجى الاتصال بنا:",
+"Email: privacy@cpvapp.com": "البريد الإلكتروني: privacy@cpvapp.com",
+"Support Page: [Visit Here]": "صفحة الدعم: [زيارة هنا]",
+"About CPV App": "عن تطبيق CPV",
+"What is CPV App ?": "ما هو تطبيق CPV؟",
+"CPV App is your trusted partner for managing and tracking your projects effortlessly. Our goal is to provide you with the tools you need to stay organized and achieve your goals, whether you're handling personal or professional projects.": "تطبيق CPV هو شريكك الموثوق لإدارة ومتابعة مشاريعك بسهولة. هدفنا هو تزويدك بالأدوات التي تحتاجها للبقاء منظمًا وتحقيق أهدافك، سواء كنت تتعامل مع مشاريع شخصية أو مهنية.",
+"Support and Contact": "الدعم والتواصل",
+"FAQs: [Visit our FAQ page]": "الأسئلة الشائعة: [زيارة صفحة الأسئلة الشائعة]",
+"Help Center: [Get support here]": "مركز المساعدة: [الحصول على الدعم هنا]",
+"Contact Us: [support@cpvapp.com](mailto:support@cpvapp.com)": "اتصل بنا: [support@cpvapp.com](mailto:support@cpvapp.com)",
+"Version Details": "تفاصيل الإصدار",
+"Current Version:": "الإصدار الحالي:",
+"Last Updated": "آخر تحديث",
+"Delete Account": "حذف الحساب",
+"We’re sorry to see you go! By deleting your account, you will permanently lose access to all data and features associated with it. This action is irreversible. If you're sure, please enter your password below to confirm.": "نأسف لرؤيتك ترحل! بحذف حسابك، ستفقد بشكل دائم الوصول إلى جميع البيانات والميزات المرتبطة به. هذا الإجراء لا رجعة فيه. إذا كنت متأكدًا، يرجى إدخال كلمة المرور أدناه لتأكيد الحذف.",
+"Enter your password": "أدخل كلمة المرور الخاصة بك",
+"Are you sure ypu want to logout?":"هل انت متأكد من انك تريد تسجيل الخروج ؟ ",
+"Your account associated with ": "الاميل المرتبط به:",
+"will be deleted from CPV":"سوف يتم حذفه من CPV",
+"Must contain one lower":"يجب ان يحتوي على حرف صغير واحد",
+
+
+
+
+"8 characters minimum": "8 أحرف على الأقل",
+"Must contain one uppercase": "يجب أن يحتوي على حرف كبير واحد",
+"Must contain one number": "يجب أن يحتوي على رقم واحد",
+"Must contain one special character (!@#\\$&*~)": "يجب أن يحتوي على رمز خاص واحد (!@#\\$&*~)",
+"Hold":"معلق",
+"Canceled":"ملغى",
+"Report Type" : "نوع التقرير",
+
+
+"Appointments":"الزيارات",
+"Visit Type":"نوع الزيارة",
+"Add a Visit":"اضافة زيارة",
+"Fill in the details to schedule your project visit.":"املأ التفاصيل لجدولة زيارتك للمشروع.",
+"Inspector Name":"اسم المشرف",
+"Proposed Date":"التاريخ المقترح",
+"Notes":"ملاحظات",
+"Project Location":"موقع المشروع",
+"View on map":"عرض على الخريطة",
+"Submit":"تقديم",
+"Request Submitted Successfully!":"تم تقديم الطلب بنجاح!",
+"Your request has been successfully submitted. The proposed date is subject to change. You will receive a confirmation once the date is finalized":"تم تقديم الطلب بنجاح. تاريخ المقترح قابل للتغيير. سوف تحصل على تاكيد بعد تحديد تاريخه",
+"Done":"تم",
+"Visit Details":"تفاصيل الزيارة",
+"Detailed information about a specific visit.":"معلومات تفصيلية حول زيارة محددة.",
+"Resubmit":"اعادة تقديم",
+"Reserve New Visit":"حجز زيارة جديدة",
+"Report Details":"تفاصيل التقرير",
+"Detailed information about a specific Report.":"معلومات تفصيلية حول تقرير محدد."
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+}
+

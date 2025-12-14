@@ -41,21 +41,21 @@ Future<void> _onBackgroundMessage(RemoteMessage message) async {
 }
 
 void main() async {
-    WidgetsFlutterBinding.ensureInitialized();
-  SystemUiStyle.overlayStyle();
-  final securityService = SecurityService();
-  await securityService.init();
-  final SecurityStatus securityStatus = await securityService
-      .evaluateSecurityStatus();
-  if (securityStatus != SecurityStatus.safe) {
-    runApp(
-      MaterialApp(
-        debugShowCheckedModeBanner: false,
-        home: SecurityWarningScreen(status: securityStatus),
-      ),
-    );
-    return; // stop startup and avoid further initialization on unsafe devices
-  }
+  // WidgetsFlutterBinding.ensureInitialized();
+  // SystemUiStyle.overlayStyle();
+  // final securityService = SecurityService();
+  // await securityService.init();
+  // final SecurityStatus securityStatus = await securityService
+  //     .evaluateSecurityStatus();
+  // if (securityStatus != SecurityStatus.safe) {
+  //   runApp(
+  //     MaterialApp(
+  //       debugShowCheckedModeBanner: false,
+  //       home: SecurityWarningScreen(status: securityStatus),
+  //     ),
+  //   );
+  //   return; // stop startup and avoid further initialization on unsafe devices
+  // }
 
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
