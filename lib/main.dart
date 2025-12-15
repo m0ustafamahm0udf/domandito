@@ -124,39 +124,73 @@ class _MyAppState extends State<MyApp> {
           }
         },
         builder: (context, state) {
-          return GestureDetector(
-            onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-            child: GetMaterialApp(
-              // initialRoute:!kIsWeb ? null : AppRoutes.landing, // يبدأ من المسار الرئيسي
-              // getPages: !kIsWeb ? null :AppPages.routes, // تحديد قائمة المسارات
-              navigatorKey: navigatorKey,
-              // builder: OneContext().builder,
-              // navigatorKey: OneContext().key,
-              // builder: OneContext().builder,
-              scrollBehavior: CupertinoScrollBehavior(),
-              theme: AppTheme.lightTheme(context: context),
-              debugShowCheckedModeBanner: false,
-              localizationsDelegates: [...context.localizationDelegates],
-              supportedLocales: context.supportedLocales,
-              locale: context.locale,
-              home:
-                  //  InvitationsAndRequestsScreen()
-                  AnnotatedRegion<SystemUiOverlayStyle>(
-                    value: SystemUiOverlayStyle(
-                      statusBarBrightness: Brightness.light,
-                      statusBarColor: Colors.transparent,
-                      systemNavigationBarColor: Colors.transparent,
-                      systemNavigationBarIconBrightness: Brightness.dark,
-                      statusBarIconBrightness: Brightness.dark,
+          if (!kIsWeb) {
+            return GestureDetector(
+              onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+              child: GetMaterialApp(
+                navigatorKey: navigatorKey,
+                // builder: OneContext().builder,
+                // navigatorKey: OneContext().key,
+                // builder: OneContext().builder,
+                scrollBehavior: CupertinoScrollBehavior(),
+                theme: AppTheme.lightTheme(context: context),
+                debugShowCheckedModeBanner: false,
+                localizationsDelegates: [...context.localizationDelegates],
+                supportedLocales: context.supportedLocales,
+                locale: context.locale,
+                home:
+                    //  InvitationsAndRequestsScreen()
+                    AnnotatedRegion<SystemUiOverlayStyle>(
+                      value: SystemUiOverlayStyle(
+                        statusBarBrightness: Brightness.light,
+                        statusBarColor: Colors.transparent,
+                        systemNavigationBarColor: Colors.transparent,
+                        systemNavigationBarIconBrightness: Brightness.dark,
+                        statusBarIconBrightness: Brightness.dark,
+                      ),
+                      child: _toggleScreen(),
+                      // child: ConnectivityBuilder(
+                      //   onlineBuilder: (context) => _toggleScreen(),
+                      //   offlineBuilder: (context) => OfflineScreen(),
+                      // ),
                     ),
-                    child: _toggleScreen(),
-                    // child: ConnectivityBuilder(
-                    //   onlineBuilder: (context) => _toggleScreen(),
-                    //   offlineBuilder: (context) => OfflineScreen(),
-                    // ),
-                  ),
-            ),
-          );
+              ),
+            );
+          } else {
+            return GestureDetector(
+              onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+              child: GetMaterialApp(
+                initialRoute: AppRoutes.landing, // يبدأ من المسار الرئيسي
+                getPages: AppPages.routes, // تحديد قائمة المسارات
+                navigatorKey: navigatorKey,
+                // builder: OneContext().builder,
+                // navigatorKey: OneContext().key,
+                // builder: OneContext().builder,
+                scrollBehavior: CupertinoScrollBehavior(),
+                theme: AppTheme.lightTheme(context: context),
+                debugShowCheckedModeBanner: false,
+                localizationsDelegates: [...context.localizationDelegates],
+                supportedLocales: context.supportedLocales,
+                locale: context.locale,
+                home:
+                    //  InvitationsAndRequestsScreen()
+                    AnnotatedRegion<SystemUiOverlayStyle>(
+                      value: SystemUiOverlayStyle(
+                        statusBarBrightness: Brightness.light,
+                        statusBarColor: Colors.transparent,
+                        systemNavigationBarColor: Colors.transparent,
+                        systemNavigationBarIconBrightness: Brightness.dark,
+                        statusBarIconBrightness: Brightness.dark,
+                      ),
+                      child: _toggleScreen(),
+                      // child: ConnectivityBuilder(
+                      //   onlineBuilder: (context) => _toggleScreen(),
+                      //   offlineBuilder: (context) => OfflineScreen(),
+                      // ),
+                    ),
+              ),
+            );
+          }
         },
       ),
     );

@@ -98,7 +98,7 @@ class DeepLinkHelper {
         }
       });
     }
-    if ((uri.pathSegments.length == 1 && uri.pathSegments.first != '/' )|| uri.pathSegments.length == 1 && uri.pathSegments.first != '#/' ) {
+    if (uri.pathSegments.length == 1 && uri.pathSegments.first != 'q') {
       final userUserName = uri.pathSegments.last;
       // log('Product ID: $productId');
 

@@ -17,7 +17,8 @@
   -->
   <base href="$FLUTTER_BASE_HREF">
 
-  <script>
+  <!-- <script>
+    // الحصول على المسار الحالي
     var currentPath = window.location.pathname;
 
     // التحقق: إذا لم يكن هناك هاش (#) في العنوان وإذا كان هناك مسار بخلاف الجذر (/)
@@ -25,119 +26,118 @@
       // قم بإعادة التوجيه إلى المسار مضافاً إليه هاش
       window.location.replace(window.location.origin + '/#' + currentPath);
     }
-  </script>
+  </script> -->
 
 
-  <meta charset="UTF-8">
-  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="Domandito">
+<meta charset="UTF-8">
+<meta content="IE=Edge" http-equiv="X-UA-Compatible">
+<meta name="description" content="Domandito">
 
-  <meta name="google-signin-client_id"
-    content="623808187900-gsa0ldhtii8mhgv55vbfqqdrc4vhjf6c.apps.googleusercontent.com">
+<meta name="google-signin-client_id" content="623808187900-gsa0ldhtii8mhgv55vbfqqdrc4vhjf6c.apps.googleusercontent.com">
 
-  <!-- Open Graph -->
-  <meta property="og:title" content="Domandito" />
-  <meta property="og:description" content="Ask anoynmously" />
-  <meta property="og:image" content="https://takeawayapp.ams3.digitaloceanspaces.com/play_store_512.png" />
-  <meta property="og:url" content="https://domandito-rbuqt.ondigitalocean.app/" />
-  <meta property="og:type" content="website" />
-  <!-- Twitter -->
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Domandito" />
-  <meta name="twitter:description" content="Ask anoynmously" />
-  <meta name="twitter:image" content="https://takeawayapp.ams3.digitaloceanspaces.com/play_store_512.png" />
-  <meta property="og:site_name" content="Domandito" />
-  <meta property="og:locale" content="ar_EG" />
+<!-- Open Graph -->
+<meta property="og:title" content="Domandito" />
+<meta property="og:description" content="Ask anoynmously" />
+<meta property="og:image" content="https://takeawayapp.ams3.digitaloceanspaces.com/play_store_512.png" />
+<meta property="og:url" content="https://domandito-rbuqt.ondigitalocean.app/" />
+<meta property="og:type" content="website" />
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Domandito" />
+<meta name="twitter:description" content="Ask anoynmously" />
+<meta name="twitter:image" content="https://takeawayapp.ams3.digitaloceanspaces.com/play_store_512.png" />
+<meta property="og:site_name" content="Domandito" />
+<meta property="og:locale" content="ar_EG" />
 
-  <!-- iOS meta tags & icons -->
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="Domandito">
-  <meta name="theme-color" content="#dd324f">
-  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+<!-- iOS meta tags & icons -->
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Domandito">
+<meta name="theme-color" content="#dd324f">
+<link rel="apple-touch-icon" href="icons/Icon-192.png">
 
-  <!-- Favicon -->
-  <link rel="icon" type="image/png" href="favicon.ico">
+<!-- Favicon -->
+<link rel="icon" type="image/png" href="favicon.ico">
 
-  <title>Domandito</title>
-  <link rel="manifest" href="manifest.json">
-
-
-  <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport">
+<title>Domandito</title>
+<link rel="manifest" href="manifest.json">
 
 
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport">
 
 
 
 
-  <style id="splash-screen-style">
-    html {
-      height: 100%
-    }
 
-    body {
-      margin: 0;
-      min-height: 100%;
-      background-color: #dd324f;
-      background-size: 100% 100%;
-    }
 
-    .center {
-      margin: 0;
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      -ms-transform: translate(-50%, -50%);
-      transform: translate(-50%, -50%);
-    }
+<style id="splash-screen-style">
+  html {
+    height: 100%
+  }
 
-    .contain {
-      display: block;
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-    }
+  body {
+    margin: 0;
+    min-height: 100%;
+    background-color: #dd324f;
+    background-size: 100% 100%;
+  }
 
-    .stretch {
-      display: block;
-      width: 100%;
-      height: 100%;
-    }
+  .center {
+    margin: 0;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    -ms-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+  }
 
-    .cover {
-      display: block;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
+  .contain {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
 
-    .bottom {
-      position: absolute;
-      bottom: 0;
-      left: 50%;
-      -ms-transform: translate(-50%, 0);
-      transform: translate(-50%, 0);
-    }
+  .stretch {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
 
-    .bottomLeft {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-    }
+  .cover {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
 
-    .bottomRight {
-      position: absolute;
-      bottom: 0;
-      right: 0;
-    }
-  </style>
-  <script id="splash-screen-script">
-    function removeSplashFromWeb() {
-      document.getElementById("splash")?.remove();
-      document.getElementById("splash-branding")?.remove();
-      document.body.style.background = "transparent";
-    }
-  </script>
+  .bottom {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    -ms-transform: translate(-50%, 0);
+    transform: translate(-50%, 0);
+  }
+
+  .bottomLeft {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+  }
+
+  .bottomRight {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+  }
+</style>
+<script id="splash-screen-script">
+  function removeSplashFromWeb() {
+    document.getElementById("splash")?.remove();
+    document.getElementById("splash-branding")?.remove();
+    document.body.style.background = "transparent";
+  }
+</script>
 </head>
 
 <body>
