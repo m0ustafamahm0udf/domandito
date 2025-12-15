@@ -13,7 +13,7 @@ Future<dynamic> showLogOutButtomSheet({
       isDismissible: false,
       enableDrag: false,
       useRootNavigator: true,
-      routeSettings: RouteSettings(name: 'OfferDialog'),
+      routeSettings: RouteSettings(name: 'LogOutButtomSheet'),
       builder: (context) {
         return Container(
           padding: EdgeInsets.all(AppConstance.vPadding),
