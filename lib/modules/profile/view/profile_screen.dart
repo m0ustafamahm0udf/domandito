@@ -27,8 +27,11 @@ import 'package:domandito/shared/widgets/share_widget.dart';
 import 'package:domandito/shared/widgets/show_image_picker.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_overlay_loader/flutter_overlay_loader.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
 import 'package:svg_flutter/svg_flutter.dart';
@@ -38,12 +41,14 @@ import '../../signin/models/user_model.dart';
 class ProfileScreen extends StatefulWidget {
   final String userId;
   final String userUserName;
+  String? webUserUserName;
   final Function(bool)? onUnfollow;
-  const ProfileScreen({
+   ProfileScreen({
     super.key,
     required this.userId,
     this.onUnfollow,
     this.userUserName = '',
+    this.webUserUserName,
   });
 
   @override
@@ -67,6 +72,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
+    if (kIsWeb) {
+      // استخدم Get.parameters لاستخراج الـ username من الـ URL (الذي تم تعريفه كـ '/:username')
+      widget.webUserUserName = Get.parameters['username'];
+      // إذا وجدنا اسم مستخدم في الـ URL، نعتبر أن هذا هو البروفايل المطلوب عرضه
+      if (widget.webUserUserName != null &&
+          widget.webUserUserName!.isNotEmpty) {
+        log('Web Deep Link Detected for user: $widget.webUserUserName');
+      }
+    }
     isMe = widget.userId == MySharedPreferences.userId;
     getProfile();
     getQuestionsCount();
@@ -77,10 +91,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> getProfile() async {
     setState(() => isLoading = true);
     try {
-      if (widget.userId.isNotEmpty) {
+      final String targetUserName =
+          kIsWeb &&
+              widget.webUserUserName != null &&
+              widget.webUserUserName!.isNotEmpty
+          ? widget.webUserUserName! // استخدام القادم من الـ URL في الويب
+          : widget
+                .userUserName; // استخدام القادم من الـ widget (للموبايل أو التوجيه الداخلي)
+
+      final String targetUserId = widget.userId;
+      if (targetUserId.isNotEmpty) {
         final doc = await FirebaseFirestore.instance
             .collection('users')
-            .doc(widget.userId)
+            .doc(targetUserId)
             .get();
         if (doc.exists) {
           user = UserModel.fromFirestore(doc);
@@ -96,7 +119,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       } else {
         final doc = await FirebaseFirestore.instance
             .collection('users')
-            .where('userName', isEqualTo: widget.userUserName)
+            .where('userName', isEqualTo: targetUserName)
             .limit(1)
             .get();
         if (doc.docs.isNotEmpty) {
@@ -1005,7 +1028,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return AppBar(
       title: Text(
         '@${user?.userName ?? ''}',
-                                textDirection: TextDirection.ltr,
+        textDirection: TextDirection.ltr,
 
         style: TextStyle(
           color: Colors.white,
