@@ -5,6 +5,9 @@ import 'package:domandito/modules/landing/views/landing_screen.dart';
 import 'package:domandito/modules/profile/view/profile_screen.dart';
 import 'package:domandito/modules/signin/signin_screen.dart';
 import 'package:domandito/core/utils/shared_prefrences.dart';
+import 'package:domandito/shared/style/app_colors.dart';
+import 'package:domandito/shared/widgets/logo_widg.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 
@@ -53,7 +56,9 @@ class AppPages {
             // انتظار جلب البيانات
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Scaffold(
-                body: Center(child: CircularProgressIndicator()),
+                body: Center(
+                  child: CupertinoActivityIndicator(color: AppColors.primary),
+                ),
               );
             }
 
@@ -69,7 +74,23 @@ class AppPages {
             } else {
               // إذا لم يتم العثور على المستخدم
               return const Scaffold(
-                body: Center(child: Text('User Not Found (404)')),
+                body: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      LogoWidg(),
+                      Text(
+                        'User Not Found (404)',
+                        style: TextStyle(
+                          color: AppColors.primary,
+                          fontFamily: 'Dancing_Script',
+                          fontSize: 42,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               );
             }
           },

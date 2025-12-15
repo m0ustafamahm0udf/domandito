@@ -40,7 +40,6 @@ Future<void> _onBackgroundMessage(RemoteMessage message) async {
 }
 
 void main() async {
-
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   InitFirebaseNotification().init();
@@ -54,7 +53,7 @@ void main() async {
   await GmsCheck().checkGmsAvailability();
   // final Locale deviceLocale = WidgetsBinding.instance.window.locale;
   if (kIsWeb) {
-  runApp(
+    runApp(
       EasyLocalization(
         supportedLocales: const [Locale('en'), Locale('ar')],
         saveLocale: true,
@@ -63,7 +62,9 @@ void main() async {
         useOnlyLangCode: true,
         // startLocale: deviceLocale.toString().split('_').first.toString() == 'ar' ? const Locale('ar') : const Locale('en'),
         startLocale: Locale('en'),
-        child: OneNotification(builder: (x, _) => WebFixedSizeWrapper(child: const MyApp())),
+        child: OneNotification(
+          builder: (x, _) => WebFixedSizeWrapper(child: const MyApp()),
+        ),
       ),
     );
   } else {
@@ -101,7 +102,7 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-  if (!kIsWeb) { 
+    if (!kIsWeb) {
       DeepLinkHelper().setupDeepLinkHandler(context: context);
     }
   }
