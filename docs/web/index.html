@@ -51,13 +51,7 @@
   <title>Domandito</title>
   <link rel="manifest" href="manifest.json">
 
-
   <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport">
-
-
-
-
-
 
   <style id="splash-screen-style">
     html {
@@ -120,6 +114,7 @@
       right: 0;
     }
   </style>
+
   <script id="splash-screen-script">
     function removeSplashFromWeb() {
       document.getElementById("splash")?.remove();
@@ -127,6 +122,15 @@
       document.body.style.background = "transparent";
     }
   </script>
+
+  <!-- ✨ هذا الجزء الجديد لعمل redirect لأي path غير "/" -->
+  <script type="text/javascript">
+    if (window.location.pathname !== "/") {
+      // إعادة توجيه إلى الدومين الأساسي
+      window.location.replace(window.location.origin + "/");
+    }
+  </script>
+
 </head>
 
 <body>
@@ -140,13 +144,7 @@
     <img class="center" aria-hidden="true" src="splash/img/light-1x.png" alt="">
   </picture>
 
-
-
-
   <script src="flutter_bootstrap.js" async=""></script>
-  <!-- <script type="text/javascript" src="https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js"></script> -->
-
-
 </body>
 
 </html>
