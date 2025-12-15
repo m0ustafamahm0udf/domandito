@@ -128,6 +128,7 @@ class _MyAppState extends State<MyApp> {
             return GestureDetector(
               onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
               child: GetMaterialApp(
+                title: 'Domandito',
                 navigatorKey: navigatorKey,
                 // builder: OneContext().builder,
                 // navigatorKey: OneContext().key,
@@ -160,6 +161,8 @@ class _MyAppState extends State<MyApp> {
             return GestureDetector(
               onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
               child: GetMaterialApp(
+                title: 'Domandito',
+
                 initialRoute: AppRoutes.landing, // يبدأ من المسار الرئيسي
                 getPages: AppPages.routes, // تحديد قائمة المسارات
                 navigatorKey: navigatorKey,
