@@ -61091,12 +61091,12 @@ o=p.c
 n=q.b
 s=o.length!==0?2:4
 break
-case 2:p=A.LL(n,"https://domandito-rbuqt.ondigitalocean.app/#/"+o)
+case 2:p=A.LL(n,"https://domandito.com/#/"+o)
 s=5
 return A.l(p,$async$$0)
 case 5:s=3
 break
-case 4:p=A.LL(n,"https://domandito-rbuqt.ondigitalocean.app/q/"+p.d)
+case 4:p=A.LL(n,"https://domandito.com/q/"+p.d)
 s=6
 return A.l(p,$async$$0)
 case 6:case 3:return A.q(null,r)}})
