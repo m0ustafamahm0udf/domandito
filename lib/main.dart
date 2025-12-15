@@ -102,9 +102,9 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    if (!kIsWeb) {
-      DeepLinkHelper().setupDeepLinkHandler(context: context);
-    }
+    // if (!kIsWeb) {
+    //   DeepLinkHelper().setupDeepLinkHandler(context: context);
+    // }
   }
 
   @override
@@ -127,34 +127,32 @@ class _MyAppState extends State<MyApp> {
           return GestureDetector(
             onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
             child: GetMaterialApp(
-              initialRoute: AppRoutes.landing, // يبدأ من المسار الرئيسي
-              getPages: AppPages.routes, // تحديد قائمة المسارات
+              initialRoute: AppRoutes.landing, // المسار الأولي للجذر '/'
+              getPages: AppPages.routes, // قائمة المسارات
+
               navigatorKey: navigatorKey,
-              // builder: OneContext().builder,
-              // navigatorKey: OneContext().key,
-              // builder: OneContext().builder,
               scrollBehavior: CupertinoScrollBehavior(),
               theme: AppTheme.lightTheme(context: context),
               debugShowCheckedModeBanner: false,
               localizationsDelegates: [...context.localizationDelegates],
               supportedLocales: context.supportedLocales,
               locale: context.locale,
-              home:
-                  //  InvitationsAndRequestsScreen()
-                  AnnotatedRegion<SystemUiOverlayStyle>(
-                    value: SystemUiOverlayStyle(
-                      statusBarBrightness: Brightness.light,
-                      statusBarColor: Colors.transparent,
-                      systemNavigationBarColor: Colors.transparent,
-                      systemNavigationBarIconBrightness: Brightness.dark,
-                      statusBarIconBrightness: Brightness.dark,
-                    ),
-                    child: _toggleScreen(),
-                    // child: ConnectivityBuilder(
-                    //   onlineBuilder: (context) => _toggleScreen(),
-                    //   offlineBuilder: (context) => OfflineScreen(),
-                    // ),
+
+              // 🌟🌟🌟 التعديل الحاسم: إزالة خاصية home بالكامل 🌟🌟🌟
+              // هذا يضمن أن GetX يعالج المسارات القادمة من الـ Deep Link أولاً.
+              builder: (context, child) {
+                return AnnotatedRegion<SystemUiOverlayStyle>(
+                  value: SystemUiOverlayStyle(
+                    statusBarBrightness: Brightness.light,
+                    statusBarColor: Colors.transparent,
+                    systemNavigationBarColor: Colors.transparent,
+                    systemNavigationBarIconBrightness: Brightness.dark,
+                    statusBarIconBrightness: Brightness.dark,
                   ),
+                  // نستخدم الـ child الذي يجلبه GetX، و _toggleScreen() كـ fallback أخير إذا كان child فارغًا تمامًا
+                  child: child ?? _toggleScreen(),
+                );
+              },
             ),
           );
         },

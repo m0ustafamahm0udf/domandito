@@ -1,5 +1,6 @@
 // lib/core/config/app_pages.dart
 
+import 'dart:developer';
 import 'package:domandito/core/utils/utils.dart';
 import 'package:domandito/modules/landing/views/landing_screen.dart';
 import 'package:domandito/modules/profile/view/profile_screen.dart';
@@ -22,35 +23,30 @@ class AppRoutes {
     return MySharedPreferences.isLoggedIn ? LandingScreen() : SignInScreen();
   }
 }
-// lib/core/config/app_pages.dart
-
-// ... (تعريف AppRoutes يبقى كما هو)
 
 class AppPages {
   static final routes = [
-    // 1. المسار الرئيسي (الـ Root /)
+    // 1. المسار الرئيسي (الـ Root /) - للبدء العادي
     GetPage(
       name: AppRoutes.landing,
       page: () => AppRoutes._getInitialScreen(), // الشاشة الافتتاحية
     ),
 
-    // 2. مسار البروفايل (مثال: /m0ustafamahm0ud)
+    // 2. مسار البروفايل (مثال: /m0ustafamahm0ud أو /#/m0ustafamahm0ud)
     GetPage(
       name: AppRoutes.profile,
-      // 🌟 التعديل هنا: استخدام FutureBuilder أو انتظار النتيجة مباشرة (وهو الأفضل هنا) 🌟
       page: () {
-        // 1. استخلاص اسم المستخدم من المسار
+        // 1. استخلاص اسم المستخدم من المسار (يعمل للـ Path و الـ Hash)
         final String? userUserName = Get.parameters['username'];
+        log('Deep Link Detected for User: $userUserName');
 
         // 2. التحقق من وجود اسم المستخدم
         if (userUserName == null || userUserName.isEmpty) {
-          // يمكن هنا العودة إلى الصفحة الرئيسية أو صفحة 404
           return AppRoutes._getInitialScreen();
         }
 
-        // 3. استخدام FutureBuilder لانتظار جلب البيانات (لأن دالة page غير متزامنة)
+        // 3. استخدام FutureBuilder لانتظار جلب البيانات قبل العرض
         return FutureBuilder<dynamic>(
-          // 'dynamic' يمكن استبدالها بـ 'UserModel?' أو نوع الإرجاع الفعلي
           future: getProfileByUserNameForDeepLink(userUserName: userUserName),
           builder: (context, snapshot) {
             // انتظار جلب البيانات
@@ -68,8 +64,8 @@ class AppPages {
             if (userModel != null) {
               // إذا تم العثور على المستخدم، قم بعرض شاشة البروفايل
               return ProfileScreen(
-                userId: userModel.id, // 🌟 تمرير الـ userId المسترجع
-                userUserName: '',
+                userId: userModel.id, 
+                userUserName: userModel.userName, // تمرير الـ userName الحقيقي
               );
             } else {
               // إذا لم يتم العثور على المستخدم
@@ -98,6 +94,10 @@ class AppPages {
       },
     ),
 
-    // ... (مسار السؤال AppRoutes.question إذا كان مفعلاً)
+    // 3. مسار السؤال (قم بإلغاء التعليق إذا كنت تريد تفعيله)
+    // GetPage(
+    //   name: AppRoutes.question,
+    //   // ... (منطق QuestionScreen)
+    // ),
   ];
 }
