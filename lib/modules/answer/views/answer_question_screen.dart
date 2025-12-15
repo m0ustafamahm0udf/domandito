@@ -87,7 +87,12 @@ class _AnswerQuestionScreenState extends State<AnswerQuestionScreen> {
 
   Future<void> sendQuestion() async {
     if (!await hasInternetConnection()) {
-      AppConstance().showInfoToast(context, msg: !context.isCurrentLanguageAr() ? 'No internet connection' : 'لا يوجد اتصال بالانترنت');
+      AppConstance().showInfoToast(
+        context,
+        msg: !context.isCurrentLanguageAr()
+            ? 'No internet connection'
+            : 'لا يوجد اتصال بالانترنت',
+      );
       return;
     }
 
@@ -117,12 +122,13 @@ class _AnswerQuestionScreenState extends State<AnswerQuestionScreen> {
       final docRef = FirebaseFirestore.instance
           .collection('questions')
           .doc(widget.question.id);
-    DateTime now = await getNetworkTime() ?? DateTime.now();
+      DateTime now = await getNetworkTime() ?? DateTime.now();
 
       await docRef.update({
         'answeredAt': Timestamp.fromDate(now),
         'answerText': answerController.text.trim(),
         'images': uploadedImageUrls,
+        'receiver.token': MySharedPreferences.deviceToken,
       });
 
       AppConstance().showSuccesToast(

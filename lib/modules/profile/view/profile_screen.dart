@@ -935,8 +935,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ),
             child: Container(
-              height: 200,
-              width: 200,
+              height: 175,
+              width: 175,
               padding: const EdgeInsets.all(2.0),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
@@ -946,8 +946,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 child: CustomNetworkImage(
                   radius: 999,
                   url: user!.image,
-                  height: 200,
-                  width: 200,
+                  height: 175,
+                  width: 175,
                   boxFit: BoxFit.cover,
                 ),
               ),
