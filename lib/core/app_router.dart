@@ -1,12 +1,12 @@
 // lib/core/config/app_pages.dart
 
+import 'package:domandito/core/utils/utils.dart';
 import 'package:domandito/modules/landing/views/landing_screen.dart';
 import 'package:domandito/modules/profile/view/profile_screen.dart';
 import 'package:domandito/modules/signin/signin_screen.dart';
 import 'package:domandito/core/utils/shared_prefrences.dart';
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
-
 
 class AppRoutes {
   // تعريف ثابت لأسماء المسارات
@@ -19,6 +19,9 @@ class AppRoutes {
     return MySharedPreferences.isLoggedIn ? LandingScreen() : SignInScreen();
   }
 }
+// lib/core/config/app_pages.dart
+
+// ... (تعريف AppRoutes يبقى كما هو)
 
 class AppPages {
   static final routes = [
@@ -31,20 +34,49 @@ class AppPages {
     // 2. مسار البروفايل (مثال: /m0ustafamahm0ud)
     GetPage(
       name: AppRoutes.profile,
-      page: () =>  ProfileScreen(userId: '', userUserName: ''), 
-      // سنقوم باستخراج البيانات داخل ProfileScreen
+      // 🌟 التعديل هنا: استخدام FutureBuilder أو انتظار النتيجة مباشرة (وهو الأفضل هنا) 🌟
+      page: () {
+        // 1. استخلاص اسم المستخدم من المسار
+        final String? userUserName = Get.parameters['username'];
+
+        // 2. التحقق من وجود اسم المستخدم
+        if (userUserName == null || userUserName.isEmpty) {
+          // يمكن هنا العودة إلى الصفحة الرئيسية أو صفحة 404
+          return AppRoutes._getInitialScreen();
+        }
+
+        // 3. استخدام FutureBuilder لانتظار جلب البيانات (لأن دالة page غير متزامنة)
+        return FutureBuilder<dynamic>(
+          // 'dynamic' يمكن استبدالها بـ 'UserModel?' أو نوع الإرجاع الفعلي
+          future: getProfileByUserNameForDeepLink(userUserName: userUserName),
+          builder: (context, snapshot) {
+            // انتظار جلب البيانات
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Scaffold(
+                body: Center(child: CircularProgressIndicator()),
+              );
+            }
+
+            // البيانات جاهزة
+            final userModel = snapshot.data;
+
+            if (userModel != null) {
+              // إذا تم العثور على المستخدم، قم بعرض شاشة البروفايل
+              return ProfileScreen(
+                userId: userModel.id, // 🌟 تمرير الـ userId المسترجع
+                userUserName: '',
+              );
+            } else {
+              // إذا لم يتم العثور على المستخدم
+              return const Scaffold(
+                body: Center(child: Text('User Not Found (404)')),
+              );
+            }
+          },
+        );
+      },
     ),
 
-    // 3. مسار السؤال (مثال: /q/12345)
-    // GetPage(
-    //   name: AppRoutes.question,
-    //   page: () => QuestionScreen(
-    //       isVerified: false, 
-    //       question: null, 
-    //       receiverImage: '', 
-    //       onBack: (s) {}, 
-    //       currentProfileUserId: MySharedPreferences.userId
-    //   ),
-    // ),
+    // ... (مسار السؤال AppRoutes.question إذا كان مفعلاً)
   ];
 }

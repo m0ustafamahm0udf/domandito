@@ -35,7 +35,7 @@ class _ShareWidgetState extends State<ShareWidget> {
         log(widget.userUserName);
         if (widget.userUserName.isNotEmpty) {
           await ShareService.shareContent(
-            data: '${AppConstance.shareLink}${widget.userUserName}',
+            data: '${AppConstance.shareLink}#/${widget.userUserName}',
             context: context,
           );
         } else {
