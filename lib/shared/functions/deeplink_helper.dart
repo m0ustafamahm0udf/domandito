@@ -2,6 +2,8 @@
 
 // ignore_for_file: use_build_context_synchronously
 
+import 'dart:developer';
+
 import 'package:app_links/app_links.dart';
 import 'package:domandito/core/utils/shared_prefrences.dart';
 import 'package:domandito/core/utils/utils.dart';
@@ -61,25 +63,93 @@ class DeepLinkHelper {
     return true;
   }
 
+  // void _handleDeepLink({
+  //   required Uri uri,
+  //   required BuildContext context,
+  // }) async {
+  //   // Handle deep link
+  //   log('Deep link handled: $uri');
+
+  //   if (uri.pathSegments.isNotEmpty && uri.pathSegments.first == 'q') {
+  //     final questionId = uri.pathSegments.last;
+  //     // log('Product ID: $productId');
+
+  //     // Delay navigation slightly to ensure context is ready
+
+  //     Future.delayed(Duration(milliseconds: 100), () async {
+  //       try {
+  //         final res = await getQuestionData(questionId: questionId);
+  //         if (res != null) {
+  //           final q = res;
+
+  //           pushScreen(
+  //             navigatorKey.currentState!.context,
+  //             screen: QuestionScreen(
+  //               isVerified: false,
+  //               question: q,
+  //               receiverImage: q.receiver.image,
+  //               onBack: (s) {},
+  //               currentProfileUserId: MySharedPreferences.userId,
+  //             ),
+  //           );
+  //         } else {
+  //           // debugPrint("No restaurant found with id: $resId");
+  //         }
+  //       } catch (e) {
+  //         // debugPrint("Error loading restaurant: $e");
+  //       }
+  //     });
+  //   }
+  //   if ((uri.pathSegments.length == 1 && uri.pathSegments.first == '#/') || uri.pathSegments.length == 1 && uri.pathSegments.first == '/') {
+  //     final userUserName = uri.pathSegments.last;
+  //     // log('Product ID: $productId');
+
+  //     // Delay navigation slightly to ensure context is ready
+  //     if (userUserName == MySharedPreferences.userUserName) {
+  //       return;
+  //     }
+  //     final res = await getProfileByUserNameForDeepLink(
+  //       userUserName: userUserName,
+  //     );
+  //     if (res != null) {
+  //       Future.delayed(Duration(milliseconds: 100), () async {
+  //         pushScreen(
+  //           navigatorKey.currentState!.context,
+  //           screen: ProfileScreen(userId: res.id, userUserName: ''),
+  //         );
+  //       });
+  //     }
+  //   }
+  // }
   void _handleDeepLink({
     required Uri uri,
     required BuildContext context,
   }) async {
-    // Handle deep link
-    // log('Deep link handled: $uri');
+    log('Deep link handled: $uri');
 
-    if (uri.pathSegments.isNotEmpty && uri.pathSegments.first == 'q') {
-      final questionId = uri.pathSegments.last;
-      // log('Product ID: $productId');
+    /// 1️⃣ استخرج المسار الحقيقي
+    String path = uri.path;
 
-      // Delay navigation slightly to ensure context is ready
+    // لو Web hash routing
+    if (path == '/' && uri.fragment.isNotEmpty) {
+      path = uri.fragment; // /m0ustafamahm0ud أو /q/123
+    }
 
-      Future.delayed(Duration(milliseconds: 100), () async {
+    // نظف المسار
+    path = path.replaceFirst('#', '');
+
+    final segments = path.split('/').where((e) => e.isNotEmpty).toList();
+
+    if (segments.isEmpty) return;
+
+    /// 2️⃣ Question deep link
+    if (segments.first == 'q' && segments.length >= 2) {
+      final questionId = segments[1];
+
+      Future.delayed(const Duration(milliseconds: 100), () async {
         try {
-          final res = await getQuestionData(questionId: questionId);
-          if (res != null) {
-            final q = res;
-
+          final q = await getQuestionData(questionId: questionId);
+          if (q != null) {
             pushScreen(
               navigatorKey.currentState!.context,
               screen: QuestionScreen(
@@ -90,27 +160,25 @@ class DeepLinkHelper {
                 currentProfileUserId: MySharedPreferences.userId,
               ),
             );
-          } else {
-            // debugPrint("No restaurant found with id: $resId");
           }
-        } catch (e) {
-          // debugPrint("Error loading restaurant: $e");
-        }
+        } catch (_) {}
       });
-    }
-    if (uri.pathSegments.length == 1 && uri.pathSegments.first != 'q') {
-      final userUserName = uri.pathSegments.last;
-      // log('Product ID: $productId');
 
-      // Delay navigation slightly to ensure context is ready
-      if (userUserName == MySharedPreferences.userUserName) {
-        return;
-      }
+      return;
+    }
+
+    /// 3️⃣ Profile deep link
+    if (segments.length == 1) {
+      final userUserName = segments.first;
+
+      if (userUserName == MySharedPreferences.userUserName) return;
+
       final res = await getProfileByUserNameForDeepLink(
         userUserName: userUserName,
       );
+
       if (res != null) {
-        Future.delayed(Duration(milliseconds: 100), () async {
+        Future.delayed(const Duration(milliseconds: 100), () {
           pushScreen(
             navigatorKey.currentState!.context,
             screen: ProfileScreen(userId: res.id, userUserName: ''),
