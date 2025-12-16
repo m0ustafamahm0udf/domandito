@@ -1,6 +1,7 @@
 // lib/core/config/app_pages.dart
 
 import 'package:domandito/core/utils/utils.dart';
+import 'package:domandito/modules/child_safety/child_safety.dart';
 import 'package:domandito/modules/landing/views/landing_screen.dart';
 import 'package:domandito/modules/privacy/privacy.dart';
 import 'package:domandito/modules/profile/view/profile_screen.dart';
@@ -20,6 +21,7 @@ class AppRoutes {
   static const String question = '/q/:questionId'; // مسار الأسئلة الديناميكي
   static const String terms = '/terms';
   static const String privacy = '/privacy';
+  static const String childSafety = '/child_safety';
 
   // دالة لتحديد الشاشة الرئيسية بناءً على حالة تسجيل الدخول
   static Widget _getInitialScreen() {
@@ -46,6 +48,7 @@ class AppPages {
       page: () => PrivacyPolicyScreen(), // الشاشة الافتتاحية
     ),
 
+    GetPage(name: AppRoutes.childSafety, page: () => SafetyStandardsScreen()),
     // 2. مسار البروفايل (مثال: /m0ustafamahm0ud)
     GetPage(
       name: AppRoutes.profile,
