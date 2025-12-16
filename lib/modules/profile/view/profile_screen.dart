@@ -1066,16 +1066,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   AppBar profileAppbar(BuildContext context) {
     return AppBar(
-      title: Text(
-        '@${user?.userName ?? ''}',
-        textDirection: TextDirection.ltr,
+      title: !isLoading
+          ? Text(
+              '@${user?.userName ?? ''}',
+              textDirection: TextDirection.ltr,
 
-        style: TextStyle(
-          color: Colors.white,
-          fontSize: 24,
-          fontFamily: 'Dancing_Script',
-        ),
-      ),
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 24,
+                fontFamily: 'Dancing_Script',
+              ),
+            )
+          : null,
 
       actions: [
         // if (isMe)
@@ -1100,7 +1102,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
         //   )
         // else
         // if (MySharedPreferences.userId != user?.id)
-        ShareWidget(userUserName: user?.userName ?? '', questionId: ''),
+        if (!isLoading)
+          ShareWidget(userUserName: user?.userName ?? '', questionId: ''),
         // else
         // IconButton.filled(onPressed: () {
         //   pushScreen(context, screen: AccountScreen());
