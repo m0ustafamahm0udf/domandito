@@ -93,8 +93,10 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    getQuestions();
-    fetchFollowing();
+    if (MySharedPreferences.isLoggedIn) {
+      getQuestions();
+      fetchFollowing();
+    }
   }
 
   Future<void> getQuestions() async {
