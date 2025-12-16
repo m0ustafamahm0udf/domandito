@@ -1,8 +1,8 @@
 import 'dart:developer';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:domandito/core/constants/app_constants.dart';
 import 'package:domandito/core/constants/app_icons.dart';
-import 'package:domandito/core/services/launch_urls.dart';
 import 'package:domandito/core/utils/extentions.dart';
 import 'package:domandito/core/utils/shared_prefrences.dart';
 import 'package:domandito/core/utils/utils.dart';
@@ -22,6 +22,8 @@ import 'package:svg_flutter/svg_flutter.dart';
 class QuestionCard extends StatefulWidget {
   final QuestionModel question;
   final String receiverImage;
+  final String receiverToken;
+
   final bool isInProfileScreen;
   final String currentProfileUserId;
   final Function()? afterBack;
@@ -30,6 +32,7 @@ class QuestionCard extends StatefulWidget {
     required this.question,
     required this.receiverImage,
     this.isInProfileScreen = true,
+    required this.receiverToken,
 
     this.afterBack,
 
@@ -87,14 +90,33 @@ class _QuestionCardState extends State<QuestionCard> {
       return;
     }
     if (isProcessing) return; // لو فيه عملية شغالة ارجع
+    String usertokenIfisNotMe = widget.receiverToken;
     setState(() => isProcessing = true);
+
+    if (!isLiked) {
+      // log('widget.receiverToken ${widget.receiverToken}');
+      // log('usertokenIfisNotMe $usertokenIfisNotMe');
+      // log('widget.currentProfileUserId ${widget.currentProfileUserId}');
+      // log('MySharedPreferences.userId ${MySharedPreferences.userId}');
+      if (!widget.isInProfileScreen &&
+          (widget.currentProfileUserId != MySharedPreferences.userId)) {
+        // log('got token if not me from firestore');
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(widget.currentProfileUserId)
+            .get()
+            .then((value) {
+              usertokenIfisNotMe = value.data()!['token'];
+            });
+      } else {
+        // log('in profile screen or got token from user itself');
+      }
+    }
     final result = await LikeService.toggleLike(
       context: context,
       questionId: question.id,
       user: LikeUser(
-        token: question.receiver.token == MySharedPreferences.deviceToken
-            ? ''
-            : question.receiver.token,
+        token: usertokenIfisNotMe,
         id: MySharedPreferences.userId,
         name: MySharedPreferences.userName,
         userName: MySharedPreferences.userUserName,
@@ -327,36 +349,57 @@ class _QuestionCardState extends State<QuestionCard> {
                       const SizedBox(width: 5),
 
                       Expanded(
-                        child: GestureDetector(
+                        child: InkWell(
+                          focusColor: Colors.transparent,
+                          hoverColor: Colors.transparent,
+                          overlayColor: WidgetStatePropertyAll(
+                            Colors.transparent,
+                          ),
+                          highlightColor: Colors.transparent,
+                          splashColor: Colors.transparent,
                           onTap: () {
-                            if (isLink(question.answerText.toString())) {
-                              LaunchUrlsService().launchBrowesr(
-                                uri: question.answerText.toString(),
-                                context: context,
-                              );
-                            } else {
-                              if (isProcessing) {
-                                AppConstance().showInfoToast(
-                                  context,
-                                  msg: !context.isCurrentLanguageAr()
-                                      ? 'Please wait'
-                                      : 'يرجى الانتظار',
-                                );
-                                return;
-                              }
+                            // if (containsLink(question.answerText.toString())) {
+                            //   LaunchUrlsService().launchBrowesr(
+                            //     uri: question.answerText.toString(),
+                            //     context: context,
+                            //   );
+                            // }
+                            // final text = question.answerText.toString();
 
-                              pushScreen(
+                            // if (containsLink(text)) {
+                            //   final url = extractLink(text);
+
+                            //   if (url != null) {
+                            //     LaunchUrlsService().launchBrowesr(
+                            //       uri: url,
+                            //       context: context,
+                            //     );
+                            //     return;
+                            //   }
+                            // }
+                            // else {
+                            if (isProcessing) {
+                              AppConstance().showInfoToast(
                                 context,
-                                screen: QuestionScreen(
-                                  isVerified: isVerified,
-                                  currentProfileUserId:
-                                      widget.currentProfileUserId,
-                                  onBack: (q) async {},
-                                  question: question,
-                                  receiverImage: widget.receiverImage,
-                                ),
+                                msg: !context.isCurrentLanguageAr()
+                                    ? 'Please wait'
+                                    : 'يرجى الانتظار',
                               );
+                              return;
                             }
+
+                            pushScreen(
+                              context,
+                              screen: QuestionScreen(
+                                isVerified: isVerified,
+                                currentProfileUserId:
+                                    widget.currentProfileUserId,
+                                onBack: (q) async {},
+                                question: question,
+                                receiverImage: widget.receiverImage,
+                              ),
+                            );
+                            // }
                           },
                           onLongPress: () {
                             Clipboard.setData(
@@ -372,40 +415,28 @@ class _QuestionCardState extends State<QuestionCard> {
                               );
                             });
                           },
-                          child: Text(
-                            "\"${question.answerText}\"",
-                            textAlign: isArabic(question.answerText!)
-                                ? TextAlign.right
-                                : TextAlign.left,
-                            textDirection: isArabic(question.answerText!)
-                                ? TextDirection.rtl
-                                : TextDirection.ltr,
-                            overflow: !widget.isInProfileScreen
-                                ? null
-                                : TextOverflow.ellipsis,
-                            maxLines: !widget.isInProfileScreen ? null : 2,
-                            style: TextStyle(
-                              fontSize: isLink(question.answerText.toString())
-                                  ? 14
-                                  : 16,
-                              decoration: isLink(question.answerText.toString())
-                                  ? TextDecoration.underline
-                                  : null,
-                            ),
+                          child: linkifyText(
+                            context: context,
+                            text: question.answerText.toString(),
+                            isInProfileScreen: widget.isInProfileScreen,
                           ),
-
                           // child: Text(
                           //   "\"${question.answerText}\"",
-                          //    textAlign: TextAlign.start,
+                          //   textAlign: isArabic(question.answerText!)
+                          //       ? TextAlign.right
+                          //       : TextAlign.left,
+                          //   textDirection: isArabic(question.answerText!)
+                          //       ? TextDirection.rtl
+                          //       : TextDirection.ltr,
                           //   overflow: !widget.isInProfileScreen
                           //       ? null
                           //       : TextOverflow.ellipsis,
                           //   maxLines: !widget.isInProfileScreen ? null : 2,
                           //   style: TextStyle(
-                          //     fontSize: isLink(question.answerText.toString())
+                          //     fontSize: containsLink(question.answerText!)
                           //         ? 14
                           //         : 16,
-                          //     decoration: isLink(question.answerText.toString())
+                          //     decoration: containsLink(question.answerText!)
                           //         ? TextDecoration.underline
                           //         : null,
                           //   ),
@@ -452,12 +483,14 @@ class _QuestionCardState extends State<QuestionCard> {
                       if (question.receiver.userName.isNotEmpty)
                         GestureDetector(
                           onTap: () {
-                            log(question.receiver.id !=
-                                    MySharedPreferences.userId &&
-                                (question.receiver.id !=
-                                    widget.currentProfileUserId)
-                                ? 'true'
-                                : 'false');
+                            log(
+                              question.receiver.id !=
+                                          MySharedPreferences.userId &&
+                                      (question.receiver.id !=
+                                          widget.currentProfileUserId)
+                                  ? 'true'
+                                  : 'false',
+                            );
                             if (question.receiver.id !=
                                     MySharedPreferences.userId &&
                                 (question.receiver.id !=

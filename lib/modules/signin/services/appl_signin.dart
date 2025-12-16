@@ -46,7 +46,12 @@ class AppleSignin {
       AppConstance().showLoading(context);
       if (!await hasInternetConnection()) {
         Loader.hide();
-        AppConstance().showInfoToast(context, msg: !context.isCurrentLanguageAr() ? 'No internet connection' :'لا يوجد اتصال بالانترنت');
+        AppConstance().showInfoToast(
+          context,
+          msg: !context.isCurrentLanguageAr()
+              ? 'No internet connection'
+              : 'لا يوجد اتصال بالانترنت',
+        );
         return;
       }
 
@@ -85,7 +90,7 @@ class AppleSignin {
         // dev.log('displayName:: ${appleCredential.givenName ?? ''}');
         // dev.log('SUCCESS');
         final platform = PlatformService.platform;
-    DateTime now = await getNetworkTime() ?? DateTime.now();
+        DateTime now = await getNetworkTime() ?? DateTime.now();
 
         UserModel userModel = UserModel(
           image:
@@ -107,6 +112,7 @@ class AppleSignin {
           userName: auth.user!.email != null
               ? auth.user!.email!.split('@')[0]
               : '',
+          canAskedAnonymously: false,
           postsCount: 0,
           isVerified: false,
         );

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
 import 'package:domandito/core/constants/app_constants.dart';
+import 'package:domandito/core/services/launch_urls.dart';
 import 'package:domandito/core/utils/extentions.dart';
 import 'package:domandito/core/utils/shared_prefrences.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -9,10 +10,13 @@ import 'package:domandito/main.dart';
 import 'package:domandito/modules/ask/models/q_model.dart';
 import 'package:domandito/modules/signin/models/user_model.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+// import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
+import 'dart:ui' as ui;
 
 bool validatePassword(String value) {
   String pattern =
@@ -107,7 +111,9 @@ Future<QuestionModel?> getQuestionData({required String questionId}) async {
   }
 }
 
-Future<UserModel?> getProfileByUserNameForDeepLink({required String userUserName}) async {
+Future<UserModel?> getProfileByUserNameForDeepLink({
+  required String userUserName,
+}) async {
   try {
     final doc = await FirebaseFirestore.instance
         .collection('users')
@@ -432,10 +438,93 @@ String formatNumber(int number) {
   return '${result}M';
 }
 
-bool isLink(String text) {
-  final urlPattern = r'^(https?:\/\/)?([\w\-]+\.)+[a-zA-Z]{2,}(\/\S*)?$';
-  final regex = RegExp(urlPattern);
-  return regex.hasMatch(text.trim());
+final _urlRegex = RegExp(r'(https?:\/\/[^\s]+)', caseSensitive: false);
+bool containsLink(String text) {
+  return _urlRegex.hasMatch(text);
+}
+
+String? extractLink(String text) {
+  final match = _urlRegex.firstMatch(text);
+  return match?.group(0);
+}
+
+Widget linkifyText({
+  required BuildContext context,
+  required String text,
+  required bool isInProfileScreen,
+}) {
+  final matches = _urlRegex.allMatches(text);
+
+  if (matches.isEmpty) {
+    return Text(
+      "\"$text\"",
+      textAlign: isArabic(text) ? TextAlign.right : TextAlign.left,
+      textDirection: isArabic(text)
+          ? ui.TextDirection.rtl
+          : ui.TextDirection.ltr,
+      overflow: !isInProfileScreen ? null : TextOverflow.ellipsis,
+      maxLines: !isInProfileScreen ? null : 2,
+      style: const TextStyle(fontSize: 16),
+    );
+  }
+
+  final spans = <TextSpan>[];
+  int lastIndex = 0;
+
+  for (final match in matches) {
+    if (match.start > lastIndex) {
+      spans.add(
+        TextSpan(
+          text: text.substring(lastIndex, match.start),
+          style: const TextStyle(fontSize: 16,
+          fontFamily: 'Rubik',
+          
+          ),
+        ),
+      );
+    }
+
+    final url = match.group(0)!;
+
+    spans.add(
+      TextSpan(
+        text: url,
+        style:  TextStyle(
+          fontSize: 14,
+          // color: Colors.indigo,
+          // fontWeight: FontWeight.bold,
+          // fontFamily: 'Ruwudu',
+          decoration: TextDecoration.underline,
+        ),
+        recognizer: TapGestureRecognizer()
+          ..onTap = () {
+            LaunchUrlsService().launchBrowesr(uri: url, context: context);
+          },
+      ),
+    );
+
+    lastIndex = match.end;
+  }
+
+  if (lastIndex < text.length) {
+    spans.add(
+      TextSpan(
+        text: text.substring(lastIndex),
+        style: const TextStyle(fontSize: 16),
+      ),
+    );
+  }
+
+  return RichText(
+    textAlign: isArabic(text) ? TextAlign.right : TextAlign.left,
+    textDirection: isArabic(text) ? ui.TextDirection.rtl : ui.TextDirection.ltr,
+    overflow: !isInProfileScreen ? TextOverflow.visible : TextOverflow.ellipsis,
+    maxLines: !isInProfileScreen ? null : 3,
+    text: TextSpan(
+      style: const TextStyle(color: Colors.black),
+      children: spans,
+    ),
+  );
 }
 
 Future<bool> checkIsBlocked() async {

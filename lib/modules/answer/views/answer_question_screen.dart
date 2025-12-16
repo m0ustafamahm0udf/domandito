@@ -137,10 +137,19 @@ class _AnswerQuestionScreenState extends State<AnswerQuestionScreen> {
             ? 'Answered successfully'
             : 'تم إرسال الجواب بنجاح',
       );
+      String usertokenIfisNotMe = '';
+
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(widget.question.sender.id)
+          .get()
+          .then((value) {
+            usertokenIfisNotMe = value.data()!['token'];
+          });
       await SendMessageNotificationWithHTTPv1().send2(
         type: AppConstance.answer,
         urll: '',
-        toToken: widget.question.sender.token,
+        toToken: usertokenIfisNotMe,
         message: AppConstance.asnwered,
         title: 'Domandito',
         id: docRef.id,

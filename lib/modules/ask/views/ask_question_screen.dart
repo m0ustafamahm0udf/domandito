@@ -19,6 +19,7 @@ import 'package:flutter_overlay_loader/flutter_overlay_loader.dart';
 
 class AskQuestionScreen extends StatefulWidget {
   final bool isVerified;
+  final bool canAskedAnonymously;
   final String recipientName;
   final String recipientUserName;
   final String recipientId;
@@ -32,6 +33,7 @@ class AskQuestionScreen extends StatefulWidget {
     required this.isVerified,
     required this.recipientUserName,
     required this.recipientToken,
+    required this.canAskedAnonymously,
   });
 
   @override
@@ -85,7 +87,7 @@ class _AskQuestionScreenState extends State<AskQuestionScreen> {
     try {
       final docRef = FirebaseFirestore.instance.collection('questions').doc();
       DateTime now = await getNetworkTime() ?? DateTime.now();
-log(now.toString() + 'now');
+      log(now.toString() + 'now');
       final question = QuestionModel(
         id: docRef.id,
         createdAt: Timestamp.fromDate(now),
@@ -279,6 +281,15 @@ log(now.toString() + 'now');
                       ),
                       value: isAnonymous,
                       onChanged: (value) {
+                        if (!widget.canAskedAnonymously) {
+                          AppConstance().showInfoToast(
+                            context,
+                            msg: !context.isCurrentLanguageAr()
+                                ? '"${widget.recipientName}" prevens asking anonymously'
+                                : '"${widget.recipientName}" لا يسمح بهذه الخاصية',
+                          );
+                          return;
+                        }
                         setState(() {
                           isAnonymous = value;
 

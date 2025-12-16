@@ -146,7 +146,12 @@ class GSignin {
 
     if (!await hasInternetConnection()) {
       Loader.hide();
-      AppConstance().showInfoToast(context, msg:!context.isCurrentLanguageAr() ? 'No internet connection' : 'لا يوجد اتصال بالانترنت');
+      AppConstance().showInfoToast(
+        context,
+        msg: !context.isCurrentLanguageAr()
+            ? 'No internet connection'
+            : 'لا يوجد اتصال بالانترنت',
+      );
       return null;
     }
 
@@ -168,10 +173,11 @@ class GSignin {
           // Check Huawei and get token
 
           log(user?.photoURL ?? '');
-    DateTime now = await getNetworkTime() ?? DateTime.now();
-          
+          DateTime now = await getNetworkTime() ?? DateTime.now();
+
           UserModel userModel = UserModel(
             postsCount: 0,
+            canAskedAnonymously: false,
 
             image:
                 user?.photoURL ??
@@ -226,10 +232,11 @@ class GSignin {
           );
           final platform = PlatformService.platform;
           log(token + 'ASAASASASASASAS');
-    DateTime now = await getNetworkTime() ?? DateTime.now();
-          
+          DateTime now = await getNetworkTime() ?? DateTime.now();
+
           UserModel userModel = UserModel(
             postsCount: 0,
+            canAskedAnonymously: false,
 
             image:
                 user?.photoURL ??

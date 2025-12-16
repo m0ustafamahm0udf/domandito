@@ -17,8 +17,9 @@ class UserModel {
   final String token;
   final bool upload;
 
-   String image;
+  String image;
   final String appVersion;
+   bool canAskedAnonymously;
 
   int followersCount;
   int followingCount;
@@ -41,7 +42,9 @@ class UserModel {
     required this.followersCount,
     required this.followingCount,
     required this.bio,
-   required this.postsCount ,
+    required this.canAskedAnonymously,
+
+    required this.postsCount,
   });
 
   /// ---------------------------
@@ -68,6 +71,7 @@ class UserModel {
       followingCount: data['followingCount'] ?? 0,
       bio: data['bio'] ?? '',
       postsCount: data['postsCount'] ?? 0,
+      canAskedAnonymously: data['canAskedAnonymously'] ?? true,
     );
   }
 
@@ -93,6 +97,7 @@ class UserModel {
       followingCount: data['followingCount'] ?? 0,
       bio: data['bio'] ?? '',
       postsCount: data['postsCount'] ?? 0,
+      canAskedAnonymously: data['canAskedAnonymously'] ?? false,
     );
   }
 
@@ -116,7 +121,8 @@ class UserModel {
       'followersCount': followersCount,
       'followingCount': followingCount,
       'bio': bio,
-      'postsCount': postsCount
+      'postsCount': postsCount,
+      'canAskedAnonymously': canAskedAnonymously,
     };
   }
 
@@ -139,7 +145,7 @@ class UserModel {
     int? followingCount,
     String? bio,
     int? postsCount,
-
+    bool? canAskedAnonymously,
   }) {
     return UserModel(
       id: id,
@@ -158,7 +164,8 @@ class UserModel {
       followersCount: followersCount ?? this.followersCount,
       followingCount: followingCount ?? this.followingCount,
       bio: bio ?? this.bio,
-      postsCount: postsCount ?? this.postsCount
+      postsCount: postsCount ?? this.postsCount,
+      canAskedAnonymously: canAskedAnonymously ?? this.canAskedAnonymously,
     );
   }
 

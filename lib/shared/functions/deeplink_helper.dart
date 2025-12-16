@@ -181,7 +181,7 @@ class DeepLinkHelper {
         Future.delayed(const Duration(milliseconds: 100), () {
           pushScreen(
             navigatorKey.currentState!.context,
-            screen: ProfileScreen(userId: res.id, userUserName: ''),
+            screen: ProfileScreen(userId: res.id),
           );
         });
       }

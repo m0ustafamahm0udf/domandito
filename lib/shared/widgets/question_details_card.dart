@@ -1,6 +1,5 @@
 import 'package:domandito/core/constants/app_constants.dart';
 import 'package:domandito/core/constants/app_icons.dart';
-import 'package:domandito/core/services/launch_urls.dart';
 import 'package:domandito/core/utils/extentions.dart';
 import 'package:domandito/core/utils/shared_prefrences.dart';
 import 'package:domandito/core/utils/utils.dart';
@@ -220,14 +219,32 @@ class _QuestionDetailsCardState extends State<QuestionDetailsCard> {
                   ),
                   const SizedBox(width: 5),
                   Expanded(
-                    child: GestureDetector(
+                    child: InkWell(
+                           focusColor: Colors.transparent,
+                      hoverColor: Colors.transparent,
+                      overlayColor: WidgetStatePropertyAll(Colors.transparent),
+                      highlightColor: Colors.transparent,
+                      splashColor: Colors.transparent,
                       onTap: () {
-                        if (isLink(question.answerText.toString())) {
-                          LaunchUrlsService().launchBrowesr(
-                            uri: question.answerText.toString(),
-                            context: context,
-                          );
-                        }
+                        // final text = question.answerText.toString();
+
+                        // if (containsLink(text)) {
+                        //   final url = extractLink(text);
+
+                        //   if (url != null) {
+                        //     LaunchUrlsService().launchBrowesr(
+                        //       uri: url,
+                        //       context: context,
+                        //     );
+                        //     return;
+                        //   }
+                        // }
+                        // if (containsLink(question.answerText.toString())) {
+                        //   LaunchUrlsService().launchBrowesr(
+                        //     uri: question.answerText.toString(),
+                        //     context: context,
+                        //   );
+                        // }
                       },
                       onLongPress: () {
                         Clipboard.setData(
@@ -241,23 +258,28 @@ class _QuestionDetailsCardState extends State<QuestionDetailsCard> {
                           );
                         });
                       },
-                      child: Text(
-                        "\"${question.answerText}\"",
-                        textAlign: isArabic(question.answerText!)
-                            ? TextAlign.right
-                            : TextAlign.left,
-                        textDirection: isArabic(question.answerText!)
-                            ? TextDirection.rtl
-                            : TextDirection.ltr,
-                        style: TextStyle(
-                          fontSize: isLink(question.answerText.toString())
-                              ? 14
-                              : 16,
-                          decoration: isLink(question.answerText.toString())
-                              ? TextDecoration.underline
-                              : null,
-                        ),
+                      child: linkifyText(
+                        context: context,
+                        text: question.answerText.toString(),
+                        isInProfileScreen: false,
                       ),
+                      // child: Text(
+                      //   "\"${question.answerText}\"",
+                      //   textAlign: isArabic(question.answerText!)
+                      //       ? TextAlign.right
+                      //       : TextAlign.left,
+                      //   textDirection: isArabic(question.answerText!)
+                      //       ? TextDirection.rtl
+                      //       : TextDirection.ltr,
+                      //   style: TextStyle(
+                      //     fontSize: containsLink(question.answerText.toString())
+                      //         ? 14
+                      //         : 16,
+                      //     decoration: containsLink(question.answerText.toString())
+                      //         ? TextDecoration.underline
+                      //         : null,
+                      //   ),
+                      // ),
                     ),
                   ),
                 ],

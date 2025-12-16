@@ -171,7 +171,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 onPressed: () {
                   // MySharedPreferences.clearProfile(context: context);
                   // context.toAndRemoveAll(SignInScreen());
-                  pushReplacementWithoutNavBar(context, MaterialPageRoute(builder: (context) => SignInScreen()));
+                  pushReplacementWithoutNavBar(
+                    context,
+                    MaterialPageRoute(builder: (context) => SignInScreen()),
+                  );
                 },
                 icon: Directionality(
                   textDirection: TextDirection.rtl,
@@ -195,132 +198,133 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           SizedBox(width: 4),
-
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
-        child: RefreshIndicator.adaptive(
-          color: AppColors.primary,
+      body: RefreshIndicator.adaptive(
+        color: AppColors.primary,
 
-          onRefresh: () async {
-            lastDoc = null;
-            hasMore = true;
-            questions.clear();
+        onRefresh: () async {
+          lastDoc = null;
+          hasMore = true;
+          questions.clear();
 
-            lastFDoc = null;
-            hasMoreF = true;
-            following.clear();
-            Future.wait([getQuestions(), fetchFollowing()]);
+          lastFDoc = null;
+          hasMoreF = true;
+          following.clear();
+          Future.wait([getQuestions(), fetchFollowing()]);
 
-            setState(() {});
-          },
-          child: ListView(
-            padding: EdgeInsets.only(top: 10, right: 5, left: 5),
-            children: [
-              followingList(),
-              SizedBox(height: 5),
+          setState(() {});
+        },
+        child: ListView(
+          padding: EdgeInsets.only(top: 10, right: 16, left: 16),
 
-              // const SizedBox(height: 2),
-              questions.isEmpty && !isQuestionsLoading
-                  ? SizedBox(
-                      height: following.isEmpty
-                          ? MediaQuery.of(context).size.height * 0.7
-                          : MediaQuery.of(context).size.height * 0.5,
-                      child: Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            LogoWidg(),
-                            if (MySharedPreferences.isLoggedIn)
-                              Text(
+          children: [
+            followingList(),
+            SizedBox(height: 5),
+
+            // const SizedBox(height: 2),
+            questions.isEmpty && !isQuestionsLoading
+                ? SizedBox(
+                    height: following.isEmpty
+                        ? MediaQuery.of(context).size.height * 0.7
+                        : MediaQuery.of(context).size.height * 0.5,
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          LogoWidg(),
+                          if (MySharedPreferences.isLoggedIn)
+                            Text(
+                              !context.isCurrentLanguageAr()
+                                  ? 'You have not asked any questions yet'
+                                  : 'لم تقم بإرسال أي أسئلة بعد',
+                              style: TextStyle(
+                                color: AppColors.black,
+                                // fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                          if (!MySharedPreferences.isLoggedIn)
+                            TextButton.icon(
+                              iconAlignment: IconAlignment.end,
+                              onPressed: () => pushScreen(
+                                context,
+                                screen: SearchUsersScreen(),
+                              ),
+                              icon: SvgPicture.asset(
+                                AppIcons.searchIcon,
+                                color: AppColors.primary,
+                              ),
+                              label: Text(
                                 !context.isCurrentLanguageAr()
-                                    ? 'You have not asked any questions yet'
-                                    : 'لم تقم بإرسال أي أسئلة بعد',
+                                    ? 'Add friends'
+                                    : 'إبدأ بإضافة أصدقاء',
                                 style: TextStyle(
                                   color: AppColors.black,
                                   // fontWeight: FontWeight.bold,
                                   fontSize: 16,
                                 ),
                               ),
-                            if (!MySharedPreferences.isLoggedIn)
-                              TextButton.icon(
-                                iconAlignment: IconAlignment.end,
-                                onPressed: () => pushScreen(
-                                  context,
-                                  screen: SearchUsersScreen(),
-                                ),
-                                icon: SvgPicture.asset(
-                                  AppIcons.searchIcon,
-                                  color: AppColors.primary,
-                                ),
-                                label: Text(
-                               !context.isCurrentLanguageAr()? 'Add friends' :  'إبدأ بإضافة أصدقاء',
-                                  style: TextStyle(
-                                    color: AppColors.black,
-                                    // fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
+                            ),
+                        ],
                       ),
-                      // child: Center(
-                      //   child: TextButton.icon(
-                      //     iconAlignment: IconAlignment.end,
-                      //     onPressed: () =>
-                      //         pushScreen(context, screen: SearchUsersScreen()),
-                      //     icon: SvgPicture.asset(
-                      //       AppIcons.searchIcon,
-                      //       color: AppColors.primary,
-                      //     ),
-                      //     label: Text(
-                      //       'إبدأ بإضافة أصدقاء',
-                      //       style: TextStyle(
-                      //         color: AppColors.primary,
-                      //         // fontWeight: FontWeight.bold,
-                      //         fontSize: 16,
-                      //       ),
-                      //     ),
-                      //   ),
-                      // ),
-                    )
-                  : questionsWidget(),
-              Center(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  child: Builder(
-                    builder: (context) {
-                      if (!hasMore && questions.isNotEmpty) {
-                        return SizedBox();
-                      }
-                      if (isQuestionsLoading) {
-                        return SizedBox(
-                          height: context.h * 0.75,
+                    ),
+                    // child: Center(
+                    //   child: TextButton.icon(
+                    //     iconAlignment: IconAlignment.end,
+                    //     onPressed: () =>
+                    //         pushScreen(context, screen: SearchUsersScreen()),
+                    //     icon: SvgPicture.asset(
+                    //       AppIcons.searchIcon,
+                    //       color: AppColors.primary,
+                    //     ),
+                    //     label: Text(
+                    //       'إبدأ بإضافة أصدقاء',
+                    //       style: TextStyle(
+                    //         color: AppColors.primary,
+                    //         // fontWeight: FontWeight.bold,
+                    //         fontSize: 16,
+                    //       ),
+                    //     ),
+                    //   ),
+                    // ),
+                  )
+                : questionsWidget(),
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                child: Builder(
+                  builder: (context) {
+                    if (!hasMore && questions.isNotEmpty) {
+                      return SizedBox();
+                    }
+                    if (isQuestionsLoading) {
+                      return SizedBox(
+                        height: context.h * 0.75,
 
-                          child: CupertinoActivityIndicator(
-                            color: AppColors.primary,
-                          ),
-                        );
-                      }
-                      if (questions.isEmpty) {
-                        return const SizedBox();
-                      }
-                      return ElevatedButton(
-                        onPressed: (hasMore && !isQuestionsLoading)
-                            ? () async {
-                                await getQuestions();
-                              }
-                            : null,
-                        child:  Text( !context.isCurrentLanguageAr()? "Load more" :"المزيد"),
+                        child: CupertinoActivityIndicator(
+                          color: AppColors.primary,
+                        ),
                       );
-                    },
-                  ),
+                    }
+                    if (questions.isEmpty) {
+                      return const SizedBox();
+                    }
+                    return ElevatedButton(
+                      onPressed: (hasMore && !isQuestionsLoading)
+                          ? () async {
+                              await getQuestions();
+                            }
+                          : null,
+                      child: Text(
+                        !context.isCurrentLanguageAr() ? "Load more" : "المزيد",
+                      ),
+                    );
+                  },
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -409,7 +413,11 @@ class _HomeScreenState extends State<HomeScreen> {
                               color: AppColors.primary,
                             ),
                           )
-                        :  Text( !context.isCurrentLanguageAr()? "Load more" :"المزيد"),
+                        : Text(
+                            !context.isCurrentLanguageAr()
+                                ? "Load more"
+                                : "المزيد",
+                          ),
                   );
                 }
                 final f = following[index];
@@ -513,8 +521,10 @@ class _HomeScreenState extends State<HomeScreen> {
         final q = questions[index];
 
         return QuestionCard(
-          currentProfileUserId: MySharedPreferences.userId,
+          receiverToken: '',
 
+          currentProfileUserId: q.receiver.id,
+          isInProfileScreen: false,
           question: q,
           receiverImage: q.receiver.image,
         );

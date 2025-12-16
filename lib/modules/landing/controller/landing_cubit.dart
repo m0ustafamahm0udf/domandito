@@ -11,6 +11,7 @@ import 'package:domandito/shared/widgets/custom_bounce_button.dart';
 import 'package:bloc/bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
 
@@ -64,13 +65,16 @@ class LandingCubit extends Cubit<LandingState> {
               ),
             );
           } else {
-            chackUpdate(
+            if (!kIsWeb) {
+             chackUpdate(
               context: context,
               appStoreUrl: value.data()!['appStoreUrl'],
               playStoreUrl: value.data()!['playStoreUrl'],
               versionIos: value.data()!['appVersionIos'],
               versionAndroid: value.data()!['appVersionAndroid'],
-            );
+            ); 
+            }
+            
           }
         }
         // log(value.data().toString());

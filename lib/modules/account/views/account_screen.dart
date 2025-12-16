@@ -4,7 +4,6 @@ import 'package:domandito/core/constants/app_images.dart';
 import 'package:domandito/core/constants/app_platforms_serv.dart';
 import 'package:domandito/core/services/get_device_serv.dart';
 import 'package:domandito/core/services/launch_urls.dart';
-import 'package:domandito/core/services/localization/app_locals.dart';
 import 'package:domandito/core/services/share_service.dart';
 import 'package:domandito/core/utils/extentions.dart';
 import 'package:domandito/core/utils/shared_prefrences.dart';
@@ -118,23 +117,23 @@ class _AccountScreenState extends State<AccountScreen> {
           icon: Icon(Icons.arrow_back, color: AppColors.primary),
           onPressed: () => Navigator.pop(context),
         ),
-        actions: [
-          IconButton(
-            onPressed: () {
-              AppLocals().toggleLocal(
-                context: context,
-                locale: context.isCurrentLanguageAr()
-                    ? Locale('en')
-                    : Locale('ar'),
-              );
-            },
-            icon: Text(
-              context.isCurrentLanguageAr() ? 'English' : 'العربية',
-              style: TextStyle(color: AppColors.primary),
-            ),
-          ),
-          SizedBox(width: 8),
-        ],
+        // actions: [
+        //   IconButton(
+        //     onPressed: () {
+        //       AppLocals().toggleLocal(
+        //         context: context,
+        //         locale: context.isCurrentLanguageAr()
+        //             ? Locale('en')
+        //             : Locale('ar'),
+        //       );
+        //     },
+        //     icon: Text(
+        //       context.isCurrentLanguageAr() ? 'English' : 'العربية',
+        //       style: TextStyle(color: AppColors.primary),
+        //     ),
+        //   ),
+        //   SizedBox(width: 8),
+        // ],
       ),
       bottomNavigationBar: SizedBox(
         height: 130,

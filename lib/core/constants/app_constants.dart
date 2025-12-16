@@ -52,9 +52,7 @@ class AppConstance {
   }
 
   String likedAnswerNotification({required BuildContext context}) {
-    return context.isCurrentLanguageAr()
-        ? liked
-        : 'New like on your answer';
+    return context.isCurrentLanguageAr() ? liked : 'New like on your answer';
   }
 
   String questionedNotification({required BuildContext context}) {
@@ -64,9 +62,7 @@ class AppConstance {
   }
 
   String followedNotification({required BuildContext context}) {
-    return context.isCurrentLanguageAr()
-        ? followed
-        : 'You have a new follower';
+    return context.isCurrentLanguageAr() ? followed : 'You have a new follower';
   }
 
   static const double textFieldH = 18;
@@ -110,7 +106,14 @@ class AppConstance {
       type: ToastificationType.error,
       borderSide: BorderSide(color: AppColors.error3c),
       context: context,
-      title: Text(msg, style: TextStyle(color: AppColors.error3c)),
+       title: Text(
+        msg,
+        style: TextStyle(color: AppColors.error3c),
+        textAlign: !context.isCurrentLanguageAr()
+            ? TextAlign.left
+            : TextAlign.right,
+      ),
+     
       autoCloseDuration: Duration(seconds: duration),
       // applyBlurEffect: true,
       direction: !context.isCurrentLanguageAr()
@@ -155,7 +158,13 @@ class AppConstance {
       type: ToastificationType.warning,
       borderSide: BorderSide(color: AppColors.warning06),
       context: context,
-      title: Text(msg, style: TextStyle(color: AppColors.warning06)),
+      title: Text(
+        msg,
+        style: TextStyle(color: AppColors.warning06),
+        textAlign: !context.isCurrentLanguageAr()
+            ? TextAlign.left
+            : TextAlign.right,
+      ),
       autoCloseDuration: Duration(seconds: duration),
       // applyBlurEffect: true,
       direction: !context.isCurrentLanguageAr()
@@ -186,7 +195,14 @@ class AppConstance {
       borderSide: BorderSide(color: AppColors.success59),
 
       context: context,
-      title: Text(msg, style: TextStyle(color: AppColors.success59)),
+     
+       title: Text(
+        msg,
+        style: TextStyle(color: AppColors.success59),
+        textAlign: !context.isCurrentLanguageAr()
+            ? TextAlign.left
+            : TextAlign.right,
+      ),
       autoCloseDuration: Duration(seconds: duration),
       // applyBlurEffect: true,
       direction: !context.isCurrentLanguageAr()
