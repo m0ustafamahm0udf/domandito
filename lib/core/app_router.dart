@@ -2,9 +2,11 @@
 
 import 'package:domandito/core/utils/utils.dart';
 import 'package:domandito/modules/landing/views/landing_screen.dart';
+import 'package:domandito/modules/privacy/privacy.dart';
 import 'package:domandito/modules/profile/view/profile_screen.dart';
 import 'package:domandito/modules/signin/signin_screen.dart';
 import 'package:domandito/core/utils/shared_prefrences.dart';
+import 'package:domandito/modules/terms/teerms.dart';
 import 'package:domandito/shared/style/app_colors.dart';
 import 'package:domandito/shared/widgets/logo_widg.dart';
 import 'package:flutter/cupertino.dart';
@@ -16,6 +18,8 @@ class AppRoutes {
   static const String landing = '/';
   static const String profile = '/:username'; // مسار البروفايل الديناميكي
   static const String question = '/q/:questionId'; // مسار الأسئلة الديناميكي
+  static const String terms = '/terms';
+  static const String privacy = '/privacy';
 
   // دالة لتحديد الشاشة الرئيسية بناءً على حالة تسجيل الدخول
   static Widget _getInitialScreen() {
@@ -32,6 +36,14 @@ class AppPages {
     GetPage(
       name: AppRoutes.landing,
       page: () => AppRoutes._getInitialScreen(), // الشاشة الافتتاحية
+    ),
+    GetPage(
+      name: AppRoutes.terms,
+      page: () => TermsScreen(), // الشاشة الافتتاحية
+    ),
+    GetPage(
+      name: AppRoutes.privacy,
+      page: () => PrivacyPolicyScreen(), // الشاشة الافتتاحية
     ),
 
     // 2. مسار البروفايل (مثال: /m0ustafamahm0ud)
@@ -69,7 +81,6 @@ class AppPages {
               // إذا تم العثور على المستخدم، قم بعرض شاشة البروفايل
               return ProfileScreen(
                 userId: userModel.id, // 🌟 تمرير الـ userId المسترجع
-            
               );
             } else {
               // إذا لم يتم العثور على المستخدم
