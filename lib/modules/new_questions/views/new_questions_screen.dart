@@ -211,7 +211,7 @@ class _NewQuestionsScreenState extends State<NewQuestionsScreen> {
                                 children: [
                                   Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
-                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    crossAxisAlignment: CrossAxisAlignment.center,
                                     children:  [
                                       Icon(
                                         Icons.delete_rounded,

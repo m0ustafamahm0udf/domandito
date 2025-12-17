@@ -499,7 +499,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   folooingCount(context),
 
                   const SizedBox(height: 15),
-
                   askAndFollow(context),
                   const SizedBox(height: 4),
                   if (isMe)
@@ -697,7 +696,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 children: [
                   Column(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.end,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Icon(Icons.delete_rounded, color: Colors.white, size: 30),
                       SizedBox(height: 4),
@@ -993,7 +992,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               context,
               screen: ImageViewScreen(
                 images: [user!.image],
-                title: '',
+                // title: '',
                 onBack: (i) {},
               ),
             ),
@@ -1103,7 +1102,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
         // else
         // if (MySharedPreferences.userId != user?.id)
         if (!isLoading)
-          ShareWidget(userUserName: user?.userName ?? '', questionId: ''),
+          ShareWidget(
+            userUserName: user?.userName ?? '',
+            questionId: '',
+            userImage: user?.image ?? '',
+          ),
         // else
         // IconButton.filled(onPressed: () {
         //   pushScreen(context, screen: AccountScreen());

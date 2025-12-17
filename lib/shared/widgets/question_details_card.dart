@@ -357,7 +357,7 @@ class _QuestionDetailsCardState extends State<QuestionDetailsCard> {
       screen: ImageViewScreen(
         images: images,
         initialIndex: index,
-        title: '',
+        // title: '',
         onBack: (index) {},
       ),
     );

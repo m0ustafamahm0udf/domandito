@@ -56,9 +56,15 @@ class _QuestionCardState extends State<QuestionCard> {
   }
 
   Future<void> checkIfLiked() async {
+    log('checkIfLiked');
     if (!MySharedPreferences.isLoggedIn) {
       return;
     }
+    if(likesCount == 0){
+      return;
+    }
+    log('checkIfLiked2');
+
     final liked = await LikeService.isLiked(
       questionId: question.id,
       userId: MySharedPreferences.userId,
@@ -572,7 +578,7 @@ class _QuestionCardState extends State<QuestionCard> {
         screen: ImageViewScreen(
           images: images,
           initialIndex: index,
-          title: '',
+          // title: '',
           onBack: (index) {},
         ),
       );

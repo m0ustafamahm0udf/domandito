@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 
-class ShareService {
+class ShareService1 {
   static shareContent({
     required String data,
     required BuildContext context,

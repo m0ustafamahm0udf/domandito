@@ -199,7 +199,7 @@ String timeAgo(dynamic timestamp, BuildContext context) {
   // أكثر من أسبوع → التاريخ
   return DateFormat(
     'dd-MMMM-yyyy',
-    !context.isCurrentLanguageAr() ? 'ar' : 'en',
+    context.isCurrentLanguageAr() ? 'ar' : 'en',
   ).format(date);
 }
 

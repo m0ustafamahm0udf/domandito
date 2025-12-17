@@ -304,7 +304,7 @@ class _AnswerQuestionCardDetailsState extends State<AnswerQuestionCardDetails> {
       screen: ImageViewScreen(
         images: images,
         initialIndex: index,
-        title: '',
+        // title: '',
         onBack: (index) {},
       ),
     );

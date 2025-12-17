@@ -7,7 +7,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:svg_flutter/svg.dart';
 
 class LogoWidg extends StatelessWidget {
-  const LogoWidg({super.key});
+  final Color? color;
+  const LogoWidg({super.key, this.color});
 
   @override
   Widget build(BuildContext context) {
@@ -15,7 +16,7 @@ class LogoWidg extends StatelessWidget {
       AppIcons.anonymous,
       height: context.h / 6,
       width: context.h / 6,
-      color: AppColors.primary.withOpacity(0.1),
+      color:color ?? AppColors.primary.withOpacity(0.1),
     );
   }
 }

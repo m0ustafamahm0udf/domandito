@@ -349,7 +349,7 @@ class _AccountScreenState extends State<AccountScreen> {
         if (playStoreUrl.isNotEmpty && appStoreUrl.isNotEmpty) {
           final platform = PlatformService.platform;
 
-          ShareService.shareContent(
+          ShareService1.shareContent(
             data: AppPlatform.androidApp == platform
                 ? playStoreUrl
                 : appStoreUrl,
