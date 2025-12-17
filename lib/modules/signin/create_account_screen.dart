@@ -62,7 +62,12 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
       AppConstance().showLoading(context);
 
       if (!await hasInternetConnection()) {
-        AppConstance().showInfoToast(context, msg:!context.isCurrentLanguageAr() ? 'No internet connection' : 'لا يوجد اتصال بالانترنت');
+        AppConstance().showInfoToast(
+          context,
+          msg: !context.isCurrentLanguageAr()
+              ? 'No internet connection'
+              : 'لا يوجد اتصال بالانترنت',
+        );
         Loader.hide();
         return;
       }
@@ -282,8 +287,8 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
 
                         Text(
                           !context.isCurrentLanguageAr()
-                              ? 'Phone Number'
-                              : 'رقم الهاتف',
+                              ? 'Phone Number (Optional)'
+                              : 'رقم الهاتف (اختياري)',
                           style: TextStyle(
                             fontSize: 14,
                             color: AppColors.primary,
@@ -311,7 +316,6 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                           },
                         ),
                         const SizedBox(height: 100),
-
                       ],
                     ),
                   ),

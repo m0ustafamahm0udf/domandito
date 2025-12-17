@@ -23,7 +23,9 @@ class _PhoneNumberTextFieldState extends State<PhoneNumberTextField> {
       ),
       controller: widget.phoneCtrl,
       // label: 'رقم الهاتف',
-      hintText: !context.isCurrentLanguageAr() ? 'Phone Number' : 'رقم الهاتف',
+      hintText: !context.isCurrentLanguageAr()
+          ? 'Phone Number (Optional)'
+          : 'رقم الهاتف (اختياري)',
       keyboardType: TextInputType.number,
       inputFormatters: [
         FilteringTextInputFormatter.digitsOnly,
@@ -32,14 +34,31 @@ class _PhoneNumberTextFieldState extends State<PhoneNumberTextField> {
 
       // suffixIcon: Directionality(
       //     textDirection: TextDirection.ltr, child: Text('     +962')),
+      // validator: (value) {
+      //   if (value == null || value.isEmpty) {
+      //     return !context.isCurrentLanguageAr()
+      //         ? 'Please enter your phone number'
+      //         : 'الرجاء إدخال رقم الهاتف';
+      //   }
+
+      //   // لازم يبدأ بـ 01 ويكون 11 رقم
+      //   final regex = RegExp(r'^01[0-9]{9}$');
+
+      //   if (!regex.hasMatch(value)) {
+      //     return !context.isCurrentLanguageAr()
+      //         ? 'Phone number must start with 01 and contain 11 digits'
+      //         : 'رقم الهاتف يجب أن يبدأ بـ 01 ويتكون من 11 رقماً';
+      //   }
+
+      //   return null;
+      // },
       validator: (value) {
+        // اختياري: لو فاضي يبقى تمام
         if (value == null || value.isEmpty) {
-          return !context.isCurrentLanguageAr()
-              ? 'Please enter your phone number'
-              : 'الرجاء إدخال رقم الهاتف';
+          return null;
         }
 
-        // لازم يبدأ بـ 01 ويكون 11 رقم
+        // لو كتب رقم → لازم يكون صحيح
         final regex = RegExp(r'^01[0-9]{9}$');
 
         if (!regex.hasMatch(value)) {

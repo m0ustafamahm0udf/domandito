@@ -42,7 +42,7 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
-	<string>حتى تقوم بإختيار صورة</string>
+	<string>حتى تقوم بإضافة صورة شخصية أو صورة للإجابة على سؤال</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>حتى تقوم بإرسال موقع الشخص.</string>
 	<key>NSLocationAlwaysUsageDescription</key>
@@ -52,7 +52,7 @@
 	<key>NSMicrophoneUsageDescription</key>
 	<string>The application does not use this feature</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>حتى تقوم بإختيار صورة</string>
+	<string>حتى تقوم بإضافة صورة شخصية أو صورة للإجابة على سؤال</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UIBackgroundModes</key>
