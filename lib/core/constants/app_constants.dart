@@ -27,6 +27,10 @@ class AppConstance {
   static const String webAndroid = "Web - Android";
   static const String webIOS = "Web - iOS";
   static const String webDesktop = "Web - Desktop";
+  static const String appStoreUrl =
+      "https://apps.apple.com/us/app/domandito/id6756314763";
+  static const String googleplayUrl =
+      "https://play.google.com/store/apps/details?id=com.m0ustafamahm0ud.domandito";
 
   // Mobile App
   static const String androidApp = "Android App";
@@ -106,14 +110,14 @@ class AppConstance {
       type: ToastificationType.error,
       borderSide: BorderSide(color: AppColors.error3c),
       context: context,
-       title: Text(
+      title: Text(
         msg,
         style: TextStyle(color: AppColors.error3c),
         textAlign: !context.isCurrentLanguageAr()
             ? TextAlign.left
             : TextAlign.right,
       ),
-     
+
       autoCloseDuration: Duration(seconds: duration),
       // applyBlurEffect: true,
       direction: !context.isCurrentLanguageAr()
@@ -195,8 +199,8 @@ class AppConstance {
       borderSide: BorderSide(color: AppColors.success59),
 
       context: context,
-     
-       title: Text(
+
+      title: Text(
         msg,
         style: TextStyle(color: AppColors.success59),
         textAlign: !context.isCurrentLanguageAr()

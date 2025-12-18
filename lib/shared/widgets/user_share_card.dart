@@ -74,7 +74,7 @@ class UserShareCard extends StatelessWidget {
                 ),
 
                 Transform.translate(
-                  offset: const Offset(0, -15),
+                  offset: const Offset(0, -25),
                   child: Text(
                     '@$username',
                     maxLines: 1,
@@ -85,16 +85,16 @@ class UserShareCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                Transform.translate(
-                  offset: const Offset(0, -5),
-                  child: const Text(
-                    'Ask me anonymously',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.white70, fontSize: 18),
-                  ),
-                ),
+                // Transform.translate(
+                //   offset: const Offset(0, -5),
+                //   child: const Text(
+                //     'Ask me anonymously',
+                //     textAlign: TextAlign.center,
+                //     style: TextStyle(color: Colors.white70, fontSize: 18),
+                //   ),
+                // ),
 
-                const SizedBox(height: 30),
+                const SizedBox(height: 20),
 
                 // // const Spacer(),
 

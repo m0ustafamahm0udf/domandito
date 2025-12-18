@@ -6,6 +6,7 @@ import 'package:domandito/core/constants/app_icons.dart';
 import 'package:domandito/core/constants/app_platforms_serv.dart';
 import 'package:domandito/core/services/file_picker_service.dart';
 import 'package:domandito/core/services/get_device_serv.dart';
+import 'package:domandito/core/services/launch_urls.dart';
 import 'package:domandito/core/services/notifications/send_message_notification.dart';
 import 'package:domandito/core/utils/extentions.dart';
 import 'package:domandito/core/utils/shared_prefrences.dart';
@@ -27,6 +28,7 @@ import 'package:domandito/shared/widgets/share_widget.dart';
 import 'package:domandito/shared/widgets/show_image_picker.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_overlay_loader/flutter_overlay_loader.dart';
 import 'package:image_picker/image_picker.dart';
@@ -62,14 +64,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
   int limit = 10;
   bool isFollowing = false;
   bool followLoading = false;
-  int totalQuestionsCount = 0;
+  // int totalQuestionsCount = 0;
 
   @override
   void initState() {
     super.initState();
     isMe = widget.userId == MySharedPreferences.userId;
     getProfile();
-    getQuestionsCount();
+    // getQuestionsCount();
     checkFollowing();
     getQuestions();
   }
@@ -139,24 +141,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  Future<void> getQuestionsCount() async {
-    try {
-      final countQuery = await FirebaseFirestore.instance
-          .collection('questions')
-          .where('receiver.id', isEqualTo: widget.userId)
-          .where('isDeleted', isEqualTo: false)
-          .where('answeredAt', isNull: false)
-          .count() // <-- Aggregation
-          .get();
+  // Future<void> getQuestionsCount() async {
+  //   try {
+  //     final countQuery = await FirebaseFirestore.instance
+  //         .collection('questions')
+  //         .where('receiver.id', isEqualTo: widget.userId)
+  //         .where('isDeleted', isEqualTo: false)
+  //         .where('answeredAt', isNull: false)
+  //         .count() // <-- Aggregation
+  //         .get();
 
-      totalQuestionsCount = countQuery.count ?? 0;
-      setState(() {});
+  //     totalQuestionsCount = countQuery.count ?? 0;
+  //     setState(() {});
 
-      debugPrint("Total questions count: $totalQuestionsCount");
-    } catch (e) {
-      debugPrint("Error getting questions count: $e");
-    }
-  }
+  //     debugPrint("Total questions count: $totalQuestionsCount");
+  //   } catch (e) {
+  //     debugPrint("Error getting questions count: $e");
+  //   }
+  // }
 
   Future<void> getQuestions() async {
     // منع استدعاءات متزامنة أو لو مفيش بيانات إضافية
@@ -239,7 +241,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         'answerText': null,
         'images': [],
       });
-      await getQuestionsCount();
+      // await getQuestionsCount();
 
       AppConstance().showSuccesToast(
         context,
@@ -467,7 +469,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 questions.clear();
                 await getProfile();
                 await getQuestions();
-                await getQuestionsCount();
+                // await getQuestionsCount();
                 setState(() {});
               },
               child: ListView(
@@ -549,6 +551,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                     ),
 
+                  // UserShareCard(username: user!.name, userImage: user!.image),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 10),
                     child: Divider(thickness: 0.1, color: AppColors.primary),
@@ -585,7 +588,57 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                         )
                       : questionsWidget(),
+                  if (kIsWeb)
+                    Column(
+                      children: [
+                        const SizedBox(height: 20),
+                        Text(
+                          !context.isCurrentLanguageAr()
+                              ? 'Download the app'
+                              : 'تحميل التطبيق',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                        // const SizedBox(height: 20),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            TextButton.icon(
+                              onPressed: () {
+                                LaunchUrlsService().launchBrowesr(
+                                  uri: AppConstance.appStoreUrl,
+                                  context: context,
+                                );
+                              },
+                              label: const Text('App Store'),
+                              icon: SvgPicture.asset(
+                                AppIcons.appstore,
+                                height: 25,
+                                width: 25,
+                              ),
+                            ),
+                            TextButton.icon(
+                              onPressed: () {
+                                LaunchUrlsService().launchBrowesr(
+                                  uri: AppConstance.googleplayUrl,
+                                  context: context,
+                                );
+                              },
+                              label: const Text('Google Play'),
 
+                              icon: SvgPicture.asset(
+                                AppIcons.googleplay,
+                                height: 25,
+                                width: 25,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   // const SizedBox(height: 2),
                   Center(
                     child: Padding(
@@ -935,42 +988,42 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ),
           ),
-          SizedBox(
-            height: 20,
-            child: VerticalDivider(
-              // height: 20,
-              width: 0,
-              color: AppColors.primary,
-              thickness: 1,
-            ),
-          ),
-          GestureDetector(
-            onTap: () {
-              // if (MySharedPreferences.userId == user!.id) {
-              //   context.read<LandingCubit>().controller.jumpToTab(0);
-              // }
-            },
-            child: Container(
-              color: Colors.transparent,
-              child: Column(
-                children: [
-                  Text(
-                    formatNumber(totalQuestionsCount),
+          // SizedBox(
+          //   height: 20,
+          //   child: VerticalDivider(
+          //     // height: 20,
+          //     width: 0,
+          //     color: AppColors.primary,
+          //     thickness: 1,
+          //   ),
+          // ),
+          // GestureDetector(
+          //   onTap: () {
+          //     // if (MySharedPreferences.userId == user!.id) {
+          //     //   context.read<LandingCubit>().controller.jumpToTab(0);
+          //     // }
+          //   },
+          //   child: Container(
+          //     color: Colors.transparent,
+          //     child: Column(
+          //       children: [
+          //         Text(
+          //           formatNumber(totalQuestionsCount),
 
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                      fontFamily: 'Dancing_Script',
-                    ),
-                  ),
-                  Text(
-                    !context.isCurrentLanguageAr() ? 'Questions' : 'الأسئلة',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                  ),
-                ],
-              ),
-            ),
-          ),
+          //           style: const TextStyle(
+          //             fontWeight: FontWeight.bold,
+          //             fontSize: 14,
+          //             fontFamily: 'Dancing_Script',
+          //           ),
+          //         ),
+          //         Text(
+          //           !context.isCurrentLanguageAr() ? 'Questions' : 'الأسئلة',
+          //           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          //         ),
+          //       ],
+          //     ),
+          //   ),
+          // ),
         ],
       ),
     );

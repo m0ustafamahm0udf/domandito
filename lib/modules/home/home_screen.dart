@@ -54,7 +54,9 @@
 // }
 import 'package:animate_do/animate_do.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:domandito/core/constants/app_constants.dart';
 import 'package:domandito/core/constants/app_icons.dart';
+import 'package:domandito/core/services/launch_urls.dart';
 import 'package:domandito/core/utils/extentions.dart';
 import 'package:domandito/core/utils/shared_prefrences.dart';
 import 'package:domandito/modules/ask/models/q_model.dart';
@@ -66,6 +68,7 @@ import 'package:domandito/shared/style/app_colors.dart';
 import 'package:domandito/shared/widgets/custom_network_image.dart';
 import 'package:domandito/shared/widgets/logo_widg.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
 import 'package:svg_flutter/svg_flutter.dart';
@@ -326,6 +329,57 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
+            if (kIsWeb)
+              Column(
+                children: [
+                  const SizedBox(height: 20),
+                  Text(
+                    !context.isCurrentLanguageAr()
+                        ? 'Download the app'
+                        : 'تحميل التطبيق',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                  // const SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      TextButton.icon(
+                        onPressed: () {
+                          LaunchUrlsService().launchBrowesr(
+                            uri: AppConstance.appStoreUrl,
+                            context: context,
+                          );
+                        },
+                        label: const Text('App Store'),
+                        icon: SvgPicture.asset(
+                          AppIcons.appstore,
+                          height: 25,
+                          width: 25,
+                        ),
+                      ),
+                      TextButton.icon(
+                        onPressed: () {
+                          LaunchUrlsService().launchBrowesr(
+                            uri: AppConstance.googleplayUrl,
+                            context: context,
+                          );
+                        },
+                        label: const Text('Google Play'),
+
+                        icon: SvgPicture.asset(
+                          AppIcons.googleplay,
+                          height: 25,
+                          width: 25,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
           ],
         ),
       ),
