@@ -10,10 +10,12 @@ import 'package:domandito/modules/ask/models/q_model.dart';
 import 'package:domandito/modules/profile/view/profile_screen.dart';
 import 'package:domandito/modules/question/views/question_screen.dart';
 import 'package:domandito/shared/models/like_model.dart';
+import 'package:domandito/shared/models/report_model.dart';
 import 'package:domandito/shared/services/like_service.dart';
 import 'package:domandito/shared/style/app_colors.dart';
 import 'package:domandito/shared/widgets/custom_network_image.dart';
 import 'package:domandito/shared/widgets/image_view_screen.dart';
+import 'package:domandito/shared/widgets/report_bottom_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
@@ -60,7 +62,7 @@ class _QuestionCardState extends State<QuestionCard> {
     if (!MySharedPreferences.isLoggedIn) {
       return;
     }
-    if(likesCount == 0){
+    if (likesCount == 0) {
       return;
     }
     log('checkIfLiked2');
@@ -284,16 +286,34 @@ class _QuestionCardState extends State<QuestionCard> {
                             ],
                           ),
                         ),
-                        Text(
-                          timeAgo(
-                            question.answeredAt ?? question.createdAt,
-                            context,
-                          ),
-                          style: const TextStyle(
-                            color: Colors.grey,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                          ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.flag),
+                              onPressed: () {
+                                showReportBottomSheet(
+                                  context: context,
+                                  contentId: question.id,
+                                  contentType: ReportContentType.answer,
+                                  contentOwnerId: question.receiver.id,
+                                );
+                              },
+                            ),
+
+                            Text(
+                              timeAgo(
+                                question.answeredAt ?? question.createdAt,
+                                context,
+                              ),
+                              style: const TextStyle(
+                                color: Colors.grey,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),

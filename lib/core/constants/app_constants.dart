@@ -206,6 +206,7 @@ class AppConstance {
         textAlign: !context.isCurrentLanguageAr()
             ? TextAlign.left
             : TextAlign.right,
+            maxLines: 5,
       ),
       autoCloseDuration: Duration(seconds: duration),
       // applyBlurEffect: true,

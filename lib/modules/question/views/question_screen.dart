@@ -2,8 +2,10 @@ import 'package:domandito/core/constants/app_constants.dart';
 import 'package:domandito/core/utils/extentions.dart';
 import 'package:domandito/modules/ask/models/q_model.dart';
 import 'package:domandito/modules/question/views/like_list.dart';
+import 'package:domandito/shared/models/report_model.dart';
 import 'package:domandito/shared/widgets/logo_widg.dart';
 import 'package:domandito/shared/widgets/question_details_card.dart';
+import 'package:domandito/shared/widgets/report_bottom_sheet.dart';
 import 'package:flutter/material.dart';
 
 class QuestionScreen extends StatefulWidget {
@@ -36,11 +38,22 @@ class _QuestionScreenState extends State<QuestionScreen> {
             onPressed: () => context.back(),
             icon: Icon(Icons.arrow_back),
           ),
-          // actions: [
-          //   ShareWidget(userUserName: '', questionId: widget.question.id),
+          actions: [
+            // ShareWidget(userUserName: '', questionId: widget.question.id),
+            IconButton(
+              icon: const Icon(Icons.flag_outlined),
+              onPressed: () {
+                showReportBottomSheet(
+                  context: context,
+                  contentId: widget.question.id,
+                  contentType: ReportContentType.question,
+                  contentOwnerId: widget.question.sender.id,
+                );
+              },
+            ),
 
-          //   SizedBox(width: 10),
-          // ],
+            SizedBox(width: 10),
+          ],
         ),
         body: SafeArea(
           bottom: false,

@@ -5,9 +5,11 @@ import 'package:domandito/core/utils/shared_prefrences.dart';
 import 'package:domandito/core/utils/utils.dart';
 import 'package:domandito/modules/ask/models/q_model.dart';
 import 'package:domandito/modules/profile/view/profile_screen.dart';
+import 'package:domandito/shared/models/report_model.dart';
 import 'package:domandito/shared/style/app_colors.dart';
 import 'package:domandito/shared/widgets/custom_network_image.dart';
 import 'package:domandito/shared/widgets/image_view_screen.dart';
+import 'package:domandito/shared/widgets/report_bottom_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
@@ -152,16 +154,34 @@ class _QuestionDetailsCardState extends State<QuestionDetailsCard> {
                         ],
                       ),
                     ),
-                    Text(
-                      timeAgo(
-                        question.answeredAt ?? question.createdAt,
-                        context,
-                      ),
-                      style: const TextStyle(
-                        color: Colors.grey,
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.flag),
+                          onPressed: () {
+                            showReportBottomSheet(
+                              context: context,
+                              contentId: question.id,
+                              contentType: ReportContentType.answer,
+                              contentOwnerId: question.receiver.id,
+                            );
+                          },
+                        ),
+
+                        Text(
+                          timeAgo(
+                            question.answeredAt ?? question.createdAt,
+                            context,
+                          ),
+                          style: const TextStyle(
+                            color: Colors.grey,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -220,7 +240,7 @@ class _QuestionDetailsCardState extends State<QuestionDetailsCard> {
                   const SizedBox(width: 5),
                   Expanded(
                     child: InkWell(
-                           focusColor: Colors.transparent,
+                      focusColor: Colors.transparent,
                       hoverColor: Colors.transparent,
                       overlayColor: WidgetStatePropertyAll(Colors.transparent),
                       highlightColor: Colors.transparent,
