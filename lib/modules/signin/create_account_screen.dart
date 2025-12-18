@@ -6,6 +6,7 @@ import 'package:domandito/core/utils/utils.dart';
 import 'package:domandito/modules/landing/views/landing_screen.dart';
 import 'package:domandito/modules/signin/models/user_model.dart';
 import 'package:domandito/modules/signin/services/add_user_to_firestore.dart';
+import 'package:domandito/modules/terms/teerms.dart';
 import 'package:domandito/shared/style/app_colors.dart';
 import 'package:domandito/shared/widgets/custom_bounce_button.dart';
 import 'package:domandito/shared/widgets/custom_text_field.dart';
@@ -57,7 +58,19 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
   //   "null",
   // };
 
+  bool _agreeToTerms = false;
+  String? _termsError;
+
   saveNewUser() async {
+    if (!_agreeToTerms) {
+      setState(() {
+        _termsError = context.isCurrentLanguageAr()
+            ? 'يجب الموافقة على الشروط والأحكام أولاً'
+            : 'You must agree to the Terms & Conditions';
+      });
+      return;
+    }
+
     if (_formKey.currentState!.validate()) {
       AppConstance().showLoading(context);
 
@@ -298,6 +311,71 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                         const SizedBox(height: 5),
 
                         PhoneNumberTextField(phoneCtrl: phoneCtrl),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Checkbox(
+                              value: _agreeToTerms,
+                              activeColor: AppColors.primary,
+                              onChanged: (value) {
+                                setState(() {
+                                  _agreeToTerms = value ?? false;
+                                  _termsError = null;
+                                });
+                              },
+                            ),
+                            Expanded(
+                              child: GestureDetector(
+                                onTap: () {
+                                  context.to(const TermsScreen());
+                                },
+                                child: Padding(
+                                  padding: const EdgeInsets.only(top: 12),
+                                  child: RichText(
+                                    text: TextSpan(
+                                      style: TextStyle(
+                                        color: Theme.of(
+                                          context,
+                                        ).textTheme.bodyMedium!.color,
+                                        fontSize: 13,
+                                      ),
+                                      children: [
+                                        TextSpan(
+                                          text: context.isCurrentLanguageAr()
+                                              ? 'أوافق على '
+                                              : 'I agree to the ',
+                                        ),
+                                        TextSpan(
+                                          text: context.isCurrentLanguageAr()
+                                              ? 'الشروط والأحكام'
+                                              : 'Terms & Conditions',
+                                          style: const TextStyle(
+                                            color: Colors.indigo,
+                                            decoration:
+                                                TextDecoration.underline,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        if (_termsError != null)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 5, left: 8),
+                            child: Text(
+                              _termsError!,
+                              style: const TextStyle(
+                                color: Colors.red,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+
                         const SizedBox(height: 50),
                         BounceButton(
                           radius: 60,

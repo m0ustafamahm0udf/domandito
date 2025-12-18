@@ -149,67 +149,83 @@ class TermsScreen extends StatelessWidget {
               _buildSection(
                 '1. Content:',
                 '• All content provided in the "Domandito" application is for informational, entertainment, and educational purposes only.\n'
-                '• No individual or entity may use, copy, publish, distribute, modify, or reproduce any content without explicit written permission from the app administration.',
+                    '• No individual or entity may use, copy, publish, distribute, modify, or reproduce any content without explicit written permission from the app administration.',
               ),
 
               _buildSection(
                 '2. Personal Accounts:',
                 '• When creating a personal account on the "Domandito" application, you must provide accurate and truthful information.\n'
-                '• Creating fake accounts or using other users’ accounts without prior permission is strictly prohibited.',
+                    '• Creating fake accounts or using other users’ accounts without prior permission is strictly prohibited.',
               ),
 
               _buildSection(
                 '3. Intellectual Property Rights:',
                 '• All intellectual property rights related to the content available in the "Domandito" application belong to the app administration or its licensed partners.\n'
-                '• Copying, transferring, distributing, or republishing any content without prior permission from the app administration is not allowed.',
+                    '• Copying, transferring, distributing, or republishing any content without prior permission from the app administration is not allowed.',
               ),
 
               _buildSection(
                 '4. Personal Use:',
                 '• Users are allowed to use the "Domandito" application for personal and non-commercial purposes only.\n'
-                '• The application may not be used in any way that violates local or international laws.',
+                    '• The application may not be used in any way that violates local or international laws.',
               ),
 
               _buildSection(
                 '5. Liability:',
                 '• We are not responsible for any direct or indirect damages resulting from the use of the "Domandito" application.\n'
-                '• Users are advised to exercise caution when dealing with any data related to reservations or payment processes within the application.',
+                    '• Users are advised to exercise caution when dealing with any data related to reservations or payment processes within the application.',
               ),
 
               _buildSection(
                 '6. Updates and Modifications:',
                 '• We reserve the right to modify or update these Terms and Conditions at any time without prior notice.\n'
-                '• Please review this page regularly to stay informed of the latest updates.',
+                    '• Please review this page regularly to stay informed of the latest updates.',
               ),
 
               _buildSection(
                 '7. User-Generated Content and Comments:',
-                '• Users are encouraged to share original and creative content through the application and are fully responsible for the content they submit.\n'
-                '• The app administration reserves the right to remove or edit any comments or content deemed inappropriate or in violation of app policies.',
+                '• Users are fully responsible for any content they submit through the application.\n'
+                    '• Submitting abusive, offensive, or objectionable content is strictly prohibited.\n'
+                    '• The app administration reserves the right to remove any content that violates community guidelines without prior notice.\n'
+                    '• Repeated violations may result in temporary or permanent account suspension.',
               ),
 
               _buildSection(
-                '8. Accounts and Security:',
+                '8. Community Guidelines and Safety:',
+                '• Domandito has a zero-tolerance policy for objectionable or abusive content.\n'
+                    '• The following content is strictly prohibited:\n'
+                    '  - Harassment or bullying\n'
+                    '  - Hate speech or discrimination\n'
+                    '  - Sexual, violent, or explicit content\n'
+                    '  - Threats or encouragement of self-harm\n'
+                    '• Users may report any content or user they find inappropriate directly within the app.\n'
+                    '• Users may block other users. Blocking immediately removes the blocked user’s content from the feed.\n'
+                    '• All reports are reviewed by the app administration within 24 hours.\n'
+                    '• Content that violates these guidelines will be removed immediately, and the offending user may be suspended or permanently banned.',
+              ),
+
+              _buildSection(
+                '9. Accounts and Security:',
                 '• Users are responsible for maintaining the confidentiality of their account information and must not share it with others.\n'
-                '• If account security is suspected to be compromised, the app administration must be notified immediately.',
+                    '• If account security is suspected to be compromised, the app administration must be notified immediately.',
               ),
 
               _buildSection(
-                '9. Account Termination:',
+                '10. Account Termination:',
                 '• Users have the right to delete their accounts at any time without providing a reason.\n'
-                '• Upon account deletion, all associated data will be removed from our database.',
+                    '• Upon account deletion, all associated data will be removed from our database.',
               ),
 
               _buildSection(
-                '10. Updates and Disclaimer:',
+                '11. Updates and Disclaimer:',
                 '• We reserve the right to update or discontinue the application at any time without prior notice.\n'
-                '• In the event of application discontinuation, we shall not be liable for any losses or damages incurred by users.',
+                    '• In the event of application discontinuation, we shall not be liable for any losses or damages incurred by users.',
               ),
 
               _buildSection(
-                '11. Governing Law and Jurisdiction:',
+                '12. Governing Law and Jurisdiction:',
                 '• These Terms and Conditions are governed by the laws and regulations of the Arab Republic of Egypt.\n'
-                '• Any legal disputes or claims shall fall under the exclusive jurisdiction of the Egyptian courts.',
+                    '• Any legal disputes or claims shall fall under the exclusive jurisdiction of the Egyptian courts.',
               ),
 
               const SizedBox(height: 20),
