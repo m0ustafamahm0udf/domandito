@@ -19,7 +19,7 @@ class UserShareCard extends StatelessWidget {
       color: Colors.white,
 
       child: Stack(
-        alignment: Alignment.topLeft,
+        alignment: Alignment.center,
         children: [
           Container(
             width: 400,
@@ -27,11 +27,11 @@ class UserShareCard extends StatelessWidget {
             padding: const EdgeInsets.all(24),
             margin: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              image: DecorationImage(
-                image: NetworkImage(userImage),
-                fit: BoxFit.cover,
-                opacity: 0.25,
-              ),
+              // image: DecorationImage(
+              //   image: NetworkImage(userImage),
+              //   fit: BoxFit.cover,
+              //   opacity: 0.25,
+              // ),
               shape: BoxShape.circle,
               // gradient: LinearGradient(
               //       colors: [Colors.purple, AppColors.primary, AppColors.primary],
@@ -85,6 +85,7 @@ class UserShareCard extends StatelessWidget {
                     ),
                   ),
                 ),
+
                 // Transform.translate(
                 //   offset: const Offset(0, -5),
                 //   child: const Text(
@@ -93,7 +94,6 @@ class UserShareCard extends StatelessWidget {
                 //     style: TextStyle(color: Colors.white70, fontSize: 18),
                 //   ),
                 // ),
-
                 const SizedBox(height: 20),
 
                 // // const Spacer(),
@@ -115,8 +115,18 @@ class UserShareCard extends StatelessWidget {
               ],
             ),
           ),
+          Opacity(
+            opacity: 0.25,
+            child: CustomNetworkImage(
+              url: userImage,
+              radius: 999,
+              height: 390,
+              width: 390,
+              boxFit: BoxFit.cover,
+            ),
+          ),
           Positioned(
-            top:15 ,
+            top: 15,
             right: 400 - 120,
             child: Container(
               height: 60,

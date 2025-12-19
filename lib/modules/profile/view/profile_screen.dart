@@ -28,6 +28,7 @@ import 'package:domandito/shared/widgets/image_view_screen.dart';
 import 'package:domandito/shared/widgets/logo_widg.dart';
 import 'package:domandito/shared/widgets/share_widget.dart';
 import 'package:domandito/shared/widgets/show_image_picker.dart';
+import 'package:domandito/shared/widgets/user_share_card.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
