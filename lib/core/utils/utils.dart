@@ -203,6 +203,135 @@ String timeAgo(dynamic timestamp, BuildContext context) {
   ).format(date);
 }
 
+final List<String> bannedWords = [
+  // ======= English =======
+  "shit",
+  "piss",
+  "fuck",
+  "fucking",
+  "fucker",
+  "motherfucker",
+  "cunt",
+  "asshole",
+  "bitch",
+  "bastard",
+  "slut",
+  "whore",
+  "dick",
+  "cock",
+  "penis",
+  "vagina",
+  "anus",
+  "douche",
+  "crap",
+  "bloody",
+  "bugger",
+  "bollocks",
+  "arse",
+  "shithead",
+  "fuckhead",
+  "fuckface",
+  "skank",
+  "twat",
+  "fag",
+  "retard",
+  "rape",
+  "rapist",
+  "sex",
+  "porn",
+  "pornography",
+  "nigger", // racial slur
+  "kike", // racial slur
+  "chink", // racial slur
+  "spic", // racial slur
+  "slimeball",
+  "jerkoff",
+  "wanker",
+  "cum",
+  "balls",
+  "boobs",
+  "tits",
+  "clit",
+  "fapper",
+  "sexist",
+  "racist",
+  "terror",
+  "terrorist",
+  "suicide",
+  "kill",
+  "murder",
+  "violence",
+  "drugs",
+  "weed",
+  "cocaine",
+  "heroin",
+  "meth",
+  "gamble",
+  "scam",
+  "fraud",
+
+  // ======= Arabic (عامية & فصحى) =======
+  "كس",
+  "كس أمك",
+  "زب",
+  "عرص",
+  "تناك",
+  "ينك",
+  "شرموطه",
+  "شرموط",
+  "مؤخره",
+  "طيز",
+  "قحبه",
+  "لعنه",
+  "يلعن",
+  "يلعن أبو",
+  "ابن الكلب",
+  "ابن الحرام",
+  "يا مت",
+  "ياخرا",
+  "يا زب",
+  "يا كس",
+  "نطيحه",
+  "يطز",
+  "يا لعنه",
+  "خرا",
+  "خراء",
+  "غبي",
+  "احمق",
+  "غباء",
+  "أغبى",
+  "حقير",
+  "حقيره",
+  "مغفل",
+  "تافه",
+  "سافل",
+  "سافله",
+  "رقاص",
+  "رجاله",
+  "تلعب",
+  "نموسه", //سياق مهين
+  "نكاح",
+  "جماع",
+  "فرج",
+  "عاهرة",
+  "عاهرات",
+  "عهر",
+  "متعاطي",
+  "مخدرات",
+];
+
+/// تتحقق إذا النص يحتوي أي كلمة ممنوعة
+bool containsBannedWords(String text) {
+  final lowerText = text.toLowerCase();
+
+  for (var word in bannedWords) {
+    if (lowerText.contains(word.toLowerCase())) {
+      return true;
+    }
+  }
+  return false;
+}
+
 Future<bool> hasInternetConnection({
   Duration timeout = const Duration(milliseconds: 100),
 }) async {
@@ -476,10 +605,7 @@ Widget linkifyText({
       spans.add(
         TextSpan(
           text: text.substring(lastIndex, match.start),
-          style: const TextStyle(fontSize: 16,
-          fontFamily: 'Rubik',
-          
-          ),
+          style: const TextStyle(fontSize: 16, fontFamily: 'Rubik'),
         ),
       );
     }
@@ -489,7 +615,7 @@ Widget linkifyText({
     spans.add(
       TextSpan(
         text: url,
-        style:  TextStyle(
+        style: TextStyle(
           fontSize: 14,
           // color: Colors.indigo,
           // fontWeight: FontWeight.bold,

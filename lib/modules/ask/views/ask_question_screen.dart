@@ -270,6 +270,11 @@ class _AskQuestionScreenState extends State<AskQuestionScreen> {
                               ? 'Question must be less than 350 characters'
                               : 'السؤال يجب أن يكون أقل من 350 حرف';
                         }
+                        if (containsBannedWords(value)) {
+                          return !context.isCurrentLanguageAr()
+                              ? 'Your question contains prohibited words'
+                              : 'السؤال يحتوي على كلمات ممنوعة';
+                        }
                         return null;
                       },
                     ),
