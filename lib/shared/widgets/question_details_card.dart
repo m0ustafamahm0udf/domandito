@@ -161,6 +161,9 @@ class _QuestionDetailsCardState extends State<QuestionDetailsCard> {
                         IconButton(
                           icon: const Icon(Icons.flag),
                           onPressed: () {
+                            if (!MySharedPreferences.isLoggedIn) {
+                              return;
+                            }
                             showReportBottomSheet(
                               context: context,
                               contentId: question.id,

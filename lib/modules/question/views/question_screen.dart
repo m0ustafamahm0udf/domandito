@@ -1,5 +1,6 @@
 import 'package:domandito/core/constants/app_constants.dart';
 import 'package:domandito/core/utils/extentions.dart';
+import 'package:domandito/core/utils/shared_prefrences.dart';
 import 'package:domandito/modules/ask/models/q_model.dart';
 import 'package:domandito/modules/question/views/like_list.dart';
 import 'package:domandito/shared/models/report_model.dart';
@@ -43,6 +44,9 @@ class _QuestionScreenState extends State<QuestionScreen> {
             IconButton(
               icon: const Icon(Icons.flag_outlined),
               onPressed: () {
+                if (!MySharedPreferences.isLoggedIn) {
+                  return;
+                }
                 showReportBottomSheet(
                   context: context,
                   contentId: widget.question.id,

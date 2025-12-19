@@ -24,11 +24,11 @@ import 'package:domandito/shared/style/app_colors.dart';
 import 'package:domandito/shared/widgets/custom_bounce_button.dart';
 import 'package:domandito/shared/widgets/custom_dialog.dart';
 import 'package:domandito/shared/widgets/custom_network_image.dart';
+import 'package:domandito/shared/widgets/download_dialog.dart';
 import 'package:domandito/shared/widgets/image_view_screen.dart';
 import 'package:domandito/shared/widgets/logo_widg.dart';
 import 'package:domandito/shared/widgets/share_widget.dart';
 import 'package:domandito/shared/widgets/show_image_picker.dart';
-import 'package:domandito/shared/widgets/user_share_card.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
@@ -77,6 +77,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
     super.initState();
     isMe = widget.userId == MySharedPreferences.userId;
     getAllData();
+    if (kIsWeb && !isMe) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        showDownloadAppDialog(context);
+      });
+    }
   }
 
   Future<void> getProfile() async {
@@ -524,9 +529,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           userName: user!.userName,
           image: user!.image,
         );
-       await FollowService.toggleFollow(
-          me: me ,
-          targetUser: target ,
+        await FollowService.toggleFollow(
+          me: me,
+          targetUser: target,
           context: context,
         );
       }
