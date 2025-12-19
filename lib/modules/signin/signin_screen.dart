@@ -1,10 +1,13 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'package:animate_do/animate_do.dart';
+import 'package:domandito/core/constants/app_constants.dart';
+import 'package:domandito/core/services/launch_urls.dart';
 import 'package:domandito/core/utils/extentions.dart';
 import 'package:domandito/core/utils/utils.dart';
 import 'package:domandito/modules/landing/views/landing_screen.dart';
 import 'package:domandito/shared/style/app_colors.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:domandito/core/constants/app_icons.dart';
 import 'package:domandito/modules/signin/services/appl_signin.dart';
@@ -82,9 +85,9 @@ class _SignInScreenState extends State<SignInScreen> {
                         Column(
                           children: [
                             FadeInUp(
-                          from: 50,
+                              from: 50,
 
-                          duration: const Duration(milliseconds: 600),
+                              duration: const Duration(milliseconds: 600),
 
                               child: Transform.translate(
                                 offset: const Offset(0, 40),
@@ -97,9 +100,9 @@ class _SignInScreenState extends State<SignInScreen> {
                               ),
                             ),
                             FadeInUp(
-                          from: 10,
+                              from: 10,
 
-                          duration: const Duration(milliseconds: 600),
+                              duration: const Duration(milliseconds: 600),
 
                               delay: Duration(milliseconds: 200),
                               child: Text(
@@ -114,12 +117,12 @@ class _SignInScreenState extends State<SignInScreen> {
                             ),
                           ],
                         ),
-                          FadeInUp(
+                        FadeInUp(
                           from: 10,
 
                           duration: const Duration(milliseconds: 600),
 
-                              delay: Duration(milliseconds: 350),
+                          delay: Duration(milliseconds: 350),
                           child: Text(
                             context.isCurrentLanguageAr()
                                 ? 'قول اللي في نفسك'
@@ -137,15 +140,13 @@ class _SignInScreenState extends State<SignInScreen> {
 
                     Column(
                       children: [
-                        
-                         if (AppPlatform.iosApp == platform)
-                         FadeInUp(
-                          from: 10,
+                        if (AppPlatform.iosApp == platform)
+                          FadeInUp(
+                            from: 10,
 
-                          duration: const Duration(milliseconds: 600),
+                            duration: const Duration(milliseconds: 600),
 
-                   
-                              delay: Duration(milliseconds: 600),
+                            delay: Duration(milliseconds: 600),
                             child: SocialButton(
                               title: context.isCurrentLanguageAr()
                                   ? 'تسجيل الدخول بحساب Apple'
@@ -159,36 +160,44 @@ class _SignInScreenState extends State<SignInScreen> {
                               icon: AppIcons.apple,
                             ),
                           ),
-                           if (AppPlatform.iosApp == platform)
+                        if (AppPlatform.iosApp == platform)
                           const SizedBox(height: 10),
-                         FadeInUp(
-
+                        FadeInUp(
                           from: 10,
                           duration: const Duration(milliseconds: 600),
 
-                              delay: Duration(milliseconds:AppPlatform.iosApp == platform ? 800 : 600),
+                          delay: Duration(
+                            milliseconds: AppPlatform.iosApp == platform
+                                ? 800
+                                : 600,
+                          ),
                           child: SocialButton(
                             title: context.isCurrentLanguageAr()
                                 ? 'تسجيل الدخول بحساب جوجل'
                                 : 'Sign in with Google',
                             onPressed: () async {
                               FocusManager.instance.primaryFocus?.unfocus();
-                          
-                              await GSignin().signInWithGoogle(context: context);
+
+                              await GSignin().signInWithGoogle(
+                                context: context,
+                              );
                             },
                             icon: AppIcons.google,
                           ),
                         ),
-                       
-                       
+
                         const SizedBox(height: 10),
                         if (!mustlogin)
                           FadeInUp(
-                          from: 10,
+                            from: 10,
 
-                          duration: const Duration(milliseconds: 600),
+                            duration: const Duration(milliseconds: 600),
 
-                              delay: Duration(milliseconds:AppPlatform.iosApp == platform ? 1000 : 800),
+                            delay: Duration(
+                              milliseconds: AppPlatform.iosApp == platform
+                                  ? 1000
+                                  : 800,
+                            ),
                             child: TextButton(
                               onPressed: () =>
                                   context.toAndRemoveAll(LandingScreen()),
@@ -197,6 +206,66 @@ class _SignInScreenState extends State<SignInScreen> {
                                 style: TextStyle(color: AppColors.white),
                               ),
                             ),
+                          ),
+                        const SizedBox(height: 20),
+
+                        if (kIsWeb)
+                          Column(
+                            children: [
+                              const SizedBox(height: 20),
+                              Text(
+                                !context.isCurrentLanguageAr()
+                                    ? 'Download the app'
+                                    : 'تحميل التطبيق',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.white,
+                                ),
+                              ),
+                              // const SizedBox(height: 20),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  TextButton.icon(
+                                    onPressed: () {
+                                      LaunchUrlsService().launchBrowesr(
+                                        uri: AppConstance.appStoreUrl,
+                                        context: context,
+                                      );
+                                    },
+                                    label: Text(
+                                      'App Store',
+                                      style: TextStyle(color: AppColors.white),
+                                    ),
+                                    icon: SvgPicture.asset(
+                                      AppIcons.appstore,
+                                      height: 25,
+                                      width: 25,
+                                      // color: AppColors.white,
+                                    ),
+                                  ),
+                                  TextButton.icon(
+                                    onPressed: () {
+                                      LaunchUrlsService().launchBrowesr(
+                                        uri: AppConstance.googleplayUrl,
+                                        context: context,
+                                      );
+                                    },
+                                    label:  Text('Google Play',
+                                      style: TextStyle(color: AppColors.white),
+                                    ),
+
+                                    icon: SvgPicture.asset(
+                                      AppIcons.googleplay,
+                                      height: 25,
+                                      width: 25,
+                                      // color: AppColors.white,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
                           ),
                       ],
                     ),
