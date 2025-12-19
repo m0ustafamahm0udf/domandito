@@ -73,7 +73,7 @@ class FollowService {
           // ❤️ Follow
           // -------------------------------------------------------------------
           final newDoc = followsRef.doc();
-    DateTime now = await getNetworkTime() ?? DateTime.now();
+          DateTime now = await getNetworkTime() ?? DateTime.now();
 
           final follow = FollowModel(
             id: newDoc.id,
@@ -89,7 +89,7 @@ class FollowService {
           });
 
           transaction.update(meRef, {"followingCount": myFollowing + 1});
-       
+
           return true;
         }
       });

@@ -16,7 +16,9 @@ import 'package:domandito/modules/ask/models/q_model.dart';
 import 'package:domandito/modules/ask/views/ask_question_screen.dart';
 import 'package:domandito/modules/following/views/following_screen.dart';
 import 'package:domandito/shared/apis/upload_images_services.dart';
+import 'package:domandito/shared/models/bloced_user.dart';
 import 'package:domandito/shared/models/follow_model.dart';
+import 'package:domandito/shared/services/block_service.dart';
 import 'package:domandito/shared/services/follow_service.dart';
 import 'package:domandito/shared/style/app_colors.dart';
 import 'package:domandito/shared/widgets/custom_bounce_button.dart';
@@ -63,17 +65,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
   DocumentSnapshot? lastDoc;
   int limit = 10;
   bool isFollowing = false;
+  bool isBlocked = false;
   bool followLoading = false;
+  bool blockLoading = false;
+
   // int totalQuestionsCount = 0;
 
   @override
   void initState() {
     super.initState();
     isMe = widget.userId == MySharedPreferences.userId;
-    getProfile();
-    // getQuestionsCount();
-    checkFollowing();
-    getQuestions();
+    getAllData();
   }
 
   Future<void> getProfile() async {
@@ -161,6 +163,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   // }
 
   Future<void> getQuestions() async {
+    log(isBlocked.toString());
+    if (isBlocked) return;
     // منع استدعاءات متزامنة أو لو مفيش بيانات إضافية
     if (isQuestionsLoading || !hasMore) return;
 
@@ -271,6 +275,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
       );
       setState(() {});
     }
+  }
+
+  Future<void> checkBlock() async {
+    if (!MySharedPreferences.isLoggedIn) {
+      return;
+    }
+    if (!isMe) {
+      isBlocked = await BlockService.isBlocked(
+        myId: MySharedPreferences.userId,
+        targetUserId: widget.userId,
+      );
+      setState(() {});
+    }
+    log('isBlocked $isBlocked');
+  }
+
+  getAllData() async {
+    await checkBlock();
+    // Future.wait([getProfile(), getQuestions(), checkFollowing()]);
+    await getProfile();
+    await getQuestions();
+    await checkFollowing();
   }
 
   Future<void> toggleFollowAction() async {
@@ -395,6 +421,134 @@ class _ProfileScreenState extends State<ProfileScreen> {
     });
   }
 
+  Future<void> toggleBlockAction() async {
+    if (!MySharedPreferences.isLoggedIn) {
+      AppConstance().showInfoToast(
+        context,
+        msg: !context.isCurrentLanguageAr()
+            ? 'Please log in'
+            : 'يرجى تسجيل الدخول',
+        isLogin: true,
+      );
+      return;
+    }
+
+    if (!await hasInternetConnection()) {
+      AppConstance().showInfoToast(
+        context,
+        msg: !context.isCurrentLanguageAr()
+            ? 'No internet connection'
+            : 'لا يوجد اتصال بالانترنت',
+      );
+      return;
+    }
+
+    // نص الدايلوج بناءً على حالة البلوك الحالية
+    final title = isBlocked
+        ? (!context.isCurrentLanguageAr() ? 'Unblock' : "رفع الحظر")
+        : (!context.isCurrentLanguageAr() ? 'Block' : "حظر ${user!.name}");
+
+    final content = isBlocked
+        ? (!context.isCurrentLanguageAr()
+              ? "Are you sure you want to unblock ${user!.name}?"
+              : "هل أنت متأكد أنك تريد رفع الحظر عن ${user!.name}؟")
+        : (!context.isCurrentLanguageAr()
+              ? "Are you sure you want to block ${user!.name}?"
+              : "هل أنت متأكد أنك تريد حظر ${user!.name}؟");
+
+    // عرض الدايلوج
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) =>
+          CustomDialog(title: title, content: content, onConfirm: () {}),
+    );
+
+    if (confirmed == false) return;
+
+    if (!await hasInternetConnection()) {
+      AppConstance().showInfoToast(
+        context,
+        msg: !context.isCurrentLanguageAr()
+            ? 'No internet connection'
+            : 'لا يوجد اتصال بالانترنت',
+      );
+      return;
+    }
+
+    if (blockLoading || user == null) return;
+
+    setState(() => blockLoading = true);
+
+    final me = BlockUser(
+      id: MySharedPreferences.userId,
+      name: MySharedPreferences.userName,
+      userName: MySharedPreferences.userUserName,
+      image: MySharedPreferences.image,
+    );
+
+    final target = BlockUser(
+      id: user!.id,
+      name: user!.name,
+      userName: user!.userName,
+      image: user!.image,
+    );
+
+    final newState = await BlockService.toggleBlock(
+      blocker: me,
+      blocked: target,
+      context: context,
+    );
+
+    // تحديث الحالة مباشرة
+    if (newState) {
+      AppConstance().showSuccesToast(
+        context,
+        msg: !context.isCurrentLanguageAr()
+            ? 'User blocked successfully'
+            : 'تم حظر المستخدم',
+      );
+      if (isFollowing) {
+        FollowUser me = FollowUser(
+          userToken: MySharedPreferences.deviceToken,
+          id: MySharedPreferences.userId,
+          name: MySharedPreferences.userName,
+          userName: MySharedPreferences.userUserName,
+          image: MySharedPreferences.image,
+        );
+
+        FollowUser target = FollowUser(
+          userToken: user!.token,
+          id: user!.id,
+          name: user!.name,
+          userName: user!.userName,
+          image: user!.image,
+        );
+       await FollowService.toggleFollow(
+          me: me ,
+          targetUser: target ,
+          context: context,
+        );
+      }
+
+      context.back();
+      // TODO: اختياري: مسح أو فلترة المحتوى فورًا من الـ feed
+      // مثلا: remove blocked user's posts from the UI list
+    } else {
+      AppConstance().showSuccesToast(
+        context,
+        msg: !context.isCurrentLanguageAr()
+            ? 'User unblocked successfully'
+            : 'تم رفع الحظر عن المستخدم',
+      );
+      await getAllData();
+    }
+
+    setState(() {
+      isBlocked = newState;
+      blockLoading = false;
+    });
+  }
+
   Future<void> _pickImage(ImageSource source) async {
     AppConstance().showLoading(context);
 
@@ -467,8 +621,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 lastDoc = null;
                 hasMore = true;
                 questions.clear();
-                await getProfile();
-                await getQuestions();
+                await getAllData();
                 // await getQuestionsCount();
                 setState(() {});
               },
@@ -566,28 +719,44 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   //   ),
                   // ),
                   // --- قائمة الأسئلة ---
-                  questions.isEmpty && !isQuestionsLoading
-                      ? Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              LogoWidg(),
-                              if (isMe)
-                                Text(
-                                  !context.isCurrentLanguageAr()
-                                      ? 'You have not received any questions yet'
-                                      : "لم تستقبل أي أسئلة بعد",
-                                )
-                              else
-                                Text(
-                                  !context.isCurrentLanguageAr()
-                                      ? 'have not received any questions yet'
-                                      : "لم يستقبل أي أسئلة بعد",
-                                ),
-                            ],
+                  if (isBlocked)
+                    Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          LogoWidg(),
+
+                          Text(
+                            !context.isCurrentLanguageAr()
+                                ? 'You blocked this user'
+                                : "تم حظر هذا المستخدم",
                           ),
-                        )
-                      : questionsWidget(),
+                        ],
+                      ),
+                    ),
+                  if (questions.isEmpty && !isQuestionsLoading && !isBlocked)
+                    Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          LogoWidg(),
+                          if (isMe)
+                            Text(
+                              !context.isCurrentLanguageAr()
+                                  ? 'You have not received any questions yet'
+                                  : "لم تستقبل أي أسئلة بعد",
+                            )
+                          else
+                            Text(
+                              !context.isCurrentLanguageAr()
+                                  ? 'have not received any questions yet'
+                                  : "لم يستقبل أي أسئلة بعد",
+                            ),
+                        ],
+                      ),
+                    )
+                  else
+                    questionsWidget(),
                   if (kIsWeb)
                     Column(
                       children: [
@@ -694,6 +863,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
             style: const TextStyle(color: Colors.grey, fontSize: 12),
           ),
+          SizedBox(width: 5),
+          if (!isMe)
+            GestureDetector(
+              onTap: blockLoading || user == null
+                  ? null
+                  : toggleBlockAction, // هنا الدالة اللي عملناها فوق
+              child: blockLoading
+                  ? SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CupertinoActivityIndicator(
+                        color: AppColors.primary,
+                      ),
+                    )
+                  : CircleAvatar(
+                      radius: 12,
+                      backgroundColor: isBlocked
+                          ? Colors.red
+                          : Colors.transparent,
+                      child: Icon(
+                        isBlocked ? Icons.block_sharp : Icons.block_outlined,
+                        color: isBlocked ? Colors.white : Colors.red,
+                      ),
+                    ),
+            ),
+
           // if(MySharedPreferences.userId == widget.userId)
           // SizedBox(
           //   height: 35,
@@ -810,7 +1005,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Row askAndFollow(BuildContext context) {
+  Widget askAndFollow(BuildContext context) {
+    if (isBlocked) {
+      return const SizedBox();
+    }
     return Row(
       children: [
         Expanded(
@@ -1041,14 +1239,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
             vertical: 6,
           ),
           child: GestureDetector(
-            onTap: () => pushScreen(
-              context,
-              screen: ImageViewScreen(
-                images: [user!.image],
-                // title: '',
-                onBack: (i) {},
-              ),
-            ),
+            onTap: isBlocked
+                ? null
+                : () => pushScreen(
+                    context,
+                    screen: ImageViewScreen(
+                      images: [user!.image],
+                      // title: '',
+                      onBack: (i) {},
+                    ),
+                  ),
             child: Container(
               height: 175,
               width: 175,
