@@ -19,6 +19,7 @@ import 'package:domandito/shared/apis/upload_images_services.dart';
 import 'package:domandito/shared/models/bloced_user.dart';
 import 'package:domandito/shared/models/follow_model.dart';
 import 'package:domandito/shared/services/block_service.dart';
+import 'package:domandito/shared/services/crop_image_service.dart';
 import 'package:domandito/shared/services/follow_service.dart';
 import 'package:domandito/shared/style/app_colors.dart';
 import 'package:domandito/shared/widgets/custom_bounce_button.dart';
@@ -564,8 +565,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
         type: FileType.image,
       );
       if (pickedFilePath != null) {
-        final url = await UploadImagesToS3Api().uploadFiles(
+        final croppedPath = await ImageCropService.cropImage(
           filePath: pickedFilePath,
+        );
+        if (croppedPath == null) {
+          Loader.hide();
+          return;
+        }
+        final url = await UploadImagesToS3Api().uploadFiles(
+          filePath: croppedPath,
           fileName:
               '${DateTime.now().year}-${DateTime.now().month}-${DateTime.now().day}-${DateTime.now().hour}-${DateTime.now().minute}-${DateTime.now().second}.png',
           destinationPath: 'profiles/${MySharedPreferences.userId}',
