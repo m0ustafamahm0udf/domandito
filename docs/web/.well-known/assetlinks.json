@@ -1,13 +1,15 @@
 [
   {
     "relation": [
-      "delegate_permission/common.handle_all_urls"
+      "delegate_permission/common.handle_all_urls",
+      "delegate_permission/common.get_login_creds"
     ],
     "target": {
       "namespace": "android_app",
       "package_name": "com.m0ustafamahm0ud.domandito",
       "sha256_cert_fingerprints": [
-        "1E:EA:52:E9:13:0B:96:C6:AF:14:CB:BF:71:9A:91:99:69:42:5C:58:BC:F5:F0:42:FE:A6:74:E7:66:3C:47:36"
+        "1E:EA:52:E9:13:0B:96:C6:AF:14:CB:BF:71:9A:91:99:69:42:5C:58:BC:F5:F0:42:FE:A6:74:E7:66:3C:47:36",
+        "B4:E3:C8:AF:57:1E:F8:CF:BC:71:A2:31:AC:8F:A4:8F:63:31:60:F2:A3:60:59:93:78:F4:08:FF:7C:2A:41:69"
       ]
     }
   }
