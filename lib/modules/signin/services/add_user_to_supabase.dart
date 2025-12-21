@@ -1,38 +1,34 @@
 // ignore_for_file: use_build_context_synchronously
 
-// import 'dart:developer' as dev;
-// import 'dart:developer';
-
 import 'dart:developer';
 
 import 'package:domandito/modules/signin/create_account_screen.dart';
 import 'package:domandito/modules/signin/models/user_model.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:domandito/core/constants/app_constants.dart';
 import 'package:domandito/core/utils/extentions.dart';
 import 'package:domandito/core/utils/shared_prefrences.dart';
 import 'package:domandito/modules/landing/views/landing_screen.dart';
-// import 'package:domandito/modules/signin/services/add_user_token_to_firestore.dart';
 
-class AddUserToFirestore {
+class AddUserToSupabase {
+  final _supabase = Supabase.instance.client;
+
   Future<bool> isPhoneUsed(String phone, String currentUserId) async {
     try {
-      final snapshot = await FirebaseFirestore.instance
-          .collection('users')
-          .where('phone', isEqualTo: phone)
-          .limit(1)
-          .get();
+      final response = await _supabase
+          .from('users')
+          .select()
+          .eq('phone', phone)
+          .limit(1);
 
-      if (snapshot.docs.isEmpty) {
+      if (response.isEmpty) {
         return false; // الرقم غير مستخدم
       }
 
       return true;
-
-      // final existingUserId = snapshot.docs.first.id;
-      // return existingUserId != currentUserId; // true = مستخدم من شخص آخر
     } catch (e) {
+      log('Error checking phone: $e');
       return true; // لمنع التكرار في حالة error
     }
   }
@@ -40,21 +36,19 @@ class AddUserToFirestore {
   Future<bool> isUsernameUsed(String username, String currentUserId) async {
     try {
       log('username: $username');
-      final snapshot = await FirebaseFirestore.instance
-          .collection('users')
-          .where('userName', isEqualTo: username)
-          .limit(1)
-          .get();
+      final response = await _supabase
+          .from('users')
+          .select()
+          .eq('username', username)
+          .limit(1);
 
-      if (snapshot.docs.isEmpty) {
+      if (response.isEmpty) {
         return false; // الاسم غير مستخدم
       }
 
       return true;
-
-      // final existingUserId = snapshot.docs.first.id;
-      // return existingUserId != currentUserId; // true = مستخدم من شخص آخر
     } catch (e) {
+      log('Error checking username: $e');
       return true;
     }
   }
@@ -62,20 +56,18 @@ class AddUserToFirestore {
   Future<bool> isEmailUsed(String email, String currentUserId) async {
     try {
       log('email: $email');
-      final snapshot = await FirebaseFirestore.instance
-          .collection('users')
-          .where('email', isEqualTo: email)
-          .limit(1)
-          .get();
+      final response = await _supabase
+          .from('users')
+          .select()
+          .eq('email', email)
+          .limit(1);
 
-      if (snapshot.docs.isEmpty) {
+      if (response.isEmpty) {
         return false; // الاسم غير مستخدم
       }
       return true;
-
-      // final existingUserId = snapshot.docs.first.id;
-      // return existingUserId != currentUserId; // true = مستخدم من شخص آخر
     } catch (e) {
+      log('Error checking email: $e');
       return true;
     }
   }
@@ -135,13 +127,13 @@ class AddUserToFirestore {
         'token': newUser.token,
       };
 
-      final snapshot = await FirebaseFirestore.instance
-          .collection('users')
-          .where('email', isEqualTo: newUser.email)
-          .limit(1)
-          .get();
+      final response = await _supabase
+          .from('users')
+          .select()
+          .eq('email', newUser.email)
+          .limit(1);
 
-      if (snapshot.docs.isEmpty) {
+      if (response.isEmpty) {
         // البريد غير موجود، تابع إنشاء اسم المستخدم
         final emailUsed = await isEmailUsed(newUser.email, newUser.id);
         if (!emailUsed) {
@@ -149,31 +141,27 @@ class AddUserToFirestore {
           return;
         }
       } else {
-        // البريد موجود، استخدم docId الموجود في Firestore لتحديثه
-        final existingDoc = snapshot.docs.first;
-        final userDoc = FirebaseFirestore.instance
-            .collection('users')
-            .doc(existingDoc.id);
-        await userDoc.update(updatedData);
+        // البريد موجود، استخدم id الموجود للتحديث
+        final existingUser = response.first;
+        final userId =
+            existingUser['id']; // Assuming 'id' is the primary key or unique identifier
 
-        final data = existingDoc.data();
+        await _supabase.from('users').update(updatedData).eq('id', userId);
+
+        final data = existingUser; // In Supabase response is the data already
         log('data: $data');
         // حفظ البيانات SharedPreferences
         MySharedPreferences.isLoggedIn = true;
         MySharedPreferences.userName = data['name'] ?? '';
-        MySharedPreferences.userUserName = data['userName'] ?? '';
+        MySharedPreferences.userUserName = data['username'] ?? '';
         MySharedPreferences.phone = data['phone'] ?? '';
         MySharedPreferences.bio = data['bio'] ?? '';
-        MySharedPreferences.userId = existingDoc.id; // <--- مهم
+        MySharedPreferences.userId = userId.toString();
         MySharedPreferences.email = newUser.email;
         MySharedPreferences.deviceToken = newUser.token;
         MySharedPreferences.image = data['image'] ?? newUser.image;
-        MySharedPreferences.isVerified = data['isVerified'] ?? false;
+        MySharedPreferences.isVerified = data['is_verified'] ?? false;
 
-        // AppConstance().showSuccesToast(
-        //   context,
-        //   msg: 'أهلا ${data['name'] ?? ''}',
-        // );
         context.toAndRemoveAll(LandingScreen());
       }
     } catch (e) {
@@ -184,6 +172,15 @@ class AddUserToFirestore {
             ? 'An error occurred, please try again later'
             : 'حدث خطأ ما يرجى المحاولة لاحقا',
       );
+    }
+  }
+
+  Future<void> saveUser(Map<String, dynamic> userData) async {
+    try {
+      await _supabase.from('users').insert(userData);
+    } catch (e) {
+      log('Error saving user: $e');
+      throw e;
     }
   }
 }

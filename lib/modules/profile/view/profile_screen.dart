@@ -94,7 +94,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             .doc(widget.userId)
             .get();
         if (doc.exists) {
-          user = UserModel.fromFirestore(doc);
+          user = UserModel.fromJson(doc.data()!, doc.id);
           if (isMe) {
             canAskedAnonymously = user!.canAskedAnonymously;
             // log('canAskedAnonymously $canAskedAnonymously');

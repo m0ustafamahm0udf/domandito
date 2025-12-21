@@ -1,11 +1,10 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:domandito/core/constants/app_constants.dart';
 import 'package:domandito/core/utils/extentions.dart';
 import 'package:domandito/core/utils/shared_prefrences.dart';
 import 'package:domandito/core/utils/utils.dart';
 import 'package:domandito/modules/landing/views/landing_screen.dart';
 import 'package:domandito/modules/signin/models/user_model.dart';
-import 'package:domandito/modules/signin/services/add_user_to_firestore.dart';
+import 'package:domandito/modules/signin/services/add_user_to_supabase.dart';
 import 'package:domandito/modules/terms/teerms.dart';
 import 'package:domandito/shared/style/app_colors.dart';
 import 'package:domandito/shared/widgets/custom_bounce_button.dart';
@@ -14,6 +13,7 @@ import 'package:domandito/shared/widgets/phone_number_field.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_overlay_loader/flutter_overlay_loader.dart';
+import 'package:uuid/uuid.dart';
 
 class CreateAccountScreen extends StatefulWidget {
   final UserModel newUser;
@@ -85,7 +85,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
         return;
       }
 
-      final String? res = await AddUserToFirestore().validatePhoneAndUsername(
+      final String? res = await AddUserToSupabase().validatePhoneAndUsername(
         context: context,
         phone: phoneCtrl.text.trim(),
         username: userNameCtrl.text.trim(),
@@ -93,59 +93,59 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
         email: widget.newUser.email,
       );
       if (res == null) {
+        final uuid = const Uuid().v4();
         final userData = {
-          'createdAt': Timestamp.now(),
+          'created_at': DateTime.now().toString(),
           'name': nameCtrl.text.trim(),
           'phone': phoneCtrl.text.trim(),
-          'id': widget.newUser.id,
+          'id': uuid, // Generating a new UUID for Supabase
           'image': widget.newUser.image,
           'provider': widget.newUser.provider,
           'email': widget.newUser.email,
           'token': widget.newUser.token,
-          'upload': false,
-          'points': 0,
-          'isBlocked': false,
-          'canBook': true,
-          'name_keywords': generateSearchKeywords(nameCtrl.text.trim()),
-          'isVerified': widget.newUser.isVerified,
-          'userName': userNameCtrl.text.trim(),
-          'appVersion': AppConstance.appVersion,
-          'followersCount': 0,
-          'followingCount': 0,
+          // 'upload': false,
+          // 'points': 0,
+          'is_blocked': false,
+          // 'can_book': true,
+          // 'name_keywords': generateSearchKeywords(nameCtrl.text.trim()),
+          'is_verified': widget.newUser.isVerified,
+          'username': userNameCtrl.text.trim(),
+          'app_version': AppConstance.appVersion,
+          'followers_count': 0,
+          'following_count': 0,
+          'posts_count': 0,
+          'can_asked_anonymously': true,
+          'bio': '',
         };
 
-        await FirebaseFirestore.instance
-            .collection('users')
-            .doc(widget.newUser.id)
-            .set(userData)
-            .then((_) async {
-              if (!kIsWeb) {
-                //  TODO: send notification
-                // await FirebaseMessaging.instance.subscribeToTopic('allUsers');
-              }
-              // await saveUserNotificationToken(
-              //   userId: widget.newUser.id,
-              //   name: widget.newUser.name,
-              //   token: widget.newUser.token,
-              // );
-              // AppConstance().showSuccesToast(
-              //   context,
-              //   msg: 'أهلا ${widget.newUser.name}',
-              // );
+        await AddUserToSupabase().saveUser(userData).then((_) async {
+          if (!kIsWeb) {
+            //  TODO: send notification
+            // await FirebaseMessaging.instance.subscribeToTopic('allUsers');
+          }
+          // await saveUserNotificationToken(
+          //   userId: widget.newUser.id,
+          //   name: widget.newUser.name,
+          //   token: widget.newUser.token,
+          // );
+          // AppConstance().showSuccesToast(
+          //   context,
+          //   msg: 'أهلا ${widget.newUser.name}',
+          // );
 
-              MySharedPreferences.isLoggedIn = true;
-              MySharedPreferences.userUserName = userNameCtrl.text.trim();
-              MySharedPreferences.userName = nameCtrl.text.trim();
-              MySharedPreferences.phone = phoneCtrl.text.trim();
-              MySharedPreferences.userId = widget.newUser.id;
-              MySharedPreferences.email = widget.newUser.email;
-              MySharedPreferences.image = widget.newUser.image;
-              MySharedPreferences.deviceToken = widget.newUser.token;
-              MySharedPreferences.isVerified = widget.newUser.isVerified;
+          MySharedPreferences.isLoggedIn = true;
+          MySharedPreferences.userUserName = userNameCtrl.text.trim();
+          MySharedPreferences.userName = nameCtrl.text.trim();
+          MySharedPreferences.phone = phoneCtrl.text.trim();
+          MySharedPreferences.userId = uuid; // Saving the new Supabase ID
+          MySharedPreferences.email = widget.newUser.email;
+          MySharedPreferences.image = widget.newUser.image;
+          MySharedPreferences.deviceToken = widget.newUser.token;
+          MySharedPreferences.isVerified = widget.newUser.isVerified;
 
-              context.toAndRemoveAll(LandingScreen());
-              Loader.hide();
-            });
+          context.toAndRemoveAll(LandingScreen());
+          Loader.hide();
+        });
       } else {
         AppConstance().showInfoToast(context, msg: res);
         Loader.hide();

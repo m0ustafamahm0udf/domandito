@@ -5,6 +5,7 @@ import 'package:domandito/shared/widgets/web.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -19,8 +20,6 @@ import 'package:domandito/core/utils/bloc_helpers.dart';
 import 'package:domandito/core/utils/extentions.dart';
 import 'package:domandito/core/utils/shared_prefrences.dart';
 import 'package:domandito/firebase_options.dart';
-// import 'package:domandito/modules/intro/views/intro_screen.dart';
-// import 'package:domandito/modules/landing/views/landing_screen.dart';
 import 'package:domandito/shared/controllers/connectivity/connectivity_cubit.dart';
 import 'package:domandito/shared/functions/deeplink_helper.dart';
 import 'package:domandito/shared/style/system_ui.dart';
@@ -29,19 +28,24 @@ import 'package:domandito/shared/theme/app_theme.dart';
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 Map<String, dynamic> notificationsMap = {};
-//
+
 @pragma("vm:entry-point")
 Future<void> _onBackgroundMessage(RemoteMessage message) async {
   if (message.notification != null) {
-    // final data = message.notification;
-    // print(
-    //     "onBackgroundMessage::\nTitle:: ${data?.title}\nBody:: ${data?.body}\nData:: ${message.data}");
+    // Handle background notification
   }
 }
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  await Supabase.initialize(
+    url: 'https://dnmxkskwmjvrumfsyeiv.supabase.co',
+    anonKey:
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRubXhrc2t3bWp2cnVtZnN5ZWl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYzMTU0NDEsImV4cCI6MjA4MTg5MTQ0MX0.H88IW9msmiy1xDqAx95zbuSb1WdOI809VajTUZCzVYY',
+  );
+
   InitFirebaseNotification().init();
   FirebaseMessaging.onBackgroundMessage(_onBackgroundMessage);
 
@@ -51,36 +55,23 @@ void main() async {
   await EasyLocalization.ensureInitialized();
   await ConnectivityHandler().checkConnection();
   await GmsCheck().checkGmsAvailability();
-  // final Locale deviceLocale = WidgetsBinding.instance.window.locale;
-  if (kIsWeb) {
-    runApp(
-      EasyLocalization(
-        supportedLocales: const [Locale('en'), Locale('ar')],
-        saveLocale: true,
-        fallbackLocale: const Locale('ar'),
-        path: "assets/languages",
-        useOnlyLangCode: true,
-        // startLocale: deviceLocale.toString().split('_').first.toString() == 'ar' ? const Locale('ar') : const Locale('en'),
-        startLocale: Locale('en'),
-        child: OneNotification(
-          builder: (x, _) => WebFixedSizeWrapper(child: const MyApp()),
-        ),
+
+  runApp(
+    EasyLocalization(
+      supportedLocales: const [Locale('en'), Locale('ar')],
+      saveLocale: true,
+      fallbackLocale: const Locale('ar'),
+      path: "assets/languages",
+      useOnlyLangCode: true,
+      startLocale: const Locale('en'),
+      child: OneNotification(
+        builder: (context, _) {
+          final app = const MyApp();
+          return kIsWeb ? WebFixedSizeWrapper(child: app) : app;
+        },
       ),
-    );
-  } else {
-    runApp(
-      EasyLocalization(
-        supportedLocales: const [Locale('en'), Locale('ar')],
-        saveLocale: true,
-        fallbackLocale: const Locale('ar'),
-        path: "assets/languages",
-        useOnlyLangCode: true,
-        // startLocale: deviceLocale.toString().split('_').first.toString() == 'ar' ? const Locale('ar') : const Locale('en'),
-        startLocale: Locale('en'),
-        child: OneNotification(builder: (x, _) => const MyApp()),
-      ),
-    );
-  }
+    ),
+  );
 }
 
 class MyApp extends StatefulWidget {
@@ -117,83 +108,37 @@ class _MyAppState extends State<MyApp> {
           if (state is ConnectivityStatus) {
             if (state.hasConnection) {
               context.print('Connected');
-              // context.toHomeScreen();
             } else {
               context.print('Disconnected');
             }
           }
         },
         builder: (context, state) {
-          if (!kIsWeb) {
-            return GestureDetector(
-              onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-              child: GetMaterialApp(
-                title: 'Domandito',
-                navigatorKey: navigatorKey,
-                // builder: OneContext().builder,
-                // navigatorKey: OneContext().key,
-                // builder: OneContext().builder,
-                scrollBehavior: CupertinoScrollBehavior(),
-                theme: AppTheme.lightTheme(context: context),
-                debugShowCheckedModeBanner: false,
-                localizationsDelegates: [...context.localizationDelegates],
-                supportedLocales: context.supportedLocales,
-                locale: context.locale,
-                home:
-                    //  InvitationsAndRequestsScreen()
-                    AnnotatedRegion<SystemUiOverlayStyle>(
-                      value: SystemUiOverlayStyle(
-                        statusBarBrightness: Brightness.light,
-                        statusBarColor: Colors.transparent,
-                        systemNavigationBarColor: Colors.transparent,
-                        systemNavigationBarIconBrightness: Brightness.dark,
-                        statusBarIconBrightness: Brightness.dark,
-                      ),
-                      child: _toggleScreen(),
-                      // child: ConnectivityBuilder(
-                      //   onlineBuilder: (context) => _toggleScreen(),
-                      //   offlineBuilder: (context) => OfflineScreen(),
-                      // ),
-                    ),
+          return GestureDetector(
+            onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+            child: GetMaterialApp(
+              title: 'Domandito',
+              navigatorKey: navigatorKey,
+              scrollBehavior: const CupertinoScrollBehavior(),
+              theme: AppTheme.lightTheme(context: context),
+              debugShowCheckedModeBanner: false,
+              localizationsDelegates: context.localizationDelegates,
+              supportedLocales: context.supportedLocales,
+              locale: context.locale,
+              initialRoute: kIsWeb ? AppRoutes.landing : null,
+              getPages: kIsWeb ? AppPages.routes : null,
+              home: AnnotatedRegion<SystemUiOverlayStyle>(
+                value: const SystemUiOverlayStyle(
+                  statusBarBrightness: Brightness.light,
+                  statusBarColor: Colors.transparent,
+                  systemNavigationBarColor: Colors.transparent,
+                  systemNavigationBarIconBrightness: Brightness.dark,
+                  statusBarIconBrightness: Brightness.dark,
+                ),
+                child: _toggleScreen(),
               ),
-            );
-          } else {
-            return GestureDetector(
-              onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-              child: GetMaterialApp(
-                title: 'Domandito',
-
-                initialRoute: AppRoutes.landing, // يبدأ من المسار الرئيسي
-                getPages: AppPages.routes, // تحديد قائمة المسارات
-                navigatorKey: navigatorKey,
-                // builder: OneContext().builder,
-                // navigatorKey: OneContext().key,
-                // builder: OneContext().builder,
-                scrollBehavior: CupertinoScrollBehavior(),
-                theme: AppTheme.lightTheme(context: context),
-                debugShowCheckedModeBanner: false,
-                localizationsDelegates: [...context.localizationDelegates],
-                supportedLocales: context.supportedLocales,
-                locale: context.locale,
-                home:
-                    //  InvitationsAndRequestsScreen()
-                    AnnotatedRegion<SystemUiOverlayStyle>(
-                      value: SystemUiOverlayStyle(
-                        statusBarBrightness: Brightness.light,
-                        statusBarColor: Colors.transparent,
-                        systemNavigationBarColor: Colors.transparent,
-                        systemNavigationBarIconBrightness: Brightness.dark,
-                        statusBarIconBrightness: Brightness.dark,
-                      ),
-                      child: _toggleScreen(),
-                      // child: ConnectivityBuilder(
-                      //   onlineBuilder: (context) => _toggleScreen(),
-                      //   offlineBuilder: (context) => OfflineScreen(),
-                      // ),
-                    ),
-              ),
-            );
-          }
+            ),
+          );
         },
       ),
     );

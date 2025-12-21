@@ -3,7 +3,7 @@
 // // import 'dart:developer';
 // // import 'dart:developer' as dev;
 // import 'package:domandito/core/constants/app_constants.dart';
-// import 'package:cloud_firestore/cloud_firestore.dart';
+
 // import 'package:firebase_auth/firebase_auth.dart';
 // import 'package:flutter/foundation.dart';
 // import 'package:flutter/material.dart';
@@ -124,7 +124,7 @@
 import 'dart:developer';
 
 import 'package:domandito/core/constants/app_constants.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+
 import 'package:domandito/core/utils/extentions.dart';
 import 'package:domandito/core/utils/utils.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -133,7 +133,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_overlay_loader/flutter_overlay_loader.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:domandito/modules/signin/models/user_model.dart';
-import 'package:domandito/modules/signin/services/add_user_to_firestore.dart';
+import 'package:domandito/modules/signin/services/add_user_to_supabase.dart';
 import 'package:domandito/shared/functions/check_is_huawui.dart';
 import '../../../core/services/get_device_serv.dart';
 
@@ -189,7 +189,7 @@ class GSignin {
             provider: PlatformService.platform.name,
             email: user.email ?? '',
             isBlocked: false,
-            createdAt: Timestamp.fromDate(now),
+            createdAt: now,
             appVersion: AppConstance.appVersion,
             upload: false,
             followersCount: 0,
@@ -199,7 +199,7 @@ class GSignin {
             bio: '',
           );
           log(user.email!.split('@')[0] + ' BBBBBBBBB');
-          await AddUserToFirestore().addNewUser(userModel, context, false);
+          await AddUserToSupabase().addNewUser(userModel, context, false);
         }
       } else {
         // Mobile: use GoogleSignIn
@@ -249,7 +249,7 @@ class GSignin {
             email: user.email ?? '',
 
             isBlocked: false,
-            createdAt: Timestamp.fromDate(now),
+            createdAt: now,
             appVersion: AppConstance.appVersion,
             upload: false,
             followersCount: 0,
@@ -260,7 +260,7 @@ class GSignin {
             bio: '',
           );
 
-          await AddUserToFirestore().addNewUser(userModel, context, false);
+          await AddUserToSupabase().addNewUser(userModel, context, false);
         }
       }
     } on FirebaseAuthException catch (e) {

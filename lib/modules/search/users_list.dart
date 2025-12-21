@@ -109,7 +109,12 @@ class _SearchUsersListState extends State<SearchUsersList> {
 
       if (snap.docs.isNotEmpty) {
         lastDoc = snap.docs.last;
-        users.addAll(snap.docs.map((doc) => UserModel.fromFirestore(doc)));
+        users.addAll(
+          snap.docs.map(
+            (doc) =>
+                UserModel.fromJson(doc.data() as Map<String, dynamic>, doc.id),
+          ),
+        );
       }
 
       hasMore = snap.docs.length == pageSize;
@@ -186,8 +191,8 @@ class _SearchUsersListState extends State<SearchUsersList> {
                         ),
                         Text(
                           "@${user.userName}",
-                              textDirection: TextDirection.ltr,
-                        
+                          textDirection: TextDirection.ltr,
+
                           maxLines: 1,
                           style: const TextStyle(
                             fontSize: 12,

@@ -1,8 +1,6 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-
 class UserModel {
   final String id;
-  final Timestamp createdAt;
+  final DateTime createdAt;
 
   final String name;
   final String bio;
@@ -19,7 +17,7 @@ class UserModel {
 
   String image;
   final String appVersion;
-   bool canAskedAnonymously;
+  bool canAskedAnonymously;
 
   int followersCount;
   int followingCount;
@@ -50,28 +48,26 @@ class UserModel {
   /// ---------------------------
   /// ⭐ From Firestore Document
   /// ---------------------------
-  factory UserModel.fromFirestore(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
-
+  factory UserModel.fromMap(Map<String, dynamic> data) {
     return UserModel(
-      id: doc.id,
-      createdAt: _parseTimestamp(data['createdAt']),
+      id: data['id']?.toString() ?? '',
+      createdAt: _parseTimestamp(data['created_at']),
       name: data['name'] ?? '',
-      userName: data['userName'] ?? '',
+      userName: data['username'] ?? '',
       phone: data['phone'] ?? '',
       email: data['email'] ?? '',
-      isBlocked: data['isBlocked'] ?? false,
-      isVerified: data['isVerified'] ?? false,
+      isBlocked: data['is_blocked'] ?? false,
+      isVerified: data['is_verified'] ?? false,
       provider: data['provider'] ?? '',
       token: data['token'] ?? '',
       upload: data['upload'] ?? false,
       image: data['image'] ?? '',
-      appVersion: data['appVersion'] ?? '',
-      followersCount: data['followersCount'] ?? 0,
-      followingCount: data['followingCount'] ?? 0,
+      appVersion: data['app_version'] ?? '',
+      followersCount: data['followers_count'] ?? 0,
+      followingCount: data['following_count'] ?? 0,
       bio: data['bio'] ?? '',
-      postsCount: data['postsCount'] ?? 0,
-      canAskedAnonymously: data['canAskedAnonymously'] ?? true,
+      postsCount: data['posts_count'] ?? 0,
+      canAskedAnonymously: data['can_asked_anonymously'] ?? true,
     );
   }
 
@@ -81,48 +77,48 @@ class UserModel {
   factory UserModel.fromJson(Map<String, dynamic> data, String docId) {
     return UserModel(
       id: docId,
-      createdAt: _parseTimestamp(data['createdAt']),
+      createdAt: _parseTimestamp(data['created_at']),
       name: data['name'] ?? '',
-      userName: data['userName'] ?? '',
+      userName: data['username'] ?? '',
       phone: data['phone'] ?? '',
       email: data['email'] ?? '',
-      isBlocked: data['isBlocked'] ?? false,
-      isVerified: data['isVerified'] ?? false,
+      isBlocked: data['is_blocked'] ?? false,
+      isVerified: data['is_verified'] ?? false,
       provider: data['provider'] ?? '',
       token: data['token'] ?? '',
       upload: data['upload'] ?? false,
       image: data['image'] ?? '',
-      appVersion: data['appVersion'] ?? '',
-      followersCount: data['followersCount'] ?? 0,
-      followingCount: data['followingCount'] ?? 0,
+      appVersion: data['app_version'] ?? '',
+      followersCount: data['followers_count'] ?? 0,
+      followingCount: data['following_count'] ?? 0,
       bio: data['bio'] ?? '',
-      postsCount: data['postsCount'] ?? 0,
-      canAskedAnonymously: data['canAskedAnonymously'] ?? false,
+      postsCount: data['posts_count'] ?? 0,
+      canAskedAnonymously: data['can_asked_anonymously'] ?? false,
     );
   }
 
   /// ---------------------------
   /// ⭐ To Firestore JSON
   /// ---------------------------
-  Map<String, dynamic> toFirestore() {
+  Map<String, dynamic> toMap() {
     return {
-      'createdAt': createdAt,
+      'created_at': createdAt.toString(),
       'name': name,
-      'userName': userName,
+      'username': userName,
       'phone': phone,
       'email': email,
-      'isBlocked': isBlocked,
-      'isVerified': isVerified,
+      'is_blocked': isBlocked,
+      'is_verified': isVerified,
       'provider': provider,
       'token': token,
       'upload': upload,
       'image': image,
-      'appVersion': appVersion,
-      'followersCount': followersCount,
-      'followingCount': followingCount,
+      'app_version': appVersion,
+      'followers_count': followersCount,
+      'following_count': followingCount,
       'bio': bio,
-      'postsCount': postsCount,
-      'canAskedAnonymously': canAskedAnonymously,
+      'posts_count': postsCount,
+      'can_asked_anonymously': canAskedAnonymously,
     };
   }
 
@@ -172,8 +168,8 @@ class UserModel {
   /// ---------------------------
   /// ⭐ Helper: Parse Firestore timestamp safely
   /// ---------------------------
-  static Timestamp _parseTimestamp(dynamic value) {
-    if (value is Timestamp) return value;
-    return Timestamp.now();
+  static DateTime _parseTimestamp(dynamic value) {
+    if (value is String) return DateTime.tryParse(value) ?? DateTime.now();
+    return DateTime.now();
   }
 }

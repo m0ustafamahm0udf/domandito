@@ -5,7 +5,6 @@ import 'dart:convert';
 import 'dart:math';
 // import 'dart:developer' as dev;
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:crypto/crypto.dart';
 import 'package:domandito/core/services/get_device_serv.dart';
 import 'package:domandito/core/utils/extentions.dart';
@@ -18,7 +17,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:domandito/core/constants/app_constants.dart';
 import 'package:domandito/modules/signin/models/user_model.dart';
 
-import 'package:domandito/modules/signin/services/add_user_to_firestore.dart';
+import 'package:domandito/modules/signin/services/add_user_to_supabase.dart';
 import 'package:domandito/shared/functions/check_is_huawui.dart';
 
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
@@ -106,7 +105,7 @@ class AppleSignin {
           isBlocked: false,
           appVersion: AppConstance.appVersion,
           bio: '',
-          createdAt: Timestamp.fromDate(now),
+          createdAt: now,
           followersCount: 0,
           followingCount: 0,
           userName: auth.user!.email != null
@@ -117,9 +116,9 @@ class AppleSignin {
           isVerified: false,
         );
         if (appleCredential.givenName != null) {
-          await AddUserToFirestore().addNewUser(userModel, context, false);
+          await AddUserToSupabase().addNewUser(userModel, context, false);
         } else {
-          await AddUserToFirestore().addNewUser(userModel, context, true);
+          await AddUserToSupabase().addNewUser(userModel, context, true);
         }
       }
       Loader.hide();

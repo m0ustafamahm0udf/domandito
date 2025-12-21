@@ -121,7 +121,7 @@ Future<UserModel?> getProfileByUserNameForDeepLink({
         .limit(1)
         .get();
     if (doc.docs.isNotEmpty) {
-      final user = UserModel.fromFirestore(doc.docs.first);
+      final user = UserModel.fromJson(doc.docs.first.data(), doc.docs.first.id);
       return user;
       // await getQuestionsCount();
     } else {

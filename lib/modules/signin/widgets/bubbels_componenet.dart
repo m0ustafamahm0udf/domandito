@@ -1,10 +1,14 @@
 import 'package:domandito/shared/widgets/custom_network_image.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class BubblesComponent extends StatefulWidget {
-  const BubblesComponent({super.key, required this.onShow,  this.isHome = false});
+  const BubblesComponent({
+    super.key,
+    required this.onShow,
+    this.isHome = false,
+  });
   final Function(bool isShow) onShow;
   final bool isHome;
 
@@ -24,25 +28,32 @@ class _BubblesComponentState extends State<BubblesComponent> {
   List<String> images = [];
 
   Future<void> getImages() async {
-    await FirebaseFirestore.instance
-        .collection('intro')
-        .doc('images')
-        .get()
-        .then((value) {
-          images = List<String>.from(value.data()!['images']);
-          setState(() {
-            widget.onShow(true);
-          });
+    try {
+      final response = await Supabase.instance.client
+          .from('intro')
+          .select()
+          .eq(
+            'id',
+            'images',
+          ) // Assuming 'id' column exists and matches document ID usage
+          .single();
+
+      if (response != null && response['images'] != null) {
+        images = List<String>.from(response['images']);
+        setState(() {
+          widget.onShow(true);
         });
+      }
+    } catch (e) {
+      // debugPrint('Error fetching intro images: $e');
+    }
   }
-  
 
   @override
   Widget build(BuildContext context) {
     // print('BubblesComponent');
     if (images.isEmpty) {
-      return SizedBox(
-        );
+      return SizedBox();
     }
     return ShaderMask(
       shaderCallback: (rect) {
@@ -90,14 +101,14 @@ class _BubblesComponentState extends State<BubblesComponent> {
   void initState() {
     getImages();
     super.initState();
-  if (!widget.isHome) {
+    if (!widget.isHome) {
       Future.delayed(const Duration(seconds: 1), () {
-      try {
-        _startScrollingLoop();
-        setState(() {});
-      } catch (e) {}
-    });
-  }
+        try {
+          _startScrollingLoop();
+          setState(() {});
+        } catch (e) {}
+      });
+    }
   }
 
   void _startScrollingLoop() {
