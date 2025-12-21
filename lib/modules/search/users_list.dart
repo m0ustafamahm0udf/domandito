@@ -1,4 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:domandito/core/utils/extentions.dart';
 import 'package:domandito/core/utils/shared_prefrences.dart';
 import 'package:domandito/modules/signin/models/user_model.dart';
@@ -18,10 +18,10 @@ class SearchUsersList extends StatefulWidget {
 }
 
 class _SearchUsersListState extends State<SearchUsersList> {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final _supabase = Supabase.instance.client;
 
   List<UserModel> users = [];
-  DocumentSnapshot? lastDoc;
+  int _offset = 0;
   bool isLoading = false;
   bool hasMore = true;
   final int pageSize = 10;
@@ -41,21 +41,21 @@ class _SearchUsersListState extends State<SearchUsersList> {
   }
 
   Future<void> fetchUsers({bool isRefresh = false}) async {
-    final query = widget.searchQuery.trim();
+    final queryText = widget.searchQuery.trim();
 
     // فاضي
-    if (query.isEmpty) {
+    if (queryText.isEmpty) {
       users.clear();
-      lastDoc = null;
+      _offset = 0;
       hasMore = false;
       setState(() {});
       return;
     }
 
     // @ بس
-    if (query.startsWith('@') && query.length == 1) {
+    if (queryText.startsWith('@') && queryText.length == 1) {
       users.clear();
-      lastDoc = null;
+      _offset = 0;
       hasMore = false;
       setState(() {});
       return;
@@ -64,7 +64,7 @@ class _SearchUsersListState extends State<SearchUsersList> {
     if (isLoading) return;
 
     if (isRefresh) {
-      lastDoc = null;
+      _offset = 0;
       hasMore = true;
       users.clear();
     }
@@ -74,50 +74,50 @@ class _SearchUsersListState extends State<SearchUsersList> {
     setState(() => isLoading = true);
 
     try {
-      Query query = _firestore
-          .collection('users')
-          .orderBy('createdAt', descending: true)
-          // .where('isDeleted', isEqualTo: false)
-          .where('id', isNotEqualTo: MySharedPreferences.userId)
-          .limit(pageSize);
+      // 1. Start building the query
+      PostgrestFilterBuilder query = _supabase
+          .from('users')
+          .select()
+          .neq('id', MySharedPreferences.userId);
 
-      // if (widget.searchQuery.isNotEmpty) {
-      //   query = query.where('name_keywords', arrayContains: widget.searchQuery);
-      // }
-      if (widget.searchQuery.isNotEmpty) {
-        final bool isUserNameSearch = widget.searchQuery.startsWith('@');
-        final String queryText = isUserNameSearch
-            ? widget.searchQuery.substring(1)
-            : widget.searchQuery;
+      // 2. Apply search filters if needed
+      if (queryText.isNotEmpty) {
+        final bool isUserNameSearch = queryText.startsWith('@');
+        final String searchText = isUserNameSearch
+            ? queryText.substring(1)
+            : queryText;
 
         if (isUserNameSearch) {
-          // البحث باسم المستخدم
-          query = query
-              .where('userName', isGreaterThanOrEqualTo: queryText)
-              .where('userName', isLessThan: '${queryText}\uf8ff');
+          // Using ilike for case-insensitive partial match
+          query = query.ilike('username', '$searchText%');
         } else {
-          // البحث بالاسم (keywords)
-          query = query.where('name_keywords', arrayContains: queryText);
+          // Using ilike for case-insensitive match anywhere in the name
+          query = query.ilike('name', '%$searchText%');
         }
       }
 
-      if (lastDoc != null) {
-        query = query.startAfterDocument(lastDoc!);
+      // 3. Apply sorting and pagination
+      final List<dynamic> data = await query
+          .order('created_at', ascending: false)
+          .range(_offset, _offset + pageSize - 1);
+
+      final newUsers = data
+          .map(
+            (json) => UserModel.fromJson(
+              json as Map<String, dynamic>,
+              json['id'].toString(),
+            ),
+          )
+          .toList();
+
+      if (isRefresh) {
+        users = newUsers;
+      } else {
+        users.addAll(newUsers);
       }
 
-      final snap = await query.get();
-
-      if (snap.docs.isNotEmpty) {
-        lastDoc = snap.docs.last;
-        users.addAll(
-          snap.docs.map(
-            (doc) =>
-                UserModel.fromJson(doc.data() as Map<String, dynamic>, doc.id),
-          ),
-        );
-      }
-
-      hasMore = snap.docs.length == pageSize;
+      _offset += newUsers.length;
+      hasMore = newUsers.length == pageSize;
     } catch (e) {
       debugPrint('Error fetching users: $e');
     } finally {
