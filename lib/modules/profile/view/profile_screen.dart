@@ -19,6 +19,7 @@ import 'package:domandito/shared/models/bloced_user.dart';
 import 'package:domandito/shared/models/follow_model.dart'; // FollowUser might be here
 import 'package:domandito/shared/services/block_service.dart';
 import 'package:domandito/shared/services/follow_service.dart';
+import 'package:domandito/shared/services/report_service.dart';
 import 'package:domandito/shared/style/app_colors.dart';
 import 'package:domandito/shared/widgets/custom_dialog.dart';
 import 'package:domandito/shared/widgets/download_dialog.dart';
@@ -178,25 +179,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
     setState(() => isQuestionsLoading = true);
 
     try {
-      // Build Supabase query
       var query = Supabase.instance.client
           .from('questions')
-          .select(
-            '*, sender:sender_id(*), receiver:receiver_id(*)',
-          ) // Update to match your joined query structure
+          .select('*, sender:sender_id(*), receiver:receiver_id(*)')
           .eq('receiver_id', widget.userId)
           .eq('is_deleted', false)
-          // .neq('answered_at', null) // Supabase doesn't support neq null directly easily like this often, better to check not null
-          .not('answered_at', 'is', null)
+          .not('answered_at', 'is', null);
+
+      // Filter reported content
+      if (MySharedPreferences.isLoggedIn) {
+        final reportedIds = await ReportService.getReportedContentIds(
+          MySharedPreferences.userId,
+        );
+        if (reportedIds.isNotEmpty) {
+          query = query.not('id', 'in', '(${reportedIds.join(',')})');
+        }
+      }
+
+      final List<dynamic> data = await query
           .order('answered_at', ascending: false)
           .order('created_at', ascending: false)
           .range(_offset, _offset + limit - 1);
-
-      // if (isMe) {
-      //   // Add logic here if needed, but typically profile shows all received questions
-      // }
-
-      final List<dynamic> data = await query;
 
       // لو مفيش داتا جديدة
       if (data.isEmpty) {
