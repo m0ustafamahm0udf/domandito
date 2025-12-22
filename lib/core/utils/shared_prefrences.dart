@@ -104,6 +104,13 @@ class MySharedPreferences {
   static set email(String value) =>
       _sharedPreferences.setString(keyemail, value);
 
+  static const String keyCanAskedAnonymously = "keyCanAskedAnonymously";
+
+  static bool get canAskedAnonymously =>
+      _sharedPreferences.getBool(keyCanAskedAnonymously) ?? true;
+  static set canAskedAnonymously(bool value) =>
+      _sharedPreferences.setBool(keyCanAskedAnonymously, value);
+
   static String get phone => _sharedPreferences.getString(keyphone) ?? "";
   static set phone(String value) =>
       _sharedPreferences.setString(keyphone, value);

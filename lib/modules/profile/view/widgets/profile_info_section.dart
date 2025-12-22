@@ -24,7 +24,22 @@ class ProfileInfoSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      children: [_nameWidget(), const SizedBox(height: 5), _userNameWidget()],
+      children: [
+        _nameWidget(),
+        const SizedBox(height: 5),
+        _userNameWidget(),
+        if (user.bio.isNotEmpty) ...[
+          const SizedBox(height: 5),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Text(
+              user.bio,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 14, color: Colors.grey),
+            ),
+          ),
+        ],
+      ],
     );
   }
 

@@ -14,14 +14,10 @@ import 'package:domandito/core/utils/utils.dart';
 import 'package:domandito/modules/ask/models/q_model.dart';
 import 'package:domandito/modules/ask/views/ask_question_screen.dart';
 import 'package:domandito/modules/following/views/following_screen.dart';
-import 'package:domandito/shared/apis/upload_images_services.dart';
-import 'package:domandito/core/services/file_picker_service.dart';
 import 'package:domandito/shared/models/bloced_user.dart';
-import 'package:file_picker/file_picker.dart';
 // blocked_user import might handle BlockUser class if not in block_service
 import 'package:domandito/shared/models/follow_model.dart'; // FollowUser might be here
 import 'package:domandito/shared/services/block_service.dart';
-import 'package:domandito/shared/services/crop_image_service.dart';
 import 'package:domandito/shared/services/follow_service.dart';
 import 'package:domandito/shared/style/app_colors.dart';
 import 'package:domandito/shared/widgets/custom_dialog.dart';
@@ -30,20 +26,19 @@ import 'package:domandito/shared/widgets/logo_widg.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_overlay_loader/flutter_overlay_loader.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
 import 'package:svg_flutter/svg_flutter.dart';
 // Removed q_card as it should be used in ProfileQuestionsList
 
 import 'package:domandito/modules/signin/models/user_model.dart';
-import 'package:domandito/modules/signin/signin_screen.dart'; // Add SignInScreen import
+// import 'package:domandito/modules/signin/signin_screen.dart'; // Add SignInScreen import
 import 'package:domandito/modules/profile/view/widgets/profile_app_bar.dart';
 import 'package:domandito/modules/profile/view/widgets/profile_image_section.dart';
 import 'package:domandito/modules/profile/view/widgets/profile_info_section.dart';
 import 'package:domandito/modules/profile/view/widgets/profile_stats_section.dart';
 import 'package:domandito/modules/profile/view/widgets/profile_actions_section.dart';
 import 'package:domandito/modules/profile/view/widgets/profile_questions_list.dart';
+import 'package:domandito/modules/profile/view/edit_profile_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String userId;
@@ -77,7 +72,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool followLoading = false;
   bool blockLoading = false;
 
-  // int totalQuestionsCount = 0;
+  int totalQuestionsCount = 0;
 
   @override
   void initState() {
@@ -156,24 +151,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  // Future<void> getQuestionsCount() async {
-  //   try {
-  //     final countQuery = await FirebaseFirestore.instance
-  //         .collection('questions')
-  //         .where('receiver.id', isEqualTo: widget.userId)
-  //         .where('isDeleted', isEqualTo: false)
-  //         .where('answeredAt', isNull: false)
-  //         .count() // <-- Aggregation
-  //         .get();
+  Future<void> getQuestionsCount() async {
+    try {
+      final response = await Supabase.instance.client
+          .from('questions')
+          .count()
+          .eq('receiver_id', widget.userId)
+          .eq('is_deleted', false)
+          .not('answered_at', 'is', null);
 
-  //     totalQuestionsCount = countQuery.count ?? 0;
-  //     setState(() {});
+      totalQuestionsCount = response;
+      setState(() {});
 
-  //     debugPrint("Total questions count: $totalQuestionsCount");
-  //   } catch (e) {
-  //     debugPrint("Error getting questions count: $e");
-  //   }
-  // }
+      debugPrint("Total questions count: $totalQuestionsCount");
+    } catch (e) {
+      debugPrint("Error getting questions count: $e");
+    }
+  }
 
   Future<void> getQuestions() async {
     log(isBlocked.toString());
@@ -317,7 +311,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   getAllData() async {
     await checkBlock();
-    await Future.wait([getProfile(), getQuestions(), checkFollowing()]);
+    await Future.wait([
+      getProfile(),
+      getQuestions(),
+      checkFollowing(),
+      getQuestionsCount(),
+    ]);
   }
 
   Future<void> toggleFollowAction() async {
@@ -593,68 +592,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     });
   }
 
-  Future<void> _pickImage(ImageSource source) async {
-    AppConstance().showLoading(context);
-
-    try {
-      final pickedFilePath = await ImagePickerService.pickFile(
-        source: source,
-        type: FileType.image,
-      );
-      if (pickedFilePath != null) {
-        final croppedPath = await ImageCropService.cropImage(
-          filePath: pickedFilePath,
-        );
-        if (croppedPath == null) {
-          Loader.hide();
-          return;
-        }
-        final url = await UploadImagesToS3Api().uploadFiles(
-          filePath: croppedPath,
-          fileName:
-              '${DateTime.now().year}-${DateTime.now().month}-${DateTime.now().day}-${DateTime.now().hour}-${DateTime.now().minute}-${DateTime.now().second}.png',
-          destinationPath: 'profiles/${MySharedPreferences.userId}',
-        );
-        if (url.isNotEmpty) {
-          await Supabase.instance.client
-              .from('users')
-              .update({'image': url})
-              .eq('id', MySharedPreferences.userId)
-              .then((value) async {
-                // Loader.hide();
-                AppConstance().showSuccesToast(
-                  context,
-                  msg: !context.isCurrentLanguageAr()
-                      ? 'Updated successfully'
-                      : 'تم التعديل',
-                );
-                setState(() {
-                  MySharedPreferences.image = url;
-                });
-                Loader.hide();
-                user!.image = url;
-                setState(() {});
-                // context.backWithValue(true);
-              });
-        } else {
-          Loader.hide();
-          AppConstance().showErrorToast(
-            context,
-            msg: !context.isCurrentLanguageAr()
-                ? 'Error uploading image'
-                : 'حدث خطاء يرجى المحاولة لاحقا',
-          );
-        }
-      } else {
-        Loader.hide();
-      }
-    } catch (e) {
-      Loader.hide();
-
-      // log("Error picking image: $e");
-    }
-  }
-
   bool canAskedAnonymously = true;
 
   @override
@@ -701,7 +638,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 hasMore = true;
                 questions.clear();
                 await getAllData();
-                // await getQuestionsCount();
+                await getQuestionsCount();
                 setState(() {});
               },
               child: ListView(
@@ -711,7 +648,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     user: user!,
                     isMe: isMe,
                     isBlocked: isBlocked,
-                    onPickImage: _pickImage,
+                    onEditProfile: () {
+                      pushScreen(
+                        context,
+                        screen: const EditProfileScreen(),
+                      ).then((value) {
+                        if (value == true) {
+                          // Refresh profile after coming back from edit
+                          getProfile();
+                          setState(() {});
+                        }
+                      });
+                    },
                   ),
 
                   // const SizedBox(height: 0),
@@ -743,6 +691,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         });
                       }
                     },
+                    questionsCount: totalQuestionsCount,
                   ),
 
                   const SizedBox(height: 15),
@@ -782,55 +731,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
 
                   const SizedBox(height: 4),
-                  if (isMe)
-                    SwitchListTile(
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                      ),
-                      value: canAskedAnonymously,
-                      onChanged: (value) async {
-                        AppConstance().showLoading(context);
-                        await Supabase.instance.client
-                            .from('users')
-                            .update({
-                              'can_asked_anonymously': value,
-                            }) // Note: snake_case for Supabase column
-                            .eq('id', MySharedPreferences.userId)
-                            .then((_) {
-                              setState(() {
-                                canAskedAnonymously = value;
-
-                                /// تحديث sender في الكارد
-                                user?.canAskedAnonymously = value;
-                              });
-                              AppConstance().showSuccesToast(
-                                context,
-                                msg: !context.isCurrentLanguageAr()
-                                    ? 'Updated successfully'
-                                    : 'تم التعديل',
-                              );
-                              Loader.hide();
-                            })
-                            .onError((error, stackTrace) {
-                              AppConstance().showErrorToast(
-                                context,
-                                msg: !context.isCurrentLanguageAr()
-                                    ? 'Error updating'
-                                    : 'حدث خطاء يرجى المحاولة لاحقا',
-                              );
-                              Loader.hide();
-                            });
-                      },
-                      title: Text(
-                        !context.isCurrentLanguageAr()
-                            ? 'Receive questions from anonymous users'
-                            : 'إستقبال أسئلة من مستخدمين مجهولين',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ),
+                  // Anonymous Switch moved to EditProfileScreen
 
                   // UserShareCard(username: user!.name, userImage: user!.image),
                   Padding(

@@ -5,8 +5,9 @@ import 'package:flutter/material.dart';
 
 class CreateAccountButton extends StatelessWidget {
   final VoidCallback onPressed;
+  final String? text;
 
-  const CreateAccountButton({super.key, required this.onPressed});
+  const CreateAccountButton({super.key, required this.onPressed, this.text});
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +19,9 @@ class CreateAccountButton extends StatelessWidget {
         end: Alignment.bottomRight,
       ),
       padding: 0,
-      title: !context.isCurrentLanguageAr() ? 'Create Account' : 'إنشاء حساب',
+      title:
+          text ??
+          (!context.isCurrentLanguageAr() ? 'Create Account' : 'إنشاء حساب'),
       onPressed: onPressed,
     );
   }

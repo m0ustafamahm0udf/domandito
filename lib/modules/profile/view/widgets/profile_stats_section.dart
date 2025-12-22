@@ -9,6 +9,7 @@ class ProfileStatsSection extends StatelessWidget {
   final bool isMe;
   final Function(int)? onFollowingUpdated;
   final VoidCallback onFollowingTap;
+  final int questionsCount;
 
   const ProfileStatsSection({
     super.key,
@@ -16,6 +17,7 @@ class ProfileStatsSection extends StatelessWidget {
     required this.isMe,
     this.onFollowingUpdated,
     required this.onFollowingTap,
+    required this.questionsCount,
   });
 
   @override
@@ -72,6 +74,33 @@ class ProfileStatsSection extends StatelessWidget {
                   ),
                 ],
               ),
+            ),
+          ),
+          SizedBox(
+            height: 20,
+            child: VerticalDivider(
+              width: 0,
+              color: AppColors.primary,
+              thickness: 1,
+            ),
+          ),
+          Container(
+            color: Colors.transparent,
+            child: Column(
+              children: [
+                Text(
+                  formatNumber(questionsCount),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                    fontFamily: 'Dancing_Script',
+                  ),
+                ),
+                Text(
+                  !context.isCurrentLanguageAr() ? 'Answers' : 'إجابات',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                ),
+              ],
             ),
           ),
         ],

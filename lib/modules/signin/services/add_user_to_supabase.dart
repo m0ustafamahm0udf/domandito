@@ -21,6 +21,7 @@ class AddUserToSupabase {
           .from('users')
           .select()
           .eq('phone', phone)
+          .neq('id', currentUserId) // Exclude current user
           .limit(1);
 
       if (response.isEmpty) {
@@ -41,6 +42,7 @@ class AddUserToSupabase {
           .from('users')
           .select()
           .eq('username', username)
+          .neq('id', currentUserId) // Exclude current user
           .limit(1);
 
       if (response.isEmpty) {
@@ -61,6 +63,7 @@ class AddUserToSupabase {
           .from('users')
           .select()
           .eq('email', email)
+          .neq('id', currentUserId) // Exclude current user
           .limit(1);
 
       if (response.isEmpty) {

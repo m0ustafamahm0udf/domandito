@@ -1,4 +1,3 @@
-import 'package:domandito/core/constants/app_constants.dart';
 import 'package:domandito/core/constants/app_platforms_serv.dart';
 import 'package:domandito/core/services/get_device_serv.dart';
 import 'package:domandito/core/utils/extentions.dart';
@@ -6,23 +5,21 @@ import 'package:domandito/modules/signin/models/user_model.dart';
 import 'package:domandito/shared/style/app_colors.dart';
 import 'package:domandito/shared/widgets/custom_network_image.dart';
 import 'package:domandito/shared/widgets/image_view_screen.dart';
-import 'package:domandito/shared/widgets/show_image_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
 
 class ProfileImageSection extends StatelessWidget {
   final UserModel user;
   final bool isMe;
   final bool isBlocked;
-  final Function(ImageSource) onPickImage;
+  final VoidCallback onEditProfile;
 
   const ProfileImageSection({
     super.key,
     required this.user,
     required this.isMe,
     required this.isBlocked,
-    required this.onPickImage,
+    required this.onEditProfile,
   });
 
   @override
@@ -82,25 +79,7 @@ class ProfileImageSection extends StatelessWidget {
                   shape: BoxShape.circle,
                 ),
                 child: IconButton(
-                  onPressed: () async {
-                    final source = await showModalBottomSheet<ImageSource>(
-                      useRootNavigator: true,
-                      routeSettings: RouteSettings(name: 'ImagePickerSheet'),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(AppConstance.radiusBig),
-                          topRight: Radius.circular(AppConstance.radiusBig),
-                        ),
-                      ),
-                      context: context,
-                      builder: (BuildContext context) =>
-                          const ImagePickerSheet(),
-                    );
-
-                    if (source != null) {
-                      onPickImage(source);
-                    }
-                  },
+                  onPressed: onEditProfile,
                   style: ButtonStyle(
                     backgroundColor: MaterialStatePropertyAll(
                       AppColors.primary,

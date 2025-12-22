@@ -8,6 +8,9 @@ class CreateAccountForm extends StatelessWidget {
   final TextEditingController nameCtrl;
   final TextEditingController userNameCtrl;
   final TextEditingController phoneCtrl;
+  final TextEditingController? emailCtrl;
+  final TextEditingController? bioCtrl;
+  final bool isEditMode;
 
   static const reservedUsernames = {
     "anonymous",
@@ -31,6 +34,9 @@ class CreateAccountForm extends StatelessWidget {
     required this.nameCtrl,
     required this.userNameCtrl,
     required this.phoneCtrl,
+    this.emailCtrl,
+    this.bioCtrl,
+    this.isEditMode = false,
   });
 
   @override
@@ -39,6 +45,27 @@ class CreateAccountForm extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 20),
+
+        // --- Email Field (Only in Edit Mode) ---
+        if (isEditMode && emailCtrl != null) ...[
+          Text(
+            !context.isCurrentLanguageAr() ? 'Email' : 'البريد الإلكتروني',
+            style: TextStyle(
+              fontSize: 14,
+              color: AppColors.primary,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 5),
+          CustomTextField(
+            controller: emailCtrl!,
+            hintText: '',
+            readOnly: true,
+            fillColor: Colors.grey.shade100,
+          ),
+          const SizedBox(height: 10),
+        ],
+
         Text(
           context.isCurrentLanguageAr() ? 'الإسم' : 'Name',
           style: TextStyle(
@@ -58,6 +85,26 @@ class CreateAccountForm extends StatelessWidget {
               : null,
         ),
         const SizedBox(height: 10),
+
+        // --- Bio Field (Only if controller provided) ---
+        if (bioCtrl != null) ...[
+          Text(
+            !context.isCurrentLanguageAr() ? 'Bio' : 'نبذة عني',
+            style: TextStyle(
+              fontSize: 14,
+              color: AppColors.primary,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 5),
+          CustomTextField(
+            controller: bioCtrl!,
+            hintText: !context.isCurrentLanguageAr() ? 'Bio' : 'اكتب نبذة عنك',
+            maxLines: 3,
+          ),
+          const SizedBox(height: 10),
+        ],
+
         Text(
           !context.isCurrentLanguageAr() ? 'User Name' : 'اسم المستخدم',
           style: TextStyle(
