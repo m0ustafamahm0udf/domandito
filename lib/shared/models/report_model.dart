@@ -1,5 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-
 enum ReportContentType { question, answer }
 
 class ReportModel {
@@ -9,7 +7,7 @@ class ReportModel {
   final String reason;
   final String reportedBy;
   final String contentOwnerId;
-  final Timestamp createdAt;
+  final DateTime createdAt;
 
   ReportModel({
     required this.id,
@@ -23,24 +21,26 @@ class ReportModel {
 
   Map<String, dynamic> toJson() {
     return {
-      'contentId': contentId,
-      'contentType': contentType.name, // question | answer
+      'content_id': contentId,
+      'content_type': contentType.name, // question | answer
       'reason': reason,
-      'reportedBy': reportedBy,
-      'contentOwnerId': contentOwnerId,
-      'createdAt': createdAt,
+      'reporter_id': reportedBy,
+      'owner_id': contentOwnerId,
+      'created_at': createdAt.toIso8601String(),
     };
   }
 
   factory ReportModel.fromJson(Map<String, dynamic> json, String docId) {
     return ReportModel(
       id: docId,
-      contentId: json['contentId'] ?? '',
-      contentType: ReportContentType.values.byName(json['contentType']),
+      contentId: json['content_id'] ?? '',
+      contentType: ReportContentType.values.byName(json['content_type']),
       reason: json['reason'] ?? '',
-      reportedBy: json['reportedBy'] ?? '',
-      contentOwnerId: json['contentOwnerId']  ,
-      createdAt: json['createdAt']   ,
+      reportedBy: json['reporter_id'] ?? '',
+      contentOwnerId: json['owner_id'],
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at']).toLocal()
+          : DateTime.now(),
     );
   }
 }

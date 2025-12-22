@@ -111,11 +111,12 @@ class FollowService {
       "ForceUnfollow: Atomic Delete. Follower=$followerId, Following=$followingId",
     );
     try {
-      // Direct delete query - more efficient and robust
-      await _supabase.from(followTable).delete().match({
-        'follower_id': followerId,
-        'following_id': followingId,
-      });
+      // Use dedicated RPC to bypass any RLS/Permission issues
+      // Function: force_delete_follow(p_follower_id, p_following_id)
+      await _supabase.rpc(
+        'force_delete_follow',
+        params: {'p_follower_id': followerId, 'p_following_id': followingId},
+      );
 
       debugPrint("ForceUnfollow: Delete command executed.");
     } catch (e) {

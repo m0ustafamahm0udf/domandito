@@ -1,4 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:domandito/core/constants/app_constants.dart';
 import 'package:domandito/core/constants/app_icons.dart';
 import 'package:domandito/core/utils/extentions.dart';
@@ -29,10 +29,10 @@ class LikesList extends StatefulWidget {
 }
 
 class _LikesListState extends State<LikesList> {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final _supabase = Supabase.instance.client;
 
   List<LikeModel> likes = [];
-  DocumentSnapshot? lastDoc;
+  String? lastCreatedAt; // For keyset pagination
   bool isLoading = false;
   bool hasMore = true;
   final int pageSize = 10;
@@ -50,29 +50,28 @@ class _LikesListState extends State<LikesList> {
     setState(() => isLoading = true);
 
     try {
-      Query query = _firestore
-          .collection('question_likes')
-          .where('questionId', isEqualTo: widget.questionId)
-          .orderBy('createdAt', descending: true)
+      var query = _supabase
+          .from('likes')
+          .select('*, users(*)') // Fetch fresh user data via FK Join
+          .eq('question_id', widget.questionId);
+
+      if (lastCreatedAt != null) {
+        query = query.lt('created_at', lastCreatedAt!);
+      }
+
+      final List<dynamic> data = await query
+          .order('created_at', ascending: false)
           .limit(pageSize);
 
-      if (lastDoc != null) {
-        query = query.startAfterDocument(lastDoc!);
+      if (data.isNotEmpty) {
+        final newLikes = data.map((json) => LikeModel.fromJson(json)).toList();
+        likes.addAll(newLikes);
+
+        // Update cursor
+        lastCreatedAt = data.last['created_at'];
       }
 
-      final snap = await query.get();
-
-      if (snap.docs.isNotEmpty) {
-        lastDoc = snap.docs.last;
-        likes.addAll(
-          snap.docs
-              .map((e) => e.data())
-              .whereType<Map<String, dynamic>>()
-              .map((data) => LikeModel.fromJson(data)),
-        );
-      }
-
-      if (snap.docs.length < pageSize) {
+      if (data.length < pageSize) {
         hasMore = false;
       }
     } catch (e) {

@@ -1,10 +1,11 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:domandito/core/utils/shared_prefrences.dart';
 import '../models/report_model.dart';
+import 'package:flutter/material.dart';
 
 class ReportService {
-  static final _collection =
-      FirebaseFirestore.instance.collection('reports');
+  static final _supabase = Supabase.instance.client;
+  static const String reportsTable = 'reports';
 
   /// returns true if report submitted
   /// returns false if user already reported this content
@@ -16,31 +17,37 @@ class ReportService {
   }) async {
     final String userId = MySharedPreferences.userId;
 
-    // 🔍 check if user already reported this content
-    final existingReport = await _collection
-        .where('contentId', isEqualTo: contentId)
-        .where('contentType', isEqualTo: contentType.name)
-        .where('reportedBy', isEqualTo: userId)
-        .limit(1)
-        .get();
+    try {
+      // 🔍 check if user already reported this content
+      final existingReport = await _supabase
+          .from(reportsTable)
+          .select()
+          .eq('content_id', contentId)
+          .eq('content_type', contentType.name)
+          .eq('reporter_id', userId)
+          .limit(1)
+          .maybeSingle();
 
-    if (existingReport.docs.isNotEmpty) {
-      // 🚫 already reported
-      
-      return false;
+      if (existingReport != null) {
+        // 🚫 already reported
+        return false;
+      }
+
+      final report = ReportModel(
+        id: '', // DB Generated
+        contentId: contentId,
+        contentType: contentType,
+        reason: reason,
+        reportedBy: userId,
+        contentOwnerId: contentOwnerId,
+        createdAt: DateTime.now(),
+      );
+
+      await _supabase.from(reportsTable).insert(report.toJson());
+      return true;
+    } catch (e) {
+      debugPrint('Error submitReport: $e');
+      return false; // Fail gracefully
     }
-
-    final report = ReportModel(
-      id: '',
-      contentId: contentId,
-      contentType: contentType,
-      reason: reason,
-      reportedBy: userId,
-      contentOwnerId: contentOwnerId,
-      createdAt: Timestamp.now(),
-    );
-
-    await _collection.add(report.toJson());
-    return true;
   }
 }

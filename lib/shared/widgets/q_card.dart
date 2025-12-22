@@ -1,6 +1,5 @@
 import 'dart:developer';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:domandito/core/constants/app_constants.dart';
 import 'package:domandito/core/constants/app_icons.dart';
 import 'package:domandito/core/utils/extentions.dart';
@@ -56,20 +55,22 @@ class _QuestionCardState extends State<QuestionCard> {
   }
 
   Future<void> checkIfLiked() async {
-    log('checkIfLiked');
     if (!MySharedPreferences.isLoggedIn) {
       return;
     }
-    if (likesCount == 0) {
-      return;
-    }
-    log('checkIfLiked2');
 
     final liked = await LikeService.isLiked(
       questionId: question.id,
       userId: MySharedPreferences.userId,
     );
-    setState(() => isLiked = liked);
+    if (mounted) {
+      setState(() {
+        isLiked = liked;
+        if (isLiked && likesCount < 1) {
+          likesCount = 1;
+        }
+      });
+    }
   }
 
   bool isProcessing = false;
@@ -96,28 +97,12 @@ class _QuestionCardState extends State<QuestionCard> {
       return;
     }
     if (isProcessing) return; // لو فيه عملية شغالة ارجع
+
+    // Use the passed receiverToken directly
     String usertokenIfisNotMe = widget.receiverToken;
+
     setState(() => isProcessing = true);
 
-    if (!isLiked) {
-      // log('widget.receiverToken ${widget.receiverToken}');
-      // log('usertokenIfisNotMe $usertokenIfisNotMe');
-      // log('widget.currentProfileUserId ${widget.currentProfileUserId}');
-      // log('MySharedPreferences.userId ${MySharedPreferences.userId}');
-      if (!widget.isInProfileScreen &&
-          (widget.currentProfileUserId != MySharedPreferences.userId)) {
-        // log('got token if not me from firestore');
-        await FirebaseFirestore.instance
-            .collection('users')
-            .doc(widget.currentProfileUserId)
-            .get()
-            .then((value) {
-              usertokenIfisNotMe = value.data()!['token'];
-            });
-      } else {
-        // log('in profile screen or got token from user itself');
-      }
-    }
     final result = await LikeService.toggleLike(
       context: context,
       questionId: question.id,
@@ -137,22 +122,6 @@ class _QuestionCardState extends State<QuestionCard> {
       isProcessing = false;
     });
   }
-
-  // Future<void> getProfile() async {
-  //   try {
-  //     final doc = await FirebaseFirestore.instance
-  //         .collection('users')
-  //         .doc(widget.question.sender.id)
-  //         .get();
-  //     if (doc.exists) {
-  //       isVerified = doc.data()!['isVerified'];
-  //       log(' is verified $isVerified');
-  //       setState(() {});
-  //     }
-  //   } catch (e) {
-  //     debugPrint("Error fetching profile: $e");
-  //   }
-  // }
 
   @override
   Widget build(BuildContext context) {
@@ -288,18 +257,6 @@ class _QuestionCardState extends State<QuestionCard> {
                           crossAxisAlignment: CrossAxisAlignment.end,
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            // IconButton(
-                            //   icon: const Icon(Icons.flag),
-                            //   onPressed: () {
-                            //     showReportBottomSheet(
-                            //       context: context,
-                            //       contentId: question.id,
-                            //       contentType: ReportContentType.answer,
-                            //       contentOwnerId: question.receiver.id,
-                            //     );
-                            //   },
-                            // ),
-
                             Text(
                               timeAgo(
                                 question.answeredAt ?? question.createdAt,
@@ -382,26 +339,6 @@ class _QuestionCardState extends State<QuestionCard> {
                           highlightColor: Colors.transparent,
                           splashColor: Colors.transparent,
                           onTap: () {
-                            // if (containsLink(question.answerText.toString())) {
-                            //   LaunchUrlsService().launchBrowesr(
-                            //     uri: question.answerText.toString(),
-                            //     context: context,
-                            //   );
-                            // }
-                            // final text = question.answerText.toString();
-
-                            // if (containsLink(text)) {
-                            //   final url = extractLink(text);
-
-                            //   if (url != null) {
-                            //     LaunchUrlsService().launchBrowesr(
-                            //       uri: url,
-                            //       context: context,
-                            //     );
-                            //     return;
-                            //   }
-                            // }
-                            // else {
                             if (isProcessing) {
                               AppConstance().showInfoToast(
                                 context,
@@ -423,7 +360,6 @@ class _QuestionCardState extends State<QuestionCard> {
                                 receiverImage: widget.receiverImage,
                               ),
                             );
-                            // }
                           },
                           onLongPress: () {
                             Clipboard.setData(
@@ -444,27 +380,6 @@ class _QuestionCardState extends State<QuestionCard> {
                             text: question.answerText.toString(),
                             isInProfileScreen: widget.isInProfileScreen,
                           ),
-                          // child: Text(
-                          //   "\"${question.answerText}\"",
-                          //   textAlign: isArabic(question.answerText!)
-                          //       ? TextAlign.right
-                          //       : TextAlign.left,
-                          //   textDirection: isArabic(question.answerText!)
-                          //       ? TextDirection.rtl
-                          //       : TextDirection.ltr,
-                          //   overflow: !widget.isInProfileScreen
-                          //       ? null
-                          //       : TextOverflow.ellipsis,
-                          //   maxLines: !widget.isInProfileScreen ? null : 2,
-                          //   style: TextStyle(
-                          //     fontSize: containsLink(question.answerText!)
-                          //         ? 14
-                          //         : 16,
-                          //     decoration: containsLink(question.answerText!)
-                          //         ? TextDecoration.underline
-                          //         : null,
-                          //   ),
-                          // ),
                         ),
                       ),
                     ],
@@ -480,26 +395,6 @@ class _QuestionCardState extends State<QuestionCard> {
                 const SizedBox(height: 8),
 
                 // --- Like Button row ---
-                // if (widget.isInAskedQuestion)
-                // if (widget.isInQuestionScreen)
-                //   Row(
-                //     children: [
-                //       SvgPicture.asset(
-                //         AppIcons.heart,
-                //         color: AppColors.primary,
-                //         height: 22,
-                //       ),
-                //       const SizedBox(width: 4),
-                //       Text(
-                //         likesCount < 1 ? '0' : '$likesCount',
-                //         style: const TextStyle(
-                //           fontSize: 12,
-                //           color: Colors.grey,
-                //         ),
-                //       ),
-                //     ],
-                //   ),
-                // if (widget.isInProfileScreen)
                 if (question.answerText != null)
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
