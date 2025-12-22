@@ -17,7 +17,7 @@ class AddUserToSupabase {
   Future<bool> isPhoneUsed(String phone, String? currentUserId) async {
     if (phone.isEmpty) return false;
     try {
-      var query = _supabase.from('users').select().eq('phone', phone);
+      var query = _supabase.from('users').select('id').eq('phone', phone);
       if (currentUserId != null && currentUserId.isNotEmpty) {
         query = query.neq('id', currentUserId); // Exclude current user
       }
@@ -37,7 +37,7 @@ class AddUserToSupabase {
   Future<bool> isUsernameUsed(String username, String? currentUserId) async {
     try {
       log('username: $username');
-      var query = _supabase.from('users').select().eq('username', username);
+      var query = _supabase.from('users').select('id').eq('username', username);
       if (currentUserId != null && currentUserId.isNotEmpty) {
         query = query.neq('id', currentUserId); // Exclude current user
       }
@@ -57,7 +57,7 @@ class AddUserToSupabase {
   Future<bool> isEmailUsed(String email, String? currentUserId) async {
     try {
       log('email: $email');
-      var query = _supabase.from('users').select().eq('email', email);
+      var query = _supabase.from('users').select('id').eq('email', email);
       if (currentUserId != null && currentUserId.isNotEmpty) {
         query = query.neq('id', currentUserId); // Exclude current user
       }
