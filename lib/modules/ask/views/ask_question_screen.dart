@@ -141,6 +141,7 @@ class _AskQuestionScreenState extends State<AskQuestionScreen> {
         title: 'Domandito',
         id: questionId,
       );
+      log(questionId + 'questionId');
 
       Loader.hide();
 

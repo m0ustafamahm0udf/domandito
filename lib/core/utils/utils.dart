@@ -1,11 +1,12 @@
 import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:domandito/core/constants/app_constants.dart';
 import 'package:domandito/core/services/launch_urls.dart';
 import 'package:domandito/core/utils/extentions.dart';
 import 'package:domandito/core/utils/shared_prefrences.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:domandito/main.dart';
 import 'package:domandito/modules/ask/models/q_model.dart';
 import 'package:domandito/modules/signin/models/user_model.dart';
@@ -92,22 +93,17 @@ String formatToHttpDate(DateTime dateTime) {
 
 Future<QuestionModel?> getQuestionData({required String questionId}) async {
   try {
-    final doc = await FirebaseFirestore.instance
-        .collection('questions')
-        .doc(questionId)
-        .get();
+    final response = await Supabase.instance.client
+        .from('questions')
+        .select('*, sender:sender_id(*), receiver:receiver_id(*)')
+        .eq('id', questionId)
+        .single(); // Throws if not found or multiple
 
-    if (doc.exists) {
-      final q = QuestionModel.fromJson(doc.data()!);
-      return q;
-    } else {
-      return null;
-      // debugPrint("No restaurant found with id: $resId");
-    }
+    // Supabase returns a Map<String, dynamic> directly
+    return QuestionModel.fromJson(response);
   } catch (e) {
+    debugPrint("Error loading question: $e");
     return null;
-
-    // debugPrint("Error loading restaurant: $e");
   }
 }
 
@@ -115,15 +111,20 @@ Future<UserModel?> getProfileByUserNameForDeepLink({
   required String userUserName,
 }) async {
   try {
-    final doc = await FirebaseFirestore.instance
-        .collection('users')
-        .where('userName', isEqualTo: userUserName)
+    final data = await Supabase.instance.client
+        .from('users')
+        .select()
+        .eq(
+          'username',
+          userUserName,
+        ) // Note: confirm 'username' column name (snake_case)
         .limit(1)
-        .get();
-    if (doc.docs.isNotEmpty) {
-      final user = UserModel.fromJson(doc.docs.first.data(), doc.docs.first.id);
-      return user;
-      // await getQuestionsCount();
+        .maybeSingle();
+
+    if (data != null) {
+      // Supabase returns Map, adapting for UserModel.fromJson which expects Map and ID
+      // Assuming UserModel.fromJson handles the ID from within the map or we pass it separately
+      return UserModel.fromJson(data, data['id']);
     } else {
       return null;
     }
@@ -136,10 +137,10 @@ Future<UserModel?> getProfileByUserNameForDeepLink({
 String timeAgo(dynamic timestamp, BuildContext context) {
   DateTime date;
 
-  if (timestamp is Timestamp) {
-    date = timestamp.toDate();
-  } else if (timestamp is DateTime) {
+  if (timestamp is DateTime) {
     date = timestamp;
+  } else if (timestamp is String) {
+    date = DateTime.parse(timestamp);
   } else {
     return "";
   }
@@ -466,7 +467,6 @@ Future<String> saveImageToTempFile(Uint8List imageBytes) async {
 
 //   return keywords.toList();
 // }
-
 Future<bool> mustLogin() async {
   final re = await FirebaseFirestore.instance
       .collection('appInfo')
@@ -515,31 +515,31 @@ List<String> generateSearchKeywords(String text) {
   return uniqueSorted;
 }
 
-Future<void> addKeywordsToAllLostPeople() async {
-  final firestore = FirebaseFirestore.instance;
+// Future<void> addKeywordsToAllLostPeople() async {
+//   final firestore = FirebaseFirestore.instance;
 
-  try {
-    final snapshot = await firestore.collection('lost_people').get();
+//   try {
+//     final snapshot = await firestore.collection('lost_people').get();
 
-    for (final doc in snapshot.docs) {
-      final data = doc.data();
+//     for (final doc in snapshot.docs) {
+//       final data = doc.data();
 
-      // الاسم أو النص اللي هتعمله keywords
-      final String? name = data['name']; // غير name حسب الحقل اللي عندك
-      if (name == null || name.trim().isEmpty) continue;
+//       // الاسم أو النص اللي هتعمله keywords
+//       final String? name = data['name']; // غير name حسب الحقل اللي عندك
+//       if (name == null || name.trim().isEmpty) continue;
 
-      // توليد الكلمات
-      final keywords = generateSearchKeywords(name);
+//       // توليد الكلمات
+//       final keywords = generateSearchKeywords(name);
 
-      // تحديث الدوكمنت
-      await doc.reference.update({'searchKeywords': keywords});
-    }
+//       // تحديث الدوكمنت
+//       await doc.reference.update({'searchKeywords': keywords});
+//     }
 
-    // print('✅ تم تحديث كل المستندات بكلمات البحث');
-  } catch (e) {
-    // print('❌ خطأ أثناء التحديث: $e');
-  }
-}
+//     // print('✅ تم تحديث كل المستندات بكلمات البحث');
+//   } catch (e) {
+//     // print('❌ خطأ أثناء التحديث: $e');
+//   }
+// }
 
 String formatNumber(int number) {
   if (number < 1000) {
@@ -656,18 +656,14 @@ Widget linkifyText({
 Future<bool> checkIsBlocked() async {
   if (MySharedPreferences.isLoggedIn) {
     try {
-      final docSnapshot = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(MySharedPreferences.userId)
-          .get();
+      final data = await Supabase.instance.client
+          .from('users')
+          .select('is_blocked')
+          .eq('id', MySharedPreferences.userId)
+          .single();
 
-      if (!docSnapshot.exists) return false;
-
-      final data = docSnapshot.data();
-      if (data == null) return false;
-
-      return data['isBlocked'] == true;
-    } catch (e, _) {
+      return data['is_blocked'] == true;
+    } catch (e) {
       return false;
     }
   } else {

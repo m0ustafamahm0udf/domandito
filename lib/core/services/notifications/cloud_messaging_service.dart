@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:domandito/core/constants/app_constants.dart';
 import 'package:domandito/core/services/launch_urls.dart';
 import 'package:domandito/core/services/notifications/local_notifications_service.dart';
@@ -26,8 +28,6 @@ class CloudMessagingService {
     }
   }
 
-
-
   void foreground(RemoteMessage? message) async {
     if (message == null) return;
 
@@ -53,6 +53,8 @@ class CloudMessagingService {
                   );
                   break;
                 case AppConstance.question:
+                  log(message.data['id'] + 'id');
+
                   Future.delayed(Duration(milliseconds: 100), () async {
                     try {
                       final res = await getQuestionData(
@@ -100,16 +102,16 @@ class CloudMessagingService {
                   });
 
                 default:
-                  // افتح الشاشة الافتراضية
-                  // navigatorKey.currentState!.context.toAndRemoveAll(
-                  //   LandingScreen(),
-                  // );
+                // افتح الشاشة الافتراضية
+                // navigatorKey.currentState!.context.toAndRemoveAll(
+                //   LandingScreen(),
+                // );
               }
             },
             isConfirm: false,
             // ignore: unnecessary_null_comparison
             title: data!.title == null ? 'Domandito' : data.title.toString(),
-            content: getTranslatedContent(data.body.toString()) ,
+            content: getTranslatedContent(data.body.toString()),
           ),
         );
       });
@@ -151,6 +153,7 @@ class CloudMessagingService {
           );
           break;
         case AppConstance.question:
+          log(data['id'] + 'id');
           Future.delayed(Duration(milliseconds: 100), () async {
             try {
               final res = await getQuestionData(questionId: data['id']);
@@ -199,8 +202,8 @@ class CloudMessagingService {
         //   );
         //   break;
         default:
-          // افتح الشاشة الافتراضية
-          // navigatorKey.currentState!.context.toAndRemoveAll(LandingScreen());
+        // افتح الشاشة الافتراضية
+        // navigatorKey.currentState!.context.toAndRemoveAll(LandingScreen());
       }
     }
   }
