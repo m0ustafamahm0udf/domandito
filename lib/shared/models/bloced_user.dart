@@ -1,10 +1,8 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-
 class BlockModel {
   final String id;
   final DateTime createdAt;
-  final BlockUser blocker; // المستخدم اللي عمل block
-  final BlockUser blocked; // المستخدم اللي اتعمله block
+  final BlockUser blocker;
+  final BlockUser blocked;
 
   BlockModel({
     required this.id,
@@ -16,7 +14,10 @@ class BlockModel {
   factory BlockModel.fromJson(Map<String, dynamic> json) {
     return BlockModel(
       id: json['id'] ?? '',
-      createdAt: (json['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      // Supabase returns ISO string for timestamptz
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'])
+          : DateTime.now(),
       blocker: BlockUser.fromJson(json['blocker'] ?? {}),
       blocked: BlockUser.fromJson(json['blocked'] ?? {}),
     );
@@ -25,9 +26,9 @@ class BlockModel {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'createdAt': Timestamp.fromDate(createdAt),
-      'blocker': blocker.toJson(),
-      'blocked': blocked.toJson(),
+      'created_at': createdAt.toIso8601String(),
+      'blocker_id': blocker.id,
+      'blocked_id': blocked.id,
     };
   }
 }
@@ -55,11 +56,6 @@ class BlockUser {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'name': name,
-      'userName': userName,
-      'image': image,
-    };
+    return {'id': id, 'name': name, 'userName': userName, 'image': image};
   }
 }

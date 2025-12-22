@@ -8,6 +8,9 @@ import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
 import '../../shared/widgets/custom_network_image.dart';
 import '../profile/view/profile_screen.dart';
 import '../../shared/style/app_colors.dart';
+import 'package:domandito/shared/services/follow_service.dart';
+import 'package:domandito/shared/models/follow_model.dart';
+import 'package:domandito/shared/services/block_service.dart';
 
 class SearchUsersList extends StatefulWidget {
   final String searchQuery;
@@ -101,7 +104,7 @@ class _SearchUsersListState extends State<SearchUsersList> {
           .order('created_at', ascending: false)
           .range(_offset, _offset + pageSize - 1);
 
-      final newUsers = data
+      var newUsers = data
           .map(
             (json) => UserModel.fromJson(
               json as Map<String, dynamic>,
@@ -109,6 +112,44 @@ class _SearchUsersListState extends State<SearchUsersList> {
             ),
           )
           .toList();
+
+      // 4. Check Follow Status
+      if (newUsers.isNotEmpty) {
+        final ids = newUsers.map((e) => e.id).toList();
+        final followsData = await _supabase
+            .from('follows')
+            .select('following_id')
+            .eq('follower_id', MySharedPreferences.userId)
+            .filter('following_id', 'in', ids);
+
+        final followedIds = (followsData as List)
+            .map((e) => e['following_id'])
+            .toSet();
+
+        // 5. Check Block Status
+        // A. Users I blocked
+        final blockedIds = await BlockService.getBlockedUserIds(
+          MySharedPreferences.userId,
+        );
+
+        // B. Users who blocked ME (Hide them completely)
+        final whoBlockedMeIds = await BlockService.getWhoBlockedMe(
+          MySharedPreferences.userId,
+        );
+
+        final myBlockedSet = blockedIds.toSet(); // Users I blocked
+        final blockersSet = whoBlockedMeIds.toSet(); // Users blocking me
+
+        // Filter out users who blocked me
+        newUsers = newUsers.where((u) => !blockersSet.contains(u.id)).toList();
+
+        newUsers = newUsers.map((u) {
+          return u.copyWith(
+            isFollowing: followedIds.contains(u.id),
+            isBlockedByMe: myBlockedSet.contains(u.id),
+          );
+        }).toList();
+      }
 
       if (isRefresh) {
         users = newUsers;
@@ -200,6 +241,67 @@ class _SearchUsersListState extends State<SearchUsersList> {
                           ),
                         ),
                       ],
+                    ),
+                  ),
+                  // Follow Button
+                  SizedBox(
+                    height: 32,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: user.isFollowing
+                            ? Colors.grey[300]
+                            : AppColors.primary,
+                        foregroundColor: user.isFollowing
+                            ? Colors.black
+                            : Colors.white,
+                        padding: EdgeInsets.symmetric(horizontal: 12),
+                        elevation: 0,
+                      ),
+                      onPressed: user.isBlockedByMe
+                          ? null
+                          : () async {
+                              setState(() {
+                                // Optimistic update
+                                users[index] = user.copyWith(
+                                  isFollowing: !user.isFollowing,
+                                );
+                              });
+
+                              // Call service
+                              await FollowService.toggleFollow(
+                                context: context,
+                                me: FollowUser(
+                                  id: MySharedPreferences.userId,
+                                  name: MySharedPreferences.userName,
+                                  image: MySharedPreferences.image,
+                                  userName: MySharedPreferences.userUserName,
+                                  userToken: MySharedPreferences.deviceToken,
+                                ),
+                                targetUser: FollowUser(
+                                  id: user.id,
+                                  name: user.name,
+                                  image: user.image,
+                                  userName: user.userName,
+                                  userToken: user.token,
+                                ),
+                              );
+                              // If logic requires verifying result, we can await and revert if false
+                              // But FollowService handles toasts/errors.
+                            },
+                      child: Text(
+                        user.isBlockedByMe
+                            ? (!context.isCurrentLanguageAr()
+                                  ? "Blocked"
+                                  : "محظور")
+                            : user.isFollowing
+                            ? (!context.isCurrentLanguageAr()
+                                  ? "Following"
+                                  : "أتابعه")
+                            : (!context.isCurrentLanguageAr()
+                                  ? "Follow"
+                                  : "متابعة"),
+                        style: TextStyle(fontSize: 12),
+                      ),
                     ),
                   ),
                 ],

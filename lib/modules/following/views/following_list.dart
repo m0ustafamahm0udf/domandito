@@ -1,4 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:domandito/core/constants/app_constants.dart';
 import 'package:domandito/core/constants/app_icons.dart';
 import 'package:domandito/core/utils/extentions.dart';
@@ -6,6 +6,7 @@ import 'package:domandito/core/utils/shared_prefrences.dart';
 import 'package:domandito/modules/profile/view/profile_screen.dart';
 import 'package:domandito/modules/search/search.dart';
 import 'package:domandito/shared/models/follow_model.dart';
+import 'package:domandito/shared/services/block_service.dart';
 import 'package:domandito/shared/style/app_colors.dart';
 import 'package:domandito/shared/widgets/custom_network_image.dart';
 import 'package:domandito/shared/widgets/logo_widg.dart';
@@ -24,10 +25,10 @@ class FollowingList extends StatefulWidget {
 }
 
 class _FollowingListState extends State<FollowingList> {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final SupabaseClient _supabase = Supabase.instance.client;
 
   List<FollowModel> following = [];
-  DocumentSnapshot? lastDoc;
+  int _offset = 0;
   bool isLoading = false;
   bool hasMore = true;
   final int pageSize = 10;
@@ -43,7 +44,7 @@ class _FollowingListState extends State<FollowingList> {
     if (isLoading) return;
 
     if (isRefresh) {
-      lastDoc = null;
+      _offset = 0;
       hasMore = true;
       following.clear();
     }
@@ -53,29 +54,33 @@ class _FollowingListState extends State<FollowingList> {
     setState(() => isLoading = true);
 
     try {
-      Query query = _firestore
-          .collection('follows')
-          .where('me.id', isEqualTo: MySharedPreferences.userId)
-          .orderBy('createdAt', descending: true)
-          .limit(pageSize);
+      final query = _supabase
+          .from('follows')
+          .select('*, targetUser:following_id(*), me:follower_id(*)')
+          .eq('follower_id', MySharedPreferences.userId)
+          .order('created_at', ascending: false)
+          .range(_offset, _offset + pageSize - 1);
 
-      if (lastDoc != null) {
-        query = query.startAfterDocument(lastDoc!);
-      }
+      final List<dynamic> data = await query;
 
-      final snap = await query.get();
-
-      if (snap.docs.isNotEmpty) {
-        lastDoc = snap.docs.last;
-        following.addAll(
-          snap.docs
-              .map((e) => e.data())
-              .whereType<Map<String, dynamic>>()
-              .map((data) => FollowModel.fromJson(data)),
+      if (data.isNotEmpty) {
+        // Fetch users I blocked
+        final blocks = await BlockService.getBlockedUserIds(
+          MySharedPreferences.userId,
         );
+
+        final newFollowing = data
+            .map((json) => FollowModel.fromJson(json))
+            .where(
+              (f) => !blocks.contains(f.targetUser.id),
+            ) // Filter blocked users
+            .toList();
+        following.addAll(newFollowing);
+
+        _offset += newFollowing.length;
       }
 
-      hasMore = snap.docs.length == pageSize;
+      hasMore = data.length == pageSize;
     } catch (e) {
       debugPrint('Error fetching following: $e');
     } finally {
@@ -111,12 +116,11 @@ class _FollowingListState extends State<FollowingList> {
                 SizedBox(
                   height: MediaQuery.of(context).size.height * 0.75,
 
-
                   child: Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                            LogoWidg(),
+                        LogoWidg(),
 
                         TextButton.icon(
                           iconAlignment: IconAlignment.end,
@@ -127,7 +131,9 @@ class _FollowingListState extends State<FollowingList> {
                             color: AppColors.primary,
                           ),
                           label: Text(
-                         !context.isCurrentLanguageAr()? 'Add friends' :  'إبدأ بإضافة أصدقاء',
+                            !context.isCurrentLanguageAr()
+                                ? 'Add friends'
+                                : 'إبدأ بإضافة أصدقاء',
                             style: TextStyle(
                               color: AppColors.primary,
                               // fontWeight: FontWeight.bold,
@@ -181,7 +187,11 @@ class _FollowingListState extends State<FollowingList> {
                                   color: AppColors.primary,
                                 ),
                               )
-                            :  Text( !context.isCurrentLanguageAr()? "Load more" : "المزيد"),
+                            : Text(
+                                !context.isCurrentLanguageAr()
+                                    ? "Load more"
+                                    : "المزيد",
+                              ),
                       ),
                     ),
                   );

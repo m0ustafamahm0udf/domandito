@@ -1,7 +1,7 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:one_context/one_context.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class MySharedPreferences {
   static late SharedPreferences _sharedPreferences;
@@ -24,7 +24,10 @@ class MySharedPreferences {
     _sharedPreferences = await SharedPreferences.getInstance();
   }
 
-  static void clearProfile({required BuildContext context}) async {
+  static Future<void> clearProfile({required BuildContext context}) async {
+    // Capture ID before clearing
+    final currentUserId = userId;
+
     restaurantPassword = "";
     deviceToken = "";
     isLoggedIn = false;
@@ -37,11 +40,20 @@ class MySharedPreferences {
     isVerified = false;
     userUserName = '';
     bio = '';
-
+    await Supabase.instance.client.auth.signOut();
+    if (currentUserId.isNotEmpty && currentUserId != '0') {
+      try {
+        await Supabase.instance.client
+            .from('users')
+            .update({'token': ''})
+            .eq('id', currentUserId);
+      } catch (e) {
+        debugPrint("Error clearing token from DB: $e");
+      }
+    }
     OneNotification.hardReloadRoot(context);
-    await FirebaseFirestore.instance.collection('users').doc(userId).update({
-      'token': '',
-    });
+
+    // Remove token from Supabase
   }
 
   static String get restaurantPassword =>
@@ -53,9 +65,8 @@ class MySharedPreferences {
   static set image(String value) =>
       _sharedPreferences.setString(keyimage, value);
 
-        static String get bio => _sharedPreferences.getString(keyBio) ?? "";
-  static set bio(String value) =>
-      _sharedPreferences.setString(keyBio, value);
+  static String get bio => _sharedPreferences.getString(keyBio) ?? "";
+  static set bio(String value) => _sharedPreferences.setString(keyBio, value);
 
   static bool get isLoggedIn =>
       _sharedPreferences.getBool(keyIsLoggedIn) ?? false;

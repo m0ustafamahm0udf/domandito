@@ -4,34 +4,29 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:domandito/core/constants/app_constants.dart';
 import 'package:domandito/core/constants/app_icons.dart';
-import 'package:domandito/core/constants/app_platforms_serv.dart';
-import 'package:domandito/core/services/file_picker_service.dart';
-import 'package:domandito/core/services/get_device_serv.dart';
+
 import 'package:domandito/core/services/launch_urls.dart';
 import 'package:domandito/core/services/notifications/send_message_notification.dart';
 import 'package:domandito/core/utils/extentions.dart';
 import 'package:domandito/core/utils/shared_prefrences.dart';
 import 'package:domandito/core/utils/utils.dart';
-import 'package:domandito/modules/account/views/account_screen.dart';
+// AccountScreen removed as it was unused
 import 'package:domandito/modules/ask/models/q_model.dart';
 import 'package:domandito/modules/ask/views/ask_question_screen.dart';
 import 'package:domandito/modules/following/views/following_screen.dart';
 import 'package:domandito/shared/apis/upload_images_services.dart';
+import 'package:domandito/core/services/file_picker_service.dart';
 import 'package:domandito/shared/models/bloced_user.dart';
-import 'package:domandito/shared/models/follow_model.dart';
+import 'package:file_picker/file_picker.dart';
+// blocked_user import might handle BlockUser class if not in block_service
+import 'package:domandito/shared/models/follow_model.dart'; // FollowUser might be here
 import 'package:domandito/shared/services/block_service.dart';
 import 'package:domandito/shared/services/crop_image_service.dart';
 import 'package:domandito/shared/services/follow_service.dart';
 import 'package:domandito/shared/style/app_colors.dart';
-import 'package:domandito/shared/widgets/custom_bounce_button.dart';
 import 'package:domandito/shared/widgets/custom_dialog.dart';
-import 'package:domandito/shared/widgets/custom_network_image.dart';
 import 'package:domandito/shared/widgets/download_dialog.dart';
-import 'package:domandito/shared/widgets/image_view_screen.dart';
 import 'package:domandito/shared/widgets/logo_widg.dart';
-import 'package:domandito/shared/widgets/share_widget.dart';
-import 'package:domandito/shared/widgets/show_image_picker.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -39,8 +34,16 @@ import 'package:flutter_overlay_loader/flutter_overlay_loader.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
 import 'package:svg_flutter/svg_flutter.dart';
-import '../../../shared/widgets/q_card.dart';
-import '../../signin/models/user_model.dart';
+// Removed q_card as it should be used in ProfileQuestionsList
+
+import 'package:domandito/modules/signin/models/user_model.dart';
+import 'package:domandito/modules/signin/signin_screen.dart'; // Add SignInScreen import
+import 'package:domandito/modules/profile/view/widgets/profile_app_bar.dart';
+import 'package:domandito/modules/profile/view/widgets/profile_image_section.dart';
+import 'package:domandito/modules/profile/view/widgets/profile_info_section.dart';
+import 'package:domandito/modules/profile/view/widgets/profile_stats_section.dart';
+import 'package:domandito/modules/profile/view/widgets/profile_actions_section.dart';
+import 'package:domandito/modules/profile/view/widgets/profile_questions_list.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String userId;
@@ -68,7 +71,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   int _offset = 0;
   int limit = 10;
   bool isFollowing = false;
-  bool isBlocked = false;
+
+  bool isBlocked = false; // I blocked him
+  bool amIBlockedByTarget = false; // He blocked me
   bool followLoading = false;
   bool blockLoading = false;
 
@@ -291,10 +296,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
       return;
     }
     if (!isMe) {
-      isBlocked = await BlockService.isBlocked(
-        myId: MySharedPreferences.userId,
-        targetUserId: widget.userId,
-      );
+      final results = await Future.wait([
+        BlockService.isBlocked(
+          myId: MySharedPreferences.userId,
+          targetUserId: widget.userId,
+        ),
+        BlockService.amIBlocked(
+          myId: MySharedPreferences.userId,
+          targetUserId: widget.userId,
+        ),
+      ]);
+
+      isBlocked = results[0];
+      amIBlockedByTarget = results[1];
+
       setState(() {});
     }
     log('isBlocked $isBlocked');
@@ -302,10 +317,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   getAllData() async {
     await checkBlock();
-    // Future.wait([getProfile(), getQuestions(), checkFollowing()]);
-    await getProfile();
-    await getQuestions();
-    await checkFollowing();
+    await Future.wait([getProfile(), getQuestions(), checkFollowing()]);
   }
 
   Future<void> toggleFollowAction() async {
@@ -502,6 +514,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
       image: user!.image,
     );
 
+    // Verify Auth State
+    // final authId = Supabase.instance.client.auth.currentUser?.id;
+    // Check for ID mismatch (Legacy SharedPrefs vs Supabase Auth)
+    // if (me.id != authId) {
+    //   // Clear data & Logout
+    //   await MySharedPreferences.clearProfile(context: context);
+
+    //   if (context.mounted) {
+    //     AppConstance().showInfoToast(
+    //       context,
+    //       msg: !context.isCurrentLanguageAr()
+    //           ? "Session expired. Please login again."
+    //           : "انتهت الجلسة. يرجى تسجيل الدخول مرة أخرى.",
+    //     );
+    //     pushReplacementWithoutNavBar(
+    //       context,
+    //       MaterialPageRoute(builder: (context) => SignInScreen()),
+    //     );
+    //   }
+    //   setState(() => blockLoading = false);
+    //   return;
+    // }
+
     final newState = await BlockService.toggleBlock(
       blocker: me,
       blocked: target,
@@ -625,8 +660,36 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: profileAppbar(context),
-      body: isLoading
+      appBar: ProfileAppBar(user: user, isLoading: isLoading, isMe: isMe),
+      body: (isBlocked || amIBlockedByTarget)
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  LogoWidg(),
+                  // Icon(Icons.block, size: 64, color: AppColors.primary),
+                  SizedBox(height: 16),
+                  Text(
+                    !context.isCurrentLanguageAr()
+                        ? 'User is unavailable'
+                        : 'المستخدم غير متاح',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  if (isBlocked) ...[
+                    SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: toggleBlockAction,
+                      child: Text(
+                        !context.isCurrentLanguageAr()
+                            ? 'Unblock'
+                            : 'إلغاء الحظر',
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            )
+          : isLoading
           ? Center(child: CupertinoActivityIndicator(color: AppColors.primary))
           : user == null
           ? const Center(child: Text(''))
@@ -644,33 +707,80 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: ListView(
                 padding: EdgeInsets.only(top: 0, right: 16, left: 16),
                 children: [
-                  profileImage(context),
+                  ProfileImageSection(
+                    user: user!,
+                    isMe: isMe,
+                    isBlocked: isBlocked,
+                    onPickImage: _pickImage,
+                  ),
 
                   // const SizedBox(height: 0),
-                  nameWidget(),
-                  const SizedBox(height: 5),
-
-                  userNameWidget(),
-
-                  // if (user!.bio.isNotEmpty) const SizedBox(height: 5),
-                  // if (user!.bio.isNotEmpty)
-                  //   Center(
-                  //     child: Text(
-                  //       user!.bio,
-                  //       style: const TextStyle(
-                  //         color: Colors.black,
-                  //         fontSize: 12,
-
-                  //         // fontWeight: FontWeight.bold,
-                  //       ),
-                  //     ),
-                  //   ),
-                  const SizedBox(height: 15),
-
-                  folooingCount(context),
+                  ProfileInfoSection(
+                    user: user!,
+                    isMe: isMe,
+                    isBlocked: isBlocked,
+                    blockLoading: blockLoading,
+                    onToggleBlock: toggleBlockAction,
+                  ),
 
                   const SizedBox(height: 15),
-                  askAndFollow(context),
+
+                  ProfileStatsSection(
+                    user: user!,
+                    isMe: isMe,
+                    onFollowingTap: () {
+                      if (isMe) {
+                        pushScreen(
+                          context,
+                          screen: FollowingScreen(
+                            followingCount: (count) {
+                              user!.followingCount = count;
+                              setState(() {});
+                            },
+                          ),
+                        ).then((value) async {
+                          //  await getProfile();
+                        });
+                      }
+                    },
+                  ),
+
+                  const SizedBox(height: 15),
+                  ProfileActionsSection(
+                    user: user!,
+                    isMe: isMe,
+                    isFollowing: isFollowing,
+                    followLoading: followLoading,
+                    isBlocked: isBlocked,
+                    onAsk: () {
+                      if (!MySharedPreferences.isLoggedIn) {
+                        AppConstance().showInfoToast(
+                          context,
+                          msg: !context.isCurrentLanguageAr()
+                              ? 'Please log in'
+                              : 'يرجى تسجيل الدخول',
+                          isLogin: true,
+                        );
+
+                        return;
+                      }
+
+                      pushScreen(
+                        context,
+                        screen: AskQuestionScreen(
+                          canAskedAnonymously: user!.canAskedAnonymously,
+                          recipientToken: user!.token,
+                          recipientUserName: user!.userName,
+                          isVerified: user!.isVerified,
+                          recipientId: user!.id,
+                          recipientName: user!.name,
+                          recipientImage: user!.image,
+                        ),
+                      );
+                    },
+                    onToggleFollow: toggleFollowAction,
+                  ),
+
                   const SizedBox(height: 4),
                   if (isMe)
                     SwitchListTile(
@@ -729,14 +839,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   const SizedBox(height: 4),
 
-                  // Text(
-                  //   'آخر المستجدات',
-                  //   style: const TextStyle(
-                  //     fontSize: 22,
-                  //     fontWeight: FontWeight.bold,
-                  //   ),
-                  // ),
-                  // --- قائمة الأسئلة ---
                   if (isBlocked)
                     Center(
                       child: Column(
@@ -774,7 +876,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                     )
                   else
-                    questionsWidget(),
+                    ProfileQuestionsList(
+                      questions: questions,
+                      user: user!,
+                      isMe: isMe,
+                      onDeleteQuestion: (id) async {
+                        await deleteQuestion(id);
+                        // Note: parent doesn't strictly know which index here unless we find it
+                        // The original logic removed by index in Dismissible confirmDismiss
+                        // But if we call this callback, we might want to refresh or rely on setState passed down?
+                        // The ProfileQuestionsList widget handles the specific item removal via dismissible logic?
+                        // Ah, wait. In ProfileQuestionsList I wrote:
+                        // if (res == true) { onDeleteQuestion(q.id); } return false;
+                        // So the UI won't animate removal automatically if I return false.
+                        // But if I want to remove it from `questions` list in parent:
+                        setState(() {
+                          questions.removeWhere((element) => element.id == id);
+                        });
+                      },
+                    ),
+
                   if (kIsWeb)
                     Column(
                       children: [
@@ -865,555 +986,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ],
               ),
-            ),
-    );
-  }
-
-  Center userNameWidget() {
-    return Center(
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            '@${user!.userName}',
-            textDirection: TextDirection.ltr,
-
-            style: const TextStyle(color: Colors.grey, fontSize: 12),
-          ),
-          SizedBox(width: 5),
-          if (!isMe)
-            GestureDetector(
-              onTap: blockLoading || user == null
-                  ? null
-                  : toggleBlockAction, // هنا الدالة اللي عملناها فوق
-              child: blockLoading
-                  ? SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CupertinoActivityIndicator(
-                        color: AppColors.primary,
-                      ),
-                    )
-                  : CircleAvatar(
-                      radius: 12,
-                      backgroundColor: isBlocked
-                          ? Colors.red
-                          : Colors.transparent,
-                      child: Icon(
-                        isBlocked ? Icons.block_sharp : Icons.block_outlined,
-                        color: isBlocked ? Colors.white : Colors.red,
-                      ),
-                    ),
-            ),
-
-          // if(MySharedPreferences.userId == widget.userId)
-          // SizedBox(
-          //   height: 35,
-          //   width: 35,
-          //   child: ShareWidget(userUserName: user?.userName ?? '', questionId: '')),
-        ],
-      ),
-    );
-  }
-
-  Row nameWidget() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-
-      children: [
-        Text(
-          user!.name,
-          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-        ),
-        if (user!.isVerified) const SizedBox(width: 2),
-        if (user!.isVerified)
-          SvgPicture.asset(
-            AppIcons.verified,
-            height: 20,
-            width: 20,
-            color: AppColors.primary,
-          ),
-      ],
-    );
-  }
-
-  ListView questionsWidget() {
-    return ListView.builder(
-      padding: EdgeInsets.all(0),
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: questions.length,
-      itemBuilder: (context, index) {
-        final q = questions[index];
-        if (isMe) {
-          return Dismissible(
-            key: ValueKey(q.id),
-            direction: DismissDirection.startToEnd,
-            background: Container(
-              margin: const EdgeInsets.symmetric(vertical: 8),
-              decoration: BoxDecoration(
-                color: Colors.red.shade600,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Icon(Icons.delete_rounded, color: Colors.white, size: 30),
-                      SizedBox(height: 4),
-                      Text(
-                        !context.isCurrentLanguageAr() ? "Delete" : "حذف",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-
-            confirmDismiss: (direction) async {
-              final res = await showDialog(
-                context: context,
-                builder: (context) => CustomDialog(
-                  title: !context.isCurrentLanguageAr()
-                      ? 'Delete question'
-                      : 'حذف السؤال',
-                  onConfirm: () {},
-                  content: !context.isCurrentLanguageAr()
-                      ? 'Are you sure you want to delete the question?'
-                      : 'هل  انت متاكد من حذف السؤال؟',
-                ),
-              );
-              if (res == true) {
-                await deleteQuestion(q.id);
-                setState(() {
-                  questions.removeAt(index);
-                });
-              }
-              return;
-            },
-
-            child: QuestionCard(
-              receiverToken: user!.token,
-              currentProfileUserId: user!.id,
-
-              question: q,
-              receiverImage: user!.image,
-            ),
-          );
-        }
-        return QuestionCard(
-          receiverToken: user!.token,
-
-          currentProfileUserId: user!.id,
-
-          question: q,
-          receiverImage: user!.image,
-        );
-      },
-    );
-  }
-
-  Widget askAndFollow(BuildContext context) {
-    if (isBlocked) {
-      return const SizedBox();
-    }
-    return Row(
-      children: [
-        Expanded(
-          child: BounceButton(
-            gradient: LinearGradient(
-              colors: [AppColors.primary, Colors.purple],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            icon: SvgPicture.asset(
-              AppIcons.anonymous,
-              height: 25,
-              color: AppColors.white,
-            ),
-            radius: 60,
-            height: 55,
-            onPressed: () {
-              if (!MySharedPreferences.isLoggedIn) {
-                AppConstance().showInfoToast(
-                  context,
-                  msg: !context.isCurrentLanguageAr()
-                      ? 'Please log in'
-                      : 'يرجى تسجيل الدخول',
-                  isLogin: true,
-                );
-
-                return;
-              }
-              // log(user!.userName);
-              pushScreen(
-                context,
-                screen: AskQuestionScreen(
-                  canAskedAnonymously: user!.canAskedAnonymously,
-                  recipientToken: user!.token,
-                  recipientUserName: user!.userName,
-                  isVerified: user!.isVerified,
-                  recipientId: user!.id,
-                  recipientName: user!.name,
-                  recipientImage: user!.image,
-                ),
-              );
-            },
-            title: isMe
-                ? !context.isCurrentLanguageAr()
-                      ? 'Ask yourself'
-                      : 'إسأل نفسك'
-                : !context.isCurrentLanguageAr()
-                ? 'Ask'
-                : 'إسأل',
-            textSize: 18,
-            // padding: 20,
-          ),
-        ),
-        if (!isMe) SizedBox(width: 10),
-        if (!isMe)
-          Expanded(
-            child: BounceButton(
-              isOutline: !isFollowing,
-              gradient: !isFollowing
-                  ? null
-                  : LinearGradient(
-                      colors: [AppColors.primary, Colors.deepOrange],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-              icon: SvgPicture.asset(
-                AppIcons.anonymous,
-                height: 25,
-                color: isFollowing ? AppColors.white : AppColors.primary,
-              ),
-              radius: 60,
-              height: 55,
-              onPressed: () async {
-                if (!followLoading) {
-                  await toggleFollowAction();
-                } else {
-                  null;
-                }
-              },
-              title: followLoading
-                  ? ''
-                  : isFollowing
-                  ? !context.isCurrentLanguageAr()
-                        ? 'Unfollow'
-                        : "إلغاء المتابعة"
-                  : !context.isCurrentLanguageAr()
-                  ? 'Follow'
-                  : "متابعة",
-              textSize: 18,
-              child: followLoading
-                  ? const Center(
-                      child: SizedBox(
-                        height: 22,
-                        width: 22,
-                        child: CupertinoActivityIndicator(
-                          color: AppColors.primary,
-                        ),
-                      ),
-                    )
-                  : null,
-            ),
-          ),
-      ],
-    );
-  }
-
-  Center folooingCount(BuildContext context) {
-    return Center(
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          Column(
-            children: [
-              Text(
-                formatNumber(user!.followersCount),
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                  fontFamily: 'Dancing_Script',
-                ),
-              ),
-              Text(
-                !context.isCurrentLanguageAr() ? 'Followers' : 'المتابعين',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-              ),
-            ],
-          ),
-          SizedBox(
-            height: 20,
-            child: VerticalDivider(
-              // height: 20,
-              width: 0,
-              color: AppColors.primary,
-              thickness: 1,
-            ),
-          ),
-          GestureDetector(
-            onTap: () {
-              if (isMe) {
-                pushScreen(
-                  context,
-                  screen: FollowingScreen(
-                    followingCount: (count) {
-                      user!.followingCount = count;
-                      setState(() {});
-                    },
-                  ),
-                ).then((value) async {
-                  //  await getProfile();
-                });
-              }
-            },
-            child: Container(
-              color: Colors.transparent,
-              child: Column(
-                children: [
-                  Text(
-                    formatNumber(user!.followingCount),
-
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                      fontFamily: 'Dancing_Script',
-                    ),
-                  ),
-                  Text(
-                    !context.isCurrentLanguageAr()
-                        ? 'Following'
-                        : isMe
-                        ? 'أتابع'
-                        : 'يتابع',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          // SizedBox(
-          //   height: 20,
-          //   child: VerticalDivider(
-          //     // height: 20,
-          //     width: 0,
-          //     color: AppColors.primary,
-          //     thickness: 1,
-          //   ),
-          // ),
-          // GestureDetector(
-          //   onTap: () {
-          //     // if (MySharedPreferences.userId == user!.id) {
-          //     //   context.read<LandingCubit>().controller.jumpToTab(0);
-          //     // }
-          //   },
-          //   child: Container(
-          //     color: Colors.transparent,
-          //     child: Column(
-          //       children: [
-          //         Text(
-          //           formatNumber(totalQuestionsCount),
-
-          //           style: const TextStyle(
-          //             fontWeight: FontWeight.bold,
-          //             fontSize: 14,
-          //             fontFamily: 'Dancing_Script',
-          //           ),
-          //         ),
-          //         Text(
-          //           !context.isCurrentLanguageAr() ? 'Questions' : 'الأسئلة',
-          //           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-          //         ),
-          //       ],
-          //     ),
-          //   ),
-          // ),
-        ],
-      ),
-    );
-  }
-
-  Stack profileImage(BuildContext context) {
-    final platform = PlatformService.platform;
-
-    return Stack(
-      alignment: Alignment.center,
-      children: [
-        Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: context.w * 0.22,
-            vertical: 6,
-          ),
-          child: GestureDetector(
-            onTap: isBlocked
-                ? null
-                : () => pushScreen(
-                    context,
-                    screen: ImageViewScreen(
-                      images: [user!.image],
-                      // title: '',
-                      onBack: (i) {},
-                    ),
-                  ),
-            child: Container(
-              height: 175,
-              width: 175,
-              padding: const EdgeInsets.all(2.0),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: AppColors.primary, width: 1),
-              ),
-              child: ClipOval(
-                child: CustomNetworkImage(
-                  radius: 999,
-                  url: user!.image,
-                  height: 175,
-                  width: 175,
-                  boxFit: BoxFit.cover,
-                ),
-              ),
-            ),
-          ),
-        ),
-        if (isMe)
-          if (AppPlatform.webAndroid != platform &&
-              AppPlatform.webIOS != platform &&
-              AppPlatform.webDesktop != platform)
-            Positioned(
-              top: 20,
-              left: context.w * 0.24,
-              child: Container(
-                // padding: const EdgeInsets.all(0.0),
-                decoration: BoxDecoration(
-                  color: AppColors.white,
-
-                  shape: BoxShape.circle,
-                ),
-                child: IconButton(
-                  onPressed: () async {
-                    final source = await showModalBottomSheet<ImageSource>(
-                      useRootNavigator: true,
-                      routeSettings: RouteSettings(name: 'ImagePickerSheet'),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(AppConstance.radiusBig),
-                          topRight: Radius.circular(AppConstance.radiusBig),
-                        ),
-                      ),
-                      context: context,
-                      builder: (BuildContext context) =>
-                          const ImagePickerSheet(),
-                    );
-
-                    if (source != null) {
-                      await _pickImage(source);
-                    }
-                  },
-                  style: ButtonStyle(
-                    backgroundColor: MaterialStatePropertyAll(
-                      AppColors.primary,
-                    ),
-                  ),
-                  icon: Icon(Icons.edit, color: AppColors.white),
-                ),
-              ),
-            ),
-      ],
-    );
-  }
-
-  AppBar profileAppbar(BuildContext context) {
-    return AppBar(
-      title: !isLoading
-          ? Text(
-              '@${user?.userName ?? ''}',
-              textDirection: TextDirection.ltr,
-
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 24,
-                fontFamily: 'Dancing_Script',
-              ),
-            )
-          : null,
-
-      actions: [
-        // if (isMe)
-        //   IconButton.filled(
-        //     onPressed: () {
-        //       pushScreen(context, screen: const EditProfileScreen()).then((
-        //         value,
-        //       ) async {
-        //         if (value == true) {
-        //           lastDoc = null;
-        //           hasMore = true;
-        //           questions.clear();
-        //           await getProfile();
-        //           await getQuestions();
-        //           await getQuestionsCount();
-
-        //           setState(() {});
-        //         }
-        //       });
-        //     },
-        //     icon: Icon(Icons.edit),
-        //   )
-        // else
-        // if (MySharedPreferences.userId != user?.id)
-        if (!isLoading)
-          ShareWidget(
-            userUserName: user?.userName ?? '',
-            questionId: '',
-            userImage: user?.image ?? '',
-          ),
-        // else
-        // IconButton.filled(onPressed: () {
-        //   pushScreen(context, screen: AccountScreen());
-        // }, icon: Icon(Icons.more_vert)),
-        SizedBox(width: 4),
-
-        // const SizedBox(width: 5),
-      ],
-      leading: isMe
-          ? IconButton.filled(
-              onPressed: () {
-                pushScreen(context, screen: AccountScreen());
-              },
-              icon: Icon(Icons.more_vert),
-            )
-          // ? IconButton.filled(
-          //     onPressed: () async {
-          //       final rest = await showLogOutButtomSheet(
-          //         isDelete: false,
-          //         context: context,
-          //       );
-          //       if (rest != null && rest) {
-          //         MySharedPreferences.clearProfile(context: context);
-          //       }
-          //     },
-          //     icon: Transform.flip(
-          //       flipX: true,
-          //       child: SvgPicture.asset(
-          //         AppIcons.logout,
-          //         color: AppColors.primary,
-          //       ),
-          //     ),
-          //   )
-          : IconButton.filled(
-              onPressed: () => context.back(),
-              icon: Icon(Icons.arrow_back),
             ),
     );
   }

@@ -54,12 +54,12 @@
 // }
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:animate_do/animate_do.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:domandito/core/constants/app_constants.dart';
 import 'package:domandito/core/constants/app_icons.dart';
 import 'package:domandito/core/services/launch_urls.dart';
 import 'package:domandito/core/utils/extentions.dart';
 import 'package:domandito/core/utils/shared_prefrences.dart';
+import 'package:domandito/shared/services/block_service.dart';
 import 'package:domandito/modules/ask/models/q_model.dart';
 import 'package:domandito/modules/profile/view/profile_screen.dart';
 import 'package:domandito/modules/search/search.dart';
@@ -136,7 +136,15 @@ class _HomeScreenState extends State<HomeScreen> {
           .map((json) => QuestionModel.fromJson(json))
           .toList();
 
+      final blockedIds = await BlockService.getBlockedUserIds(
+        MySharedPreferences.userId,
+      );
+
+      final blockedSet = blockedIds.toSet();
+
       for (var q in newQuestions) {
+        if (blockedSet.contains(q.receiver.id)) continue;
+
         final exists = questions.any((element) => element.id == q.id);
         if (!exists) questions.add(q);
       }
@@ -202,7 +210,7 @@ class _HomeScreenState extends State<HomeScreen> {
           hasMore = true;
           questions.clear();
 
-          lastFDoc = null;
+          _followingOffset = 0;
           hasMoreF = true;
           following.clear();
           Future.wait([getQuestions(), fetchFollowing()]);
@@ -375,13 +383,11 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-
   Future<void> fetchFollowing({bool isRefresh = false}) async {
     if (isLoadingF) return;
 
     if (isRefresh) {
-      lastFDoc = null;
+      _followingOffset = 0;
       hasMoreF = true;
       following.clear();
     }
@@ -391,29 +397,37 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() => isLoadingF = true);
 
     try {
-      Query query = _firestore
-          .collection('follows')
-          .where('me.id', isEqualTo: MySharedPreferences.userId)
-          .orderBy('createdAt', descending: true)
-          .limit(pageSize);
+      final query = Supabase.instance.client
+          .from('follows')
+          .select('*, targetUser:following_id(*), me:follower_id(*)')
+          .eq('follower_id', MySharedPreferences.userId)
+          .order('created_at', ascending: false)
+          .range(_followingOffset, _followingOffset + pageSize - 1);
 
-      if (lastFDoc != null) {
-        query = query.startAfterDocument(lastFDoc!);
-      }
+      final List<dynamic> data = await query;
 
-      final snap = await query.get();
+      if (data.isNotEmpty) {
+        final newFollowing = data
+            .map((json) => FollowModel.fromJson(json))
+            .toList();
 
-      if (snap.docs.isNotEmpty) {
-        lastFDoc = snap.docs.last;
-        following.addAll(
-          snap.docs
-              .map((e) => e.data())
-              .whereType<Map<String, dynamic>>()
-              .map((data) => FollowModel.fromJson(data)),
+        // Filter out blocked users (though toggleBlock usually handles unfollowing,
+        // this is a safety check)
+        final blockedIds = await BlockService.getBlockedUserIds(
+          MySharedPreferences.userId,
         );
+        final blockedSet = blockedIds.toSet();
+
+        for (var f in newFollowing) {
+          if (!blockedSet.contains(f.targetUser.id)) {
+            following.add(f);
+          }
+        }
+
+        _followingOffset += newFollowing.length;
       }
 
-      hasMoreF = snap.docs.length == pageSize;
+      hasMoreF = data.length == pageSize;
     } catch (e) {
       debugPrint('Error fetching following: $e');
     } finally {
@@ -422,7 +436,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   List<FollowModel> following = [];
-  DocumentSnapshot? lastFDoc;
+  // DocumentSnapshot? lastFDoc; // Removed
+  int _followingOffset = 0;
   bool isLoadingF = false;
   bool hasMoreF = true;
   final int pageSize = 10;

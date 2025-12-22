@@ -1,5 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-
 class FollowModel {
   final String id;
   final DateTime createdAt;
@@ -16,7 +14,10 @@ class FollowModel {
   factory FollowModel.fromJson(Map<String, dynamic> json) {
     return FollowModel(
       id: json['id'] ?? '',
-      createdAt: (json['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'])
+          : DateTime.now(),
+      // Expecting joins to return 'targetUser' and 'me' objects using aliases
       targetUser: FollowUser.fromJson(json['targetUser'] ?? {}),
       me: FollowUser.fromJson(json['me'] ?? {}),
     );
@@ -24,10 +25,10 @@ class FollowModel {
 
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
-      'createdAt': Timestamp.fromDate(createdAt),
-      'targetUser': targetUser.toJson(),
-      'me': me.toJson(),
+      // 'id': id, // Supabase generates ID usually
+      'follower_id': me.id,
+      'following_id': targetUser.id,
+      'created_at': createdAt.toIso8601String(),
     };
   }
 }
@@ -51,9 +52,10 @@ class FollowUser {
     return FollowUser(
       id: json['id'] ?? '',
       name: json['name'] ?? '',
-      userName: json['userName'] ?? '',
+      // Check for different casing conventions
+      userName: json['username'] ?? json['user_name'] ?? json['userName'] ?? '',
       image: json['image'] ?? '',
-      userToken: json['userToken'] ?? '',
+      userToken: json['token'] ?? json['userToken'] ?? '',
     );
   }
 

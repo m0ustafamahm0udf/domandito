@@ -1,15 +1,18 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:developer';
+
 import 'package:domandito/core/utils/extentions.dart';
-import 'package:domandito/core/utils/utils.dart';
+
 import 'package:domandito/shared/models/bloced_user.dart';
+import 'package:domandito/shared/services/follow_service.dart';
 import 'package:flutter/material.dart';
 import 'package:domandito/core/constants/app_constants.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class BlockService {
-  static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  static final SupabaseClient _supabase = Supabase.instance.client;
 
-  static const String blockCollection = "blocked_users";
-  static const String usersCollection = "users";
+  static const String blockTable = "blocks";
+  // static const String usersCollection = "users"; // Unused in Supabase implementation
 
   static final Map<String, bool> _isProcessing = {};
 
@@ -17,8 +20,8 @@ class BlockService {
   /// 🚫 Toggle Block (Block / Unblock)
   /// ---------------------------------------------------------------------------
   static Future<bool> toggleBlock({
-    required BlockUser blocker, // أنا
-    required BlockUser blocked, // الشخص اللي هحظره
+    required BlockUser blocker,
+    required BlockUser blocked,
     required BuildContext context,
   }) async {
     if (_isProcessing[blocked.id] == true) return false;
@@ -27,59 +30,70 @@ class BlockService {
     bool isNowBlocked = false;
 
     try {
-      isNowBlocked = await _firestore.runTransaction<bool>((transaction) async {
-        final blocksRef = _firestore.collection(blockCollection);
+      // 1. Check if block already exists - Limit 1 to avoid multiple row errors
+      final existingBlock = await _supabase
+          .from(blockTable)
+          .select()
+          .match({'blocker_id': blocker.id, 'blocked_id': blocked.id})
+          .limit(1)
+          .maybeSingle();
 
-        /// هل أنا بالفعل عملت Block لهذا المستخدم؟
-        final blockQuery = await blocksRef
-            .where("blocker.id", isEqualTo: blocker.id)
-            .where("blocked.id", isEqualTo: blocked.id)
-            .limit(1)
-            .get();
+      if (existingBlock != null) {
+        // -------------------------------------------------------------------
+        // ❌ Unblock
+        // -------------------------------------------------------------------
+        debugPrint("[BlockService] Unblocking user ${blocked.id}");
 
-        final blockerRef = _firestore.collection(usersCollection).doc(blocker.id);
-        final blockedRef = _firestore.collection(usersCollection).doc(blocked.id);
-
-        final blockerSnap = await transaction.get(blockerRef);
-        final blockedSnap = await transaction.get(blockedRef);
-
-        if (!blockerSnap.exists || !blockedSnap.exists) {
-          throw Exception("User not found");
+        final blockId = existingBlock['id'];
+        if (blockId != null) {
+          await _supabase.from(blockTable).delete().eq('id', blockId);
+        } else {
+          await _supabase.from(blockTable).delete().match({
+            'blocker_id': blocker.id,
+            'blocked_id': blocked.id,
+          });
         }
 
-        if (blockQuery.docs.isNotEmpty) {
-          // -------------------------------------------------------------------
-          // ❌ Unblock
-          // -------------------------------------------------------------------
-          transaction.delete(blockQuery.docs.first.reference);
-          return false;
-        } else {
-          // -------------------------------------------------------------------
-          // 🚫 Block
-          // -------------------------------------------------------------------
-          final newDoc = blocksRef.doc();
-          DateTime now = await getNetworkTime() ?? DateTime.now();
+        isNowBlocked = false;
+      } else {
+        // -------------------------------------------------------------------
+        // 🚫 Block (and Unfollow First)
+        // -------------------------------------------------------------------
+        debugPrint(
+          "[BlockService] Blocking user ${blocked.id} - Step 1: Force Unfollow",
+        );
 
-          final block = BlockModel(
-            id: newDoc.id,
-            createdAt: now,
-            blocker: blocker,
-            blocked: blocked,
+        // Step 1: Explicitly Unfollow (Wait for it)
+        await FollowService.forceUnfollow(
+          followerId: blocker.id,
+          followingId: blocked.id,
+        ).then((_) async {
+          debugPrint(
+            "[BlockService] Blocking user ${blocked.id} - Step 2: Insert Block",
           );
 
-          transaction.set(newDoc, block.toJson());
+          // Step 2: Insert Block
+          await _supabase.from(blockTable).insert({
+            'blocker_id': blocker.id,
+            'blocked_id': blocked.id,
+          });
 
-          return true;
-        }
-      });
+          isNowBlocked = true;
+        });
+      }
     } catch (e) {
-      debugPrint("Block error: $e");
-      AppConstance().showInfoToast(
-        context,
-        msg: !context.isCurrentLanguageAr()
-            ? "Something went wrong, try again"
-            : "حدث خطأ، حاول مرة أخرى",
-      );
+      debugPrint("Block Service Error: $e");
+
+      if (context.mounted) {
+        log("Block Service Error: $e");
+        AppConstance().showInfoToast(
+          context,
+          msg: !context.isCurrentLanguageAr()
+              ? "Operation failed: $e"
+              : "فشلت العملية",
+        );
+      }
+      isNowBlocked = false; // Assume fail
     } finally {
       _isProcessing[blocked.id] = false;
     }
@@ -94,25 +108,74 @@ class BlockService {
     required String myId,
     required String targetUserId,
   }) async {
-    final snap = await _firestore
-        .collection(blockCollection)
-        .where("blocker.id", isEqualTo: myId)
-        .where("blocked.id", isEqualTo: targetUserId)
-        .limit(1)
-        .get();
+    try {
+      final snap = await _supabase.from(blockTable).select().match({
+        'blocker_id': myId,
+        'blocked_id': targetUserId,
+      }).maybeSingle();
 
-    return snap.docs.isNotEmpty;
+      return snap != null;
+    } catch (e) {
+      debugPrint("Check Block error: $e");
+      return false;
+    }
   }
 
   /// ---------------------------------------------------------------------------
   /// 📋 Get all blocked user IDs (for filtering)
   /// ---------------------------------------------------------------------------
   static Future<List<String>> getBlockedUserIds(String myId) async {
-    final snap = await _firestore
-        .collection(blockCollection)
-        .where("blocker.id", isEqualTo: myId)
-        .get();
+    try {
+      final snap = await _supabase
+          .from(blockTable)
+          .select('blocked_id')
+          .eq('blocker_id', myId);
 
-    return snap.docs.map((e) => e['blocked']['id'] as String).toList();
+      final data = snap as List<dynamic>;
+      return data.map((e) => e['blocked_id'] as String).toList();
+    } catch (e) {
+      debugPrint("Get Blocked Users error: $e");
+      return [];
+    }
+  }
+
+  /// ---------------------------------------------------------------------------
+  /// 📋 Get list of users who blocked ME (to hide them from search)
+  /// ---------------------------------------------------------------------------
+  static Future<List<String>> getWhoBlockedMe(String myId) async {
+    try {
+      final snap = await _supabase
+          .from(blockTable)
+          .select('blocker_id')
+          .eq('blocked_id', myId);
+
+      final data = snap as List<dynamic>;
+      return data.map((e) => e['blocker_id'] as String).toList();
+    } catch (e) {
+      debugPrint("Get Who Blocked Me error: $e");
+      return [];
+    }
+  }
+
+  /// ---------------------------------------------------------------------------
+  /// 🚫 Check if I am blocked by this user
+  /// ---------------------------------------------------------------------------
+  static Future<bool> amIBlocked({
+    required String myId,
+    required String targetUserId,
+  }) async {
+    debugPrint("checking amIBlocked: myId=$myId, target=$targetUserId");
+    try {
+      final snap = await _supabase.from(blockTable).select().match({
+        'blocker_id': targetUserId,
+        'blocked_id': myId,
+      }).maybeSingle();
+
+      debugPrint("amIBlocked response: $snap");
+      return snap != null;
+    } catch (e) {
+      debugPrint("Check Am I Blocked error: $e");
+      return false;
+    }
   }
 }

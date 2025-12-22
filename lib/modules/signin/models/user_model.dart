@@ -21,7 +21,10 @@ class UserModel {
 
   int followersCount;
   int followingCount;
+
   int postsCount;
+  bool isFollowing;
+  bool isBlockedByMe;
 
   UserModel({
     required this.id,
@@ -43,6 +46,8 @@ class UserModel {
     required this.canAskedAnonymously,
 
     required this.postsCount,
+    this.isFollowing = false,
+    this.isBlockedByMe = false,
   });
 
   /// ---------------------------
@@ -68,6 +73,8 @@ class UserModel {
       bio: data['bio'] ?? '',
       postsCount: data['posts_count'] ?? 0,
       canAskedAnonymously: data['can_asked_anonymously'] ?? true,
+      isFollowing: false, // Default
+      isBlockedByMe: false, // Default
     );
   }
 
@@ -94,6 +101,8 @@ class UserModel {
       bio: data['bio'] ?? '',
       postsCount: data['posts_count'] ?? 0,
       canAskedAnonymously: data['can_asked_anonymously'] ?? false,
+      isFollowing: false, // Default
+      isBlockedByMe: false, // Default
     );
   }
 
@@ -141,7 +150,10 @@ class UserModel {
     int? followingCount,
     String? bio,
     int? postsCount,
+
     bool? canAskedAnonymously,
+    bool? isFollowing,
+    bool? isBlockedByMe,
   }) {
     return UserModel(
       id: id,
@@ -162,6 +174,8 @@ class UserModel {
       bio: bio ?? this.bio,
       postsCount: postsCount ?? this.postsCount,
       canAskedAnonymously: canAskedAnonymously ?? this.canAskedAnonymously,
+      isFollowing: isFollowing ?? this.isFollowing,
+      isBlockedByMe: isBlockedByMe ?? this.isBlockedByMe,
     );
   }
 
