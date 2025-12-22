@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:domandito/core/constants/app_constants.dart';
 import 'package:domandito/core/constants/app_icons.dart';
 import 'package:domandito/core/utils/extentions.dart';
@@ -402,18 +400,16 @@ class _QuestionCardState extends State<QuestionCard> {
                       if (question.receiver.userName.isNotEmpty)
                         GestureDetector(
                           onTap: () {
-                            log(
-                              question.receiver.id !=
-                                          MySharedPreferences.userId &&
-                                      (question.receiver.id !=
-                                          widget.currentProfileUserId)
-                                  ? 'true'
-                                  : 'false',
-                            );
+                            // log(
+                            //   question.receiver.id !=
+                            //               MySharedPreferences.userId &&
+                            //           (question.receiver.id !=
+                            //               widget.currentProfileUserId)
+                            //       ? 'true'
+                            //       : 'false',
+                            // );
                             if (question.receiver.id !=
-                                    MySharedPreferences.userId &&
-                                (question.receiver.id !=
-                                    widget.currentProfileUserId)) {
+                                MySharedPreferences.userId) {
                               pushScreen(
                                 context,
                                 screen: ProfileScreen(

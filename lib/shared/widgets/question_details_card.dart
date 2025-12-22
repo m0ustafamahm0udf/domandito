@@ -325,9 +325,7 @@ class _QuestionDetailsCardState extends State<QuestionDetailsCard> {
                     GestureDetector(
                       onTap: () {
                         if (question.receiver.id !=
-                                MySharedPreferences.userId &&
-                            (question.receiver.id !=
-                                widget.currentProfileUserId)) {
+                            MySharedPreferences.userId) {
                           pushScreen(
                             context,
                             screen: ProfileScreen(userId: question.receiver.id),
