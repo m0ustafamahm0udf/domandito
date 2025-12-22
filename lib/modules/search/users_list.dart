@@ -80,7 +80,9 @@ class _SearchUsersListState extends State<SearchUsersList> {
 
     try {
       // 1. Start building the query
-      PostgrestFilterBuilder query = _supabase.from('users').select();
+      PostgrestFilterBuilder query = _supabase
+          .from('users')
+          .select('id, name, username, image, is_verified, token');
 
       if (MySharedPreferences.userId.isNotEmpty) {
         query = query.neq('id', MySharedPreferences.userId);

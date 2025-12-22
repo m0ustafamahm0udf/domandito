@@ -96,6 +96,8 @@ class BlockService {
       isNowBlocked = false; // Assume fail
     } finally {
       _isProcessing[blocked.id] = false;
+      // Invalidate cache
+      _cachedBlockedIds = null;
     }
 
     return isNowBlocked;
@@ -124,7 +126,19 @@ class BlockService {
   /// ---------------------------------------------------------------------------
   /// 📋 Get all blocked user IDs (for filtering)
   /// ---------------------------------------------------------------------------
-  static Future<List<String>> getBlockedUserIds(String myId) async {
+  static List<String>? _cachedBlockedIds;
+  static List<String>? _cachedWhoBlockedMeIds;
+
+  /// ---------------------------------------------------------------------------
+  /// 📋 Get all blocked user IDs (for filtering)
+  /// ---------------------------------------------------------------------------
+  static Future<List<String>> getBlockedUserIds(
+    String myId, {
+    bool forceRefresh = false,
+  }) async {
+    if (_cachedBlockedIds != null && !forceRefresh) {
+      return _cachedBlockedIds!;
+    }
     try {
       final snap = await _supabase
           .from(blockTable)
@@ -132,7 +146,8 @@ class BlockService {
           .eq('blocker_id', myId);
 
       final data = snap as List<dynamic>;
-      return data.map((e) => e['blocked_id'] as String).toList();
+      _cachedBlockedIds = data.map((e) => e['blocked_id'] as String).toList();
+      return _cachedBlockedIds!;
     } catch (e) {
       debugPrint("Get Blocked Users error: $e");
       return [];
@@ -142,7 +157,13 @@ class BlockService {
   /// ---------------------------------------------------------------------------
   /// 📋 Get list of users who blocked ME (to hide them from search)
   /// ---------------------------------------------------------------------------
-  static Future<List<String>> getWhoBlockedMe(String myId) async {
+  static Future<List<String>> getWhoBlockedMe(
+    String myId, {
+    bool forceRefresh = false,
+  }) async {
+    if (_cachedWhoBlockedMeIds != null && !forceRefresh) {
+      return _cachedWhoBlockedMeIds!;
+    }
     try {
       final snap = await _supabase
           .from(blockTable)
@@ -150,7 +171,10 @@ class BlockService {
           .eq('blocked_id', myId);
 
       final data = snap as List<dynamic>;
-      return data.map((e) => e['blocker_id'] as String).toList();
+      _cachedWhoBlockedMeIds = data
+          .map((e) => e['blocker_id'] as String)
+          .toList();
+      return _cachedWhoBlockedMeIds!;
     } catch (e) {
       debugPrint("Get Who Blocked Me error: $e");
       return [];

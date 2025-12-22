@@ -56,6 +56,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:domandito/core/constants/app_constants.dart';
 import 'package:domandito/core/constants/app_icons.dart';
+import 'package:domandito/shared/services/like_service.dart';
 import 'package:domandito/core/services/launch_urls.dart';
 import 'package:domandito/core/utils/extentions.dart';
 import 'package:domandito/core/utils/shared_prefrences.dart';
@@ -152,6 +153,19 @@ class _HomeScreenState extends State<HomeScreen> {
 
         final exists = questions.any((element) => element.id == q.id);
         if (!exists) questions.add(q);
+      }
+
+      // 🚀 Batch Check Likes
+      if (questions.isNotEmpty) {
+        final ids = questions.map((e) => e.id).toList();
+        final likedIds = await LikeService.getLikedQuestions(
+          questionIds: ids,
+          userId: MySharedPreferences.userId,
+        );
+
+        for (var q in questions) {
+          q.isLiked = likedIds.contains(q.id);
+        }
       }
 
       _offset += newQuestions.length;

@@ -129,8 +129,7 @@ class _AnswerQuestionScreenState extends State<AnswerQuestionScreen> {
             'answer_text': answerController.text.trim(),
             'images': uploadedImageUrls,
           })
-          .eq('id', widget.question.id)
-          .select();
+          .eq('id', widget.question.id);
 
       AppConstance().showSuccesToast(
         context,

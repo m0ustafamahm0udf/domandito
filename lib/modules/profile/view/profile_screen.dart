@@ -19,6 +19,7 @@ import 'package:domandito/shared/models/bloced_user.dart';
 import 'package:domandito/shared/models/follow_model.dart'; // FollowUser might be here
 import 'package:domandito/shared/services/block_service.dart';
 import 'package:domandito/shared/services/follow_service.dart';
+import 'package:domandito/shared/services/like_service.dart';
 import 'package:domandito/shared/services/report_service.dart';
 import 'package:domandito/shared/style/app_colors.dart';
 import 'package:domandito/shared/widgets/custom_dialog.dart';
@@ -181,7 +182,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     try {
       var query = Supabase.instance.client
           .from('questions')
-          .select('*, sender:sender_id(*), receiver:receiver_id(*)')
+          .select('*, sender:sender_id(id, name, username, image, is_verified)')
           .eq('receiver_id', widget.userId)
           .eq('is_deleted', false)
           .not('answered_at', 'is', null);
@@ -211,14 +212,36 @@ class _ProfileScreenState extends State<ProfileScreen> {
       // لو عدد الدوكز أقل من اللِيمت يبقى مفيش المزيد بعد كده
       hasMore = data.length == limit;
 
+      final receiverData = {
+        'id': user?.id ?? widget.userId,
+        'name': user?.name ?? '',
+        'username': user?.userName ?? '',
+        'image': user?.image ?? '',
+        'is_verified': user?.isVerified ?? false,
+        'token': user?.token ?? '',
+      };
+
       final newQuestions = data.map((json) {
-        // Ensure json has valid structure for QuestionModel
+        json['receiver'] = receiverData;
         return QuestionModel.fromJson(json as Map<String, dynamic>);
       }).toList();
 
       for (var q in newQuestions) {
         final exists = questions.any((element) => element.id == q.id);
         if (!exists) questions.add(q);
+      }
+
+      // 🚀 Batch Check Likes
+      if (questions.isNotEmpty) {
+        final ids = questions.map((e) => e.id).toList();
+        final likedIds = await LikeService.getLikedQuestions(
+          questionIds: ids,
+          userId: MySharedPreferences.userId,
+        );
+
+        for (var q in questions) {
+          q.isLiked = likedIds.contains(q.id);
+        }
       }
 
       // Update offset for next page
@@ -314,12 +337,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   getAllData() async {
     await checkBlock();
-    await Future.wait([
-      getProfile(),
-      getQuestions(),
-      checkFollowing(),
-      getQuestionsCount(),
-    ]);
+    await getProfile(); // Wait for profile first
+    await Future.wait([getQuestions(), checkFollowing(), getQuestionsCount()]);
   }
 
   Future<void> toggleFollowAction() async {

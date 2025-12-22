@@ -103,4 +103,26 @@ class LikeService {
       return false;
     }
   }
+
+  /// 🚀 Batch Check Likes (Improved Performance)
+  static Future<Set<String>> getLikedQuestions({
+    required List<String> questionIds,
+    required String userId,
+  }) async {
+    if (questionIds.isEmpty) return {};
+
+    try {
+      final snap = await _supabase
+          .from('likes')
+          .select('question_id')
+          .eq('user_id', userId)
+          .inFilter('question_id', questionIds);
+
+      final data = snap as List<dynamic>;
+      return data.map((e) => e['question_id'] as String).toSet();
+    } catch (e) {
+      debugPrint("Error batch checking likes: $e");
+      return {};
+    }
+  }
 }

@@ -37,7 +37,7 @@ class UploadImagesToS3Api {
       final service = 's3';
       final credentialScope = '$dateStamp/$region/$service/aws4_request';
 
-// Ensure x-amz-content-sha256 matches
+      // Ensure x-amz-content-sha256 matches
       final canonicalRequest = [
         'PUT',
         '/$filePathInBucket',
@@ -52,8 +52,9 @@ class UploadImagesToS3Api {
 
       // log('Canonical Request:\n$canonicalRequest\n');
 
-      final hashedCanonicalRequest =
-          sha256.convert(utf8.encode(canonicalRequest)).toString();
+      final hashedCanonicalRequest = sha256
+          .convert(utf8.encode(canonicalRequest))
+          .toString();
 
       final stringToSign = [
         'AWS4-HMAC-SHA256',
@@ -64,12 +65,17 @@ class UploadImagesToS3Api {
 
       // log('String to Sign:\n$stringToSign\n');
 
-      final signingKey =
-          _generateSigningKey(secretKey, dateStamp, region, service);
+      final signingKey = _generateSigningKey(
+        secretKey,
+        dateStamp,
+        region,
+        service,
+      );
 
-      final signature = Hmac(sha256, signingKey)
-          .convert(utf8.encode(stringToSign))
-          .toString();
+      final signature = Hmac(
+        sha256,
+        signingKey,
+      ).convert(utf8.encode(stringToSign)).toString();
 
       // log('Signature: $signature\n');
 
@@ -107,16 +113,23 @@ class UploadImagesToS3Api {
     }
   }
 
-// Helper function to generate signing key
+  // Helper function to generate signing key
   List<int> _generateSigningKey(
-      String secretKey, String dateStamp, String region, String service) {
-    final kDate = Hmac(sha256, utf8.encode('AWS4$secretKey'))
-        .convert(utf8.encode(dateStamp))
-        .bytes;
+    String secretKey,
+    String dateStamp,
+    String region,
+    String service,
+  ) {
+    final kDate = Hmac(
+      sha256,
+      utf8.encode('AWS4$secretKey'),
+    ).convert(utf8.encode(dateStamp)).bytes;
     final kRegion = Hmac(sha256, kDate).convert(utf8.encode(region)).bytes;
     final kService = Hmac(sha256, kRegion).convert(utf8.encode(service)).bytes;
-    final kSigning =
-        Hmac(sha256, kService).convert(utf8.encode('aws4_request')).bytes;
+    final kSigning = Hmac(
+      sha256,
+      kService,
+    ).convert(utf8.encode('aws4_request')).bytes;
     return kSigning;
   }
 }

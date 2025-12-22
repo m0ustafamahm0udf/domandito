@@ -56,7 +56,9 @@ class _FollowingListState extends State<FollowingList> {
     try {
       final query = _supabase
           .from('follows')
-          .select('*, targetUser:following_id(*), me:follower_id(*)')
+          .select(
+            '*, targetUser:following_id(id, name, username, image, is_verified)',
+          )
           .eq('follower_id', MySharedPreferences.userId)
           .order('created_at', ascending: false)
           .range(_offset, _offset + pageSize - 1);

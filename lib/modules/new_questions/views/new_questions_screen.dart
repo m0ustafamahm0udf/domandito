@@ -10,6 +10,7 @@ import 'package:domandito/shared/style/app_colors.dart';
 import 'package:domandito/shared/widgets/answer_question_card_details.dart';
 import 'package:domandito/shared/widgets/custom_dialog.dart';
 import 'package:domandito/shared/widgets/logo_widg.dart';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -49,7 +50,7 @@ class _NewQuestionsScreenState extends State<NewQuestionsScreen> {
     try {
       final query = Supabase.instance.client
           .from('questions')
-          .select('*, sender:sender_id(*), receiver:receiver_id(*)')
+          .select('*, sender:sender_id(id, name, username, image, is_verified)')
           .eq('receiver_id', MySharedPreferences.userId)
           .eq('is_deleted', false)
           .filter('answered_at', 'is', null) // Use filter for IS NULL
@@ -70,9 +71,19 @@ class _NewQuestionsScreenState extends State<NewQuestionsScreen> {
 
       hasMore = data.length == limit;
 
-      final newQuestions = data
-          .map((json) => QuestionModel.fromJson(json))
-          .toList();
+      final myReceiverData = {
+        'id': MySharedPreferences.userId,
+        'name': MySharedPreferences.userName,
+        'username': MySharedPreferences.userUserName,
+        'image': MySharedPreferences.image,
+        'is_verified': MySharedPreferences.isVerified,
+        'token': MySharedPreferences.deviceToken,
+      };
+
+      final newQuestions = data.map((json) {
+        json['receiver'] = myReceiverData;
+        return QuestionModel.fromJson(json);
+      }).toList();
 
       for (var q in newQuestions) {
         if (!questions.any((e) => e.id == q.id)) {

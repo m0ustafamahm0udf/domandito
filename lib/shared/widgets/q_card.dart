@@ -49,26 +49,7 @@ class _QuestionCardState extends State<QuestionCard> {
     super.initState();
     question = widget.question; // نسخة داخلية
     likesCount = question.likesCount;
-    checkIfLiked();
-  }
-
-  Future<void> checkIfLiked() async {
-    if (!MySharedPreferences.isLoggedIn) {
-      return;
-    }
-
-    final liked = await LikeService.isLiked(
-      questionId: question.id,
-      userId: MySharedPreferences.userId,
-    );
-    if (mounted) {
-      setState(() {
-        isLiked = liked;
-        if (isLiked && likesCount < 1) {
-          likesCount = 1;
-        }
-      });
-    }
+    isLiked = question.isLiked;
   }
 
   bool isProcessing = false;
