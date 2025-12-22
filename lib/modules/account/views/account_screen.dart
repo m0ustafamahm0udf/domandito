@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:domandito/core/constants/app_constants.dart';
 import 'package:domandito/core/constants/app_icons.dart';
 import 'package:domandito/core/constants/app_images.dart';
@@ -8,6 +10,7 @@ import 'package:domandito/core/services/share_service.dart';
 import 'package:domandito/core/utils/extentions.dart';
 import 'package:domandito/core/utils/shared_prefrences.dart';
 import 'package:domandito/modules/privacy/privacy.dart';
+import 'package:domandito/modules/admin/views/admin_screen.dart';
 import 'package:domandito/modules/terms/teerms.dart';
 import 'package:domandito/shared/style/app_colors.dart';
 import 'package:domandito/shared/widgets/custom_network_image.dart';
@@ -73,6 +76,7 @@ class _AccountScreenState extends State<AccountScreen> {
   String appTitle = '';
   String privacy = '';
   String terms = '';
+  String adminId = '';
 
   @override
   void initState() {
@@ -102,6 +106,7 @@ class _AccountScreenState extends State<AccountScreen> {
               appTitle = value.data()!['appTitle'];
               privacy = value.data()!['privacyPolicyUrl'];
               terms = value.data()!['termsUrl'];
+              adminId = value.data()!['adminId'] ?? '';
               setState(() {});
             }
             // log(value.data().toString());
@@ -143,109 +148,119 @@ class _AccountScreenState extends State<AccountScreen> {
           alignment: Alignment.center,
           children: [
             FeaturedWidget(height: 130, color: AppColors.primary),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                if (appLogoUrl.isNotEmpty)
-                  Center(
-                    child: CustomNetworkImage(
-                      url: appLogoUrl,
-                      radius: 12,
-                      height: 40,
-                      width: 40,
+            GestureDetector(
+              onLongPress: () {
+                log(adminId);
+                log(MySharedPreferences.userId);
+                if (adminId.isNotEmpty &&
+                    MySharedPreferences.userId == adminId) {
+                  pushScreen(context, screen: const AdminScreen());
+                }
+              },
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  if (appLogoUrl.isNotEmpty)
+                    Center(
+                      child: CustomNetworkImage(
+                        url: appLogoUrl,
+                        radius: 12,
+                        height: 40,
+                        width: 40,
+                      ),
                     ),
-                  ),
-                SizedBox(height: 10),
-                if (appTitle.isNotEmpty)
-                  Center(
-                    child: Text(
-                      appTitle,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: AppColors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                  SizedBox(height: 10),
+                  if (appTitle.isNotEmpty)
+                    Center(
+                      child: Text(
+                        appTitle,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: AppColors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  SizedBox(height: 4),
+
+                  Image.asset(AppImages.logo, height: 60, width: 60),
+                  Transform.translate(
+                    offset: const Offset(0, -15),
+                    child: Center(
+                      child: Text(
+                        'Domandito',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontFamily: 'Dancing_Script',
+                          fontSize: 32,
+                          color: AppColors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ),
-                SizedBox(height: 4),
+                  // Padding(
+                  //   padding: const EdgeInsets.symmetric(
+                  //     horizontal: AppConstance.gap,
+                  //   ),
+                  //   child: Center(
+                  //     child: Text(
+                  //       '"نحن بحاجة إلى دعمكم لمواصلة رحلتنا والاستمرار في خدمة أكبر عدد ممكن من الأشخاص الذين يبحثون عن أحبائهم المفقودين."',
+                  //       textAlign: TextAlign.center,
+                  //       style: TextStyle(
+                  //         fontSize: 14,
+                  //         color: AppColors.white,
+                  //       ),
+                  //     ),
+                  //   ),
+                  // ),
+                  // SizedBox(height: 4),
 
-                Image.asset(AppImages.logo, height: 60, width: 60),
-                Transform.translate(
-                  offset: const Offset(0, -15),
-                  child: Center(
-                    child: Text(
-                      'Domandito',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontFamily: 'Dancing_Script',
-                        fontSize: 32,
-                        color: AppColors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-                // Padding(
-                //   padding: const EdgeInsets.symmetric(
-                //     horizontal: AppConstance.gap,
-                //   ),
-                //   child: Center(
-                //     child: Text(
-                //       '"نحن بحاجة إلى دعمكم لمواصلة رحلتنا والاستمرار في خدمة أكبر عدد ممكن من الأشخاص الذين يبحثون عن أحبائهم المفقودين."',
-                //       textAlign: TextAlign.center,
-                //       style: TextStyle(
-                //         fontSize: 14,
-                //         color: AppColors.white,
-                //       ),
-                //     ),
-                //   ),
-                // ),
-                // SizedBox(height: 4),
-
-                // SizedBox(height: 10),
-                // Row(
-                //   mainAxisAlignment: MainAxisAlignment.center,
-                //   crossAxisAlignment: CrossAxisAlignment.center,
-                //   children: [
-                //     if (facebook.isNotEmpty)
-                //       GestureDetector(
-                //         onTap: () async {
-                //           await LaunchUrlsService().launchBrowesr(uri: facebook, context: context);
-                //         },
-                //         child: SvgPicture.asset(
-                //           AppIcons.facebook,
-                //           height: 35,
-                //         ),
-                //       ),
-                //     SizedBox(width: 10),
-                //     if (phone.isNotEmpty)
-                //       GestureDetector(
-                //         onTap: () async {
-                //           LaunchUrlsService().launchCall(
-                //             phone: phone,
-                //           );
-                //         },
-                //         child: SvgPicture.asset(
-                //           AppIcons.phone,
-                //           height: 30,
-                //         ),
-                //       ),
-                //     SizedBox(width: 10),
-                //     if (whatsapp.isNotEmpty)
-                //       GestureDetector(
-                //         onTap: () async {
-                //           LaunchUrlsService().launchWhatsApp(context: context, phone: whatsapp);
-                //         },
-                //         child: SvgPicture.asset(
-                //           AppIcons.whatsapp,
-                //           height: 30,
-                //         ),
-                //       ),
-                //   ],
-                // ),
-                SizedBox(height: 10),
-              ],
+                  // SizedBox(height: 10),
+                  // Row(
+                  //   mainAxisAlignment: MainAxisAlignment.center,
+                  //   crossAxisAlignment: CrossAxisAlignment.center,
+                  //   children: [
+                  //     if (facebook.isNotEmpty)
+                  //       GestureDetector(
+                  //         onTap: () async {
+                  //           await LaunchUrlsService().launchBrowesr(uri: facebook, context: context);
+                  //         },
+                  //         child: SvgPicture.asset(
+                  //           AppIcons.facebook,
+                  //           height: 35,
+                  //         ),
+                  //       ),
+                  //     SizedBox(width: 10),
+                  //     if (phone.isNotEmpty)
+                  //       GestureDetector(
+                  //         onTap: () async {
+                  //           LaunchUrlsService().launchCall(
+                  //             phone: phone,
+                  //           );
+                  //         },
+                  //         child: SvgPicture.asset(
+                  //           AppIcons.phone,
+                  //           height: 30,
+                  //         ),
+                  //       ),
+                  //     SizedBox(width: 10),
+                  //     if (whatsapp.isNotEmpty)
+                  //       GestureDetector(
+                  //         onTap: () async {
+                  //           LaunchUrlsService().launchWhatsApp(context: context, phone: whatsapp);
+                  //         },
+                  //         child: SvgPicture.asset(
+                  //           AppIcons.whatsapp,
+                  //           height: 30,
+                  //         ),
+                  //       ),
+                  //   ],
+                  // ),
+                  SizedBox(height: 10),
+                ],
+              ),
             ),
           ],
         ),
