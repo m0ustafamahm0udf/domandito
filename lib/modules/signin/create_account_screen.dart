@@ -72,7 +72,6 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
         context: context,
         phone: phoneCtrl.text.trim(),
         username: userNameCtrl.text.trim(),
-        currentUserId: widget.newUser.id,
         email: widget.newUser.email,
       );
       if (res == null) {

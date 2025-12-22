@@ -14,15 +14,14 @@ import 'package:domandito/modules/landing/views/landing_screen.dart';
 class AddUserToSupabase {
   final _supabase = Supabase.instance.client;
 
-  Future<bool> isPhoneUsed(String phone, String currentUserId) async {
+  Future<bool> isPhoneUsed(String phone, String? currentUserId) async {
     if (phone.isEmpty) return false;
     try {
-      final response = await _supabase
-          .from('users')
-          .select()
-          .eq('phone', phone)
-          .neq('id', currentUserId) // Exclude current user
-          .limit(1);
+      var query = _supabase.from('users').select().eq('phone', phone);
+      if (currentUserId != null && currentUserId.isNotEmpty) {
+        query = query.neq('id', currentUserId); // Exclude current user
+      }
+      final response = await query.limit(1);
 
       if (response.isEmpty) {
         return false; // الرقم غير مستخدم
@@ -35,15 +34,14 @@ class AddUserToSupabase {
     }
   }
 
-  Future<bool> isUsernameUsed(String username, String currentUserId) async {
+  Future<bool> isUsernameUsed(String username, String? currentUserId) async {
     try {
       log('username: $username');
-      final response = await _supabase
-          .from('users')
-          .select()
-          .eq('username', username)
-          .neq('id', currentUserId) // Exclude current user
-          .limit(1);
+      var query = _supabase.from('users').select().eq('username', username);
+      if (currentUserId != null && currentUserId.isNotEmpty) {
+        query = query.neq('id', currentUserId); // Exclude current user
+      }
+      final response = await query.limit(1);
 
       if (response.isEmpty) {
         return false; // الاسم غير مستخدم
@@ -56,15 +54,14 @@ class AddUserToSupabase {
     }
   }
 
-  Future<bool> isEmailUsed(String email, String currentUserId) async {
+  Future<bool> isEmailUsed(String email, String? currentUserId) async {
     try {
       log('email: $email');
-      final response = await _supabase
-          .from('users')
-          .select()
-          .eq('email', email)
-          .neq('id', currentUserId) // Exclude current user
-          .limit(1);
+      var query = _supabase.from('users').select().eq('email', email);
+      if (currentUserId != null && currentUserId.isNotEmpty) {
+        query = query.neq('id', currentUserId); // Exclude current user
+      }
+      final response = await query.limit(1);
 
       if (response.isEmpty) {
         return false; // الاسم غير مستخدم
@@ -80,7 +77,7 @@ class AddUserToSupabase {
     required String phone,
     required String username,
     required String email,
-    required String currentUserId,
+    String? currentUserId,
     required BuildContext context,
   }) async {
     try {
