@@ -15,6 +15,7 @@ class AddUserToSupabase {
   final _supabase = Supabase.instance.client;
 
   Future<bool> isPhoneUsed(String phone, String currentUserId) async {
+    if (phone.isEmpty) return false;
     try {
       final response = await _supabase
           .from('users')

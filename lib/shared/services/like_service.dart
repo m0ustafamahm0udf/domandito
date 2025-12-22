@@ -53,15 +53,21 @@ class LikeService {
 
         await _supabase.from('likes').insert(like.toJson());
 
-        await SendMessageNotificationWithHTTPv1().send2(
-          type: AppConstance.like,
-          urll: '',
-          toToken: user.token,
-          message: AppConstance.liked,
-          title: 'Domandito',
-          id: questionId,
-        );
-        result = true; // دلوقتي لایک
+        result = true; // دلوقتي لایک (DB operation successful)
+
+        try {
+          await SendMessageNotificationWithHTTPv1().send2(
+            type: AppConstance.like,
+            urll: '',
+            toToken: user.token,
+            message: AppConstance.liked,
+            title: 'Domandito',
+            id: questionId,
+          );
+        } catch (e) {
+          debugPrint("Notification Error: $e");
+          // Don't fail the like operation just because notification failed
+        }
       }
     } catch (e) {
       debugPrint("Error toggling like: $e");
