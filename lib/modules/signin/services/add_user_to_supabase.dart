@@ -136,7 +136,7 @@ class AddUserToSupabase {
 
       if (response.isEmpty) {
         // البريد غير موجود، تابع إنشاء اسم المستخدم
-        final emailUsed = await isEmailUsed(newUser.email, newUser.id);
+        final emailUsed = await isEmailUsed(newUser.email, null);
         if (!emailUsed) {
           context.to(CreateAccountScreen(newUser: newUser));
           return;

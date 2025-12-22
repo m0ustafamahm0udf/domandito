@@ -98,9 +98,12 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     if (MySharedPreferences.isLoggedIn) {
-      getQuestions();
-      fetchFollowing();
+      _fetchData();
     }
+  }
+
+  Future<void> _fetchData() async {
+    await Future.wait([getQuestions(), fetchFollowing()]);
   }
 
   Future<void> getQuestions() async {
@@ -160,51 +163,9 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Domandito',
-          style: TextStyle(fontSize: 36, fontFamily: 'Dancing_Script'),
-        ),
-        leading: !MySharedPreferences.isLoggedIn
-            ? IconButton.filled(
-                style: ButtonStyle(
-                  backgroundColor: WidgetStatePropertyAll(AppColors.white),
-                ),
-                onPressed: () {
-                  // MySharedPreferences.clearProfile(context: context);
-                  // context.toAndRemoveAll(SignInScreen());
-                  pushReplacementWithoutNavBar(
-                    context,
-                    MaterialPageRoute(builder: (context) => SignInScreen()),
-                  );
-                },
-                icon: Directionality(
-                  textDirection: TextDirection.rtl,
-                  child: SvgPicture.asset(
-                    AppIcons.logout,
-                    color: AppColors.primary,
-                  ),
-                ),
-              )
-            : null,
-        actions: [
-          if (following.isEmpty && !isLoadingF)
-            IconButton.filled(
-              style: ButtonStyle(
-                backgroundColor: WidgetStatePropertyAll(AppColors.white),
-              ),
-              onPressed: () => pushScreen(context, screen: SearchUsersScreen()),
-              icon: SvgPicture.asset(
-                AppIcons.searchIcon,
-                color: AppColors.primary,
-              ),
-            ),
-          SizedBox(width: 4),
-        ],
-      ),
+      appBar: _buildAppBar(context),
       body: RefreshIndicator.adaptive(
         color: AppColors.primary,
-
         onRefresh: () async {
           _offset = 0;
           hasMore = true;
@@ -213,173 +174,187 @@ class _HomeScreenState extends State<HomeScreen> {
           _followingOffset = 0;
           hasMoreF = true;
           following.clear();
-          Future.wait([getQuestions(), fetchFollowing()]);
 
+          await _fetchData();
           setState(() {});
         },
         child: ListView(
-          padding: EdgeInsets.only(top: 10, right: 16, left: 16),
-
+          padding: const EdgeInsets.only(top: 10, right: 16, left: 16),
           children: [
-            followingList(),
-            SizedBox(height: 5),
-
-            // const SizedBox(height: 2),
+            _buildFollowingList(),
+            const SizedBox(height: 5),
             questions.isEmpty && !isQuestionsLoading
-                ? SizedBox(
-                    height: following.isEmpty
-                        ? MediaQuery.of(context).size.height * 0.7
-                        : MediaQuery.of(context).size.height * 0.5,
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          LogoWidg(),
-                          if (MySharedPreferences.isLoggedIn)
-                            Text(
-                              !context.isCurrentLanguageAr()
-                                  ? 'You have not asked any questions yet'
-                                  : 'لم تقم بإرسال أي أسئلة بعد',
-                              style: TextStyle(
-                                color: AppColors.black,
-                                // fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                              ),
-                            ),
-                          if (!MySharedPreferences.isLoggedIn)
-                            TextButton.icon(
-                              iconAlignment: IconAlignment.end,
-                              onPressed: () => pushScreen(
-                                context,
-                                screen: SearchUsersScreen(),
-                              ),
-                              icon: SvgPicture.asset(
-                                AppIcons.searchIcon,
-                                color: AppColors.primary,
-                              ),
-                              label: Text(
-                                !context.isCurrentLanguageAr()
-                                    ? 'Add friends'
-                                    : 'إبدأ بإضافة أصدقاء',
-                                style: TextStyle(
-                                  color: AppColors.black,
-                                  // fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                    // child: Center(
-                    //   child: TextButton.icon(
-                    //     iconAlignment: IconAlignment.end,
-                    //     onPressed: () =>
-                    //         pushScreen(context, screen: SearchUsersScreen()),
-                    //     icon: SvgPicture.asset(
-                    //       AppIcons.searchIcon,
-                    //       color: AppColors.primary,
-                    //     ),
-                    //     label: Text(
-                    //       'إبدأ بإضافة أصدقاء',
-                    //       style: TextStyle(
-                    //         color: AppColors.primary,
-                    //         // fontWeight: FontWeight.bold,
-                    //         fontSize: 16,
-                    //       ),
-                    //     ),
-                    //   ),
-                    // ),
-                  )
-                : questionsWidget(),
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                child: Builder(
-                  builder: (context) {
-                    if (!hasMore && questions.isNotEmpty) {
-                      return SizedBox();
-                    }
-                    if (isQuestionsLoading) {
-                      return SizedBox(
-                        height: context.h * 0.75,
+                ? _buildEmptyState()
+                : _buildQuestionsList(),
+            _buildLoadMoreButton(),
+            if (kIsWeb) _buildDownloadAppSection(),
+          ],
+        ),
+      ),
+    );
+  }
 
-                        child: CupertinoActivityIndicator(
-                          color: AppColors.primary,
-                        ),
-                      );
-                    }
-                    if (questions.isEmpty) {
-                      return const SizedBox();
-                    }
-                    return ElevatedButton(
-                      onPressed: (hasMore && !isQuestionsLoading)
-                          ? () async {
-                              await getQuestions();
-                            }
-                          : null,
-                      child: Text(
-                        !context.isCurrentLanguageAr() ? "Load more" : "المزيد",
-                      ),
-                    );
-                  },
+  PreferredSizeWidget _buildAppBar(BuildContext context) {
+    return AppBar(
+      title: const Text(
+        'Domandito',
+        style: TextStyle(fontSize: 36, fontFamily: 'Dancing_Script'),
+      ),
+      leading: !MySharedPreferences.isLoggedIn
+          ? IconButton.filled(
+              style: ButtonStyle(
+                backgroundColor: WidgetStatePropertyAll(AppColors.white),
+              ),
+              onPressed: () {
+                pushReplacementWithoutNavBar(
+                  context,
+                  MaterialPageRoute(builder: (context) => const SignInScreen()),
+                );
+              },
+              icon: Directionality(
+                textDirection: TextDirection.rtl,
+                child: SvgPicture.asset(
+                  AppIcons.logout,
+                  color: AppColors.primary,
                 ),
               ),
+            )
+          : null,
+      actions: [
+        if (following.isEmpty && !isLoadingF)
+          IconButton.filled(
+            style: ButtonStyle(
+              backgroundColor: WidgetStatePropertyAll(AppColors.white),
             ),
-            if (kIsWeb)
-              Column(
-                children: [
-                  const SizedBox(height: 20),
-                  Text(
-                    !context.isCurrentLanguageAr()
-                        ? 'Download the app'
-                        : 'تحميل التطبيق',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.primary,
-                    ),
-                  ),
-                  // const SizedBox(height: 20),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      TextButton.icon(
-                        onPressed: () {
-                          LaunchUrlsService().launchBrowesr(
-                            uri: AppConstance.appStoreUrl,
-                            context: context,
-                          );
-                        },
-                        label: const Text('App Store'),
-                        icon: SvgPicture.asset(
-                          AppIcons.appstore,
-                          height: 25,
-                          width: 25,
-                        ),
-                      ),
-                      TextButton.icon(
-                        onPressed: () {
-                          LaunchUrlsService().launchBrowesr(
-                            uri: AppConstance.googleplayUrl,
-                            context: context,
-                          );
-                        },
-                        label: const Text('Google Play'),
+            onPressed: () =>
+                pushScreen(context, screen: const SearchUsersScreen()),
+            icon: SvgPicture.asset(
+              AppIcons.searchIcon,
+              color: AppColors.primary,
+            ),
+          ),
+        const SizedBox(width: 4),
+      ],
+    );
+  }
 
-                        icon: SvgPicture.asset(
-                          AppIcons.googleplay,
-                          height: 25,
-                          width: 25,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+  Widget _buildEmptyState() {
+    return SizedBox(
+      height: following.isEmpty
+          ? MediaQuery.of(context).size.height * 0.7
+          : MediaQuery.of(context).size.height * 0.5,
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const LogoWidg(),
+            if (MySharedPreferences.isLoggedIn)
+              Text(
+                !context.isCurrentLanguageAr()
+                    ? 'You have not asked any questions yet'
+                    : 'لم تقم بإرسال أي أسئلة بعد',
+                style: const TextStyle(color: AppColors.black, fontSize: 16),
+              ),
+            if (!MySharedPreferences.isLoggedIn)
+              TextButton.icon(
+                iconAlignment: IconAlignment.end,
+                onPressed: () =>
+                    pushScreen(context, screen: const SearchUsersScreen()),
+                icon: SvgPicture.asset(
+                  AppIcons.searchIcon,
+                  color: AppColors.primary,
+                ),
+                label: Text(
+                  !context.isCurrentLanguageAr()
+                      ? 'Add friends'
+                      : 'إبدأ بإضافة أصدقاء',
+                  style: const TextStyle(color: AppColors.black, fontSize: 16),
+                ),
               ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildLoadMoreButton() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        child: Builder(
+          builder: (context) {
+            if (!hasMore && questions.isNotEmpty) {
+              return const SizedBox();
+            }
+            if (isQuestionsLoading) {
+              return SizedBox(
+                height: context.h * 0.75,
+                child: const CupertinoActivityIndicator(
+                  color: AppColors.primary,
+                ),
+              );
+            }
+            if (questions.isEmpty) {
+              return const SizedBox();
+            }
+            return ElevatedButton(
+              onPressed: (hasMore && !isQuestionsLoading)
+                  ? () async {
+                      await getQuestions();
+                    }
+                  : null,
+              child: Text(
+                !context.isCurrentLanguageAr() ? "Load more" : "المزيد",
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDownloadAppSection() {
+    return Column(
+      children: [
+        const SizedBox(height: 20),
+        Text(
+          !context.isCurrentLanguageAr() ? 'Download the app' : 'تحميل التطبيق',
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: AppColors.primary,
+          ),
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            TextButton.icon(
+              onPressed: () {
+                LaunchUrlsService().launchBrowesr(
+                  uri: AppConstance.appStoreUrl,
+                  context: context,
+                );
+              },
+              label: const Text('App Store'),
+              icon: SvgPicture.asset(AppIcons.appstore, height: 25, width: 25),
+            ),
+            TextButton.icon(
+              onPressed: () {
+                LaunchUrlsService().launchBrowesr(
+                  uri: AppConstance.googleplayUrl,
+                  context: context,
+                );
+              },
+              label: const Text('Google Play'),
+              icon: SvgPicture.asset(
+                AppIcons.googleplay,
+                height: 25,
+                width: 25,
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 
@@ -442,7 +417,7 @@ class _HomeScreenState extends State<HomeScreen> {
   bool hasMoreF = true;
   final int pageSize = 10;
 
-  Widget followingList() {
+  Widget _buildFollowingList() {
     return SizedBox(
       height: following.isEmpty
           ? 0
@@ -571,7 +546,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  ListView questionsWidget() {
+  Widget _buildQuestionsList() {
     return ListView.builder(
       padding: EdgeInsets.all(0),
       shrinkWrap: true,
