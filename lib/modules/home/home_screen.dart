@@ -115,7 +115,9 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       final query = Supabase.instance.client
           .from('questions')
-          .select('*, sender:sender_id(*), receiver:receiver_id(*)')
+          .select(
+            '*, sender:sender_id(id, name, username, image, is_verified), receiver:receiver_id(id, name, username, image, is_verified)',
+          )
           .eq('sender_id', MySharedPreferences.userId)
           .eq('is_anonymous', false)
           .eq('is_deleted', false)
@@ -374,7 +376,9 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       final query = Supabase.instance.client
           .from('follows')
-          .select('*, targetUser:following_id(*), me:follower_id(*)')
+          .select(
+            '*, targetUser:following_id(id, name, username, image, is_verified)',
+          )
           .eq('follower_id', MySharedPreferences.userId)
           .order('created_at', ascending: false)
           .range(_followingOffset, _followingOffset + pageSize - 1);
@@ -499,15 +503,33 @@ class _HomeScreenState extends State<HomeScreen> {
                         SizedBox(height: 5),
                         SizedBox(
                           width: 60,
-                          child: Text(
-                            f.targetUser.name,
-                            textAlign: TextAlign.center,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                            ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  f.targetUser.name,
+                                  textAlign: TextAlign.center,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                              if (f.targetUser.isVerified)
+                                Padding(
+                                  padding: const EdgeInsets.only(left: 2),
+                                  child: SvgPicture.asset(
+                                    AppIcons.verified,
+                                    height: 10,
+                                    width: 10,
+                                    color: AppColors.primary,
+                                  ),
+                                ),
+                            ],
                           ),
                         ),
 

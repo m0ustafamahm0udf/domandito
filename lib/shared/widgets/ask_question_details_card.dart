@@ -96,6 +96,19 @@ class _AskQuestionDetailsCardState extends State<AskQuestionDetailsCard> {
                               fontWeight: FontWeight.bold,
                             ),
                           ),
+                          if (!question.isAnonymous &&
+                              question.sender.isVerified)
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 4,
+                              ),
+                              child: SvgPicture.asset(
+                                AppIcons.verified,
+                                height: 14,
+                                width: 14,
+                                color: AppColors.primary,
+                              ),
+                            ),
                         ],
                       ),
                       Text(
@@ -103,7 +116,7 @@ class _AskQuestionDetailsCardState extends State<AskQuestionDetailsCard> {
                             ? "@x"
                             : "@${question.sender.userName}",
                         maxLines: 1,
-                                textDirection: TextDirection.ltr,
+                        textDirection: TextDirection.ltr,
 
                         style: const TextStyle(
                           fontSize: 12,
@@ -127,10 +140,10 @@ class _AskQuestionDetailsCardState extends State<AskQuestionDetailsCard> {
             const SizedBox(height: 10),
             // --- Question title ---
             if (question.title.isNotEmpty)
-         Align(
-                      alignment: isArabic(question.title)
-                          ? Alignment.centerRight
-                          : Alignment.centerLeft,
+              Align(
+                alignment: isArabic(question.title)
+                    ? Alignment.centerRight
+                    : Alignment.centerLeft,
                 child: Text(
                   question.title,
                   textDirection: isArabic(question.title)

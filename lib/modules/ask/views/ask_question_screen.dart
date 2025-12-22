@@ -3,6 +3,8 @@ import 'dart:developer';
 import 'package:animate_do/animate_do.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:domandito/core/constants/app_constants.dart';
+import 'package:domandito/core/constants/app_icons.dart';
+import 'package:svg_flutter/svg_flutter.dart';
 import 'package:uuid/uuid.dart';
 import 'package:domandito/core/services/notifications/send_message_notification.dart';
 import 'package:domandito/core/utils/extentions.dart';
@@ -181,6 +183,7 @@ class _AskQuestionScreenState extends State<AskQuestionScreen> {
         name: MySharedPreferences.userName,
         userName: MySharedPreferences.userUserName,
         image: MySharedPreferences.image,
+        isVerified: MySharedPreferences.isVerified,
       ),
       receiver: Receiver(
         token: widget.recipientToken,
@@ -200,7 +203,22 @@ class _AskQuestionScreenState extends State<AskQuestionScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.recipientName),
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(widget.recipientName),
+            if (widget.isVerified)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: SvgPicture.asset(
+                  AppIcons.verified,
+                  height: 18,
+                  width: 18,
+                  color: AppColors.primary,
+                ),
+              ),
+          ],
+        ),
         leading: IconButton.filled(
           onPressed: () => context.back(),
           icon: Icon(Icons.arrow_back),

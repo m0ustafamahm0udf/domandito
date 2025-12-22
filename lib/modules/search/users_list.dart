@@ -11,6 +11,8 @@ import '../../shared/style/app_colors.dart';
 import 'package:domandito/shared/services/follow_service.dart';
 import 'package:domandito/shared/models/follow_model.dart';
 import 'package:domandito/shared/services/block_service.dart';
+import 'package:domandito/core/constants/app_icons.dart';
+import 'package:svg_flutter/svg_flutter.dart';
 
 class SearchUsersList extends StatefulWidget {
   final String searchQuery;
@@ -78,10 +80,11 @@ class _SearchUsersListState extends State<SearchUsersList> {
 
     try {
       // 1. Start building the query
-      PostgrestFilterBuilder query = _supabase
-          .from('users')
-          .select()
-          .neq('id', MySharedPreferences.userId);
+      PostgrestFilterBuilder query = _supabase.from('users').select();
+
+      if (MySharedPreferences.userId.isNotEmpty) {
+        query = query.neq('id', MySharedPreferences.userId);
+      }
 
       // 2. Apply search filters if needed
       if (queryText.isNotEmpty) {
@@ -114,7 +117,7 @@ class _SearchUsersListState extends State<SearchUsersList> {
           .toList();
 
       // 4. Check Follow Status
-      if (newUsers.isNotEmpty) {
+      if (newUsers.isNotEmpty && MySharedPreferences.userId.isNotEmpty) {
         final ids = newUsers.map((e) => e.id).toList();
         final followsData = await _supabase
             .from('follows')
@@ -223,12 +226,28 @@ class _SearchUsersListState extends State<SearchUsersList> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          user.name,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                          ),
+                        Row(
+                          children: [
+                            Text(
+                              user.name,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            if (user.isVerified)
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 4,
+                                ),
+                                child: SvgPicture.asset(
+                                  AppIcons.verified,
+                                  height: 14,
+                                  width: 14,
+                                  color: AppColors.primary,
+                                ),
+                              ),
+                          ],
                         ),
                         Text(
                           "@${user.userName}",

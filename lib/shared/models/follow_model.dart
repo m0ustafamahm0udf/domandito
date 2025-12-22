@@ -39,6 +39,7 @@ class FollowUser {
   final String userName;
   final String image;
   final String userToken;
+  final bool isVerified;
 
   FollowUser({
     required this.id,
@@ -46,6 +47,7 @@ class FollowUser {
     required this.userName,
     required this.image,
     required this.userToken,
+    this.isVerified = false,
   });
 
   factory FollowUser.fromJson(Map<String, dynamic> json) {
@@ -56,6 +58,7 @@ class FollowUser {
       userName: json['username'] ?? json['user_name'] ?? json['userName'] ?? '',
       image: json['image'] ?? '',
       userToken: json['token'] ?? json['userToken'] ?? '',
+      isVerified: json['is_verified'] ?? false,
     );
   }
 

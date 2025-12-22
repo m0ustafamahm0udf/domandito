@@ -137,14 +137,19 @@ class _AnswerQuestionCardDetailsState extends State<AnswerQuestionCardDetails> {
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
-                                  // SizedBox(width: 1),
-                                  // if (!question.isAnonymous && isVerified)
-                                  //   SvgPicture.asset(
-                                  //     AppIcons.verified,
-                                  //     height: 15,
-                                  //     width: 15,
-                                  //     color: AppColors.primary,
-                                  //   ),
+                                  if (!question.isAnonymous &&
+                                      question.sender.isVerified)
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 4,
+                                      ),
+                                      child: SvgPicture.asset(
+                                        AppIcons.verified,
+                                        height: 15,
+                                        width: 15,
+                                        color: AppColors.primary,
+                                      ),
+                                    ),
                                 ],
                               ),
                               Text(
@@ -229,11 +234,13 @@ class _AnswerQuestionCardDetailsState extends State<AnswerQuestionCardDetails> {
                       const SizedBox(width: 5),
                       Expanded(
                         child: InkWell(
-                           focusColor: Colors.transparent,
-                      hoverColor: Colors.transparent,
-                      overlayColor: WidgetStatePropertyAll(Colors.transparent),
-                      highlightColor: Colors.transparent,
-                      splashColor: Colors.transparent,
+                          focusColor: Colors.transparent,
+                          hoverColor: Colors.transparent,
+                          overlayColor: WidgetStatePropertyAll(
+                            Colors.transparent,
+                          ),
+                          highlightColor: Colors.transparent,
+                          splashColor: Colors.transparent,
                           onTap: () {
                             // final text = question.answerText.toString();
 

@@ -231,12 +231,28 @@ class _FollowingListState extends State<FollowingList> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                f.targetUser.name,
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                              Row(
+                                children: [
+                                  Text(
+                                    f.targetUser.name,
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  if (f.targetUser.isVerified)
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 4,
+                                      ),
+                                      child: SvgPicture.asset(
+                                        AppIcons.verified,
+                                        height: 14,
+                                        width: 14,
+                                        color: AppColors.primary,
+                                      ),
+                                    ),
+                                ],
                               ),
                               Text(
                                 "@${f.targetUser.userName}",

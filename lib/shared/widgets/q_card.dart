@@ -228,7 +228,8 @@ class _QuestionCardState extends State<QuestionCard> {
                                     ),
                                   ),
                                   SizedBox(width: 1),
-                                  if (!question.isAnonymous && isVerified)
+                                  if (!question.isAnonymous &&
+                                      question.sender.isVerified)
                                     SvgPicture.asset(
                                       AppIcons.verified,
                                       height: 15,

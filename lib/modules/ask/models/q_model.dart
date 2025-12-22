@@ -80,6 +80,7 @@ class Sender {
   final String userName;
   final String? image;
   final String token;
+  final bool isVerified;
 
   Sender({
     required this.id,
@@ -87,6 +88,7 @@ class Sender {
     required this.userName,
     required this.token,
     this.image,
+    this.isVerified = false,
   });
 
   factory Sender.fromJson(Map<String, dynamic> json) {
@@ -96,6 +98,7 @@ class Sender {
       image: json['image'],
       userName: json['username'] ?? '', // snake_case in users table
       token: json['token'] ?? '',
+      isVerified: json['is_verified'] ?? false,
     );
   }
 
@@ -116,6 +119,7 @@ class Receiver {
   final String token;
   final String image;
   final String userName;
+  final bool isVerified;
 
   Receiver({
     required this.id,
@@ -123,6 +127,7 @@ class Receiver {
     required this.name,
     required this.userName,
     required this.token,
+    this.isVerified = false,
   });
 
   factory Receiver.fromJson(Map<String, dynamic> json) {
@@ -132,6 +137,7 @@ class Receiver {
       image: json['image'] ?? '',
       userName: json['username'] ?? '', // snake_case in users table
       token: json['token'] ?? '',
+      isVerified: json['is_verified'] ?? false,
     );
   }
 
