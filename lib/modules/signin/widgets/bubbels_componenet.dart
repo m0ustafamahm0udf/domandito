@@ -38,7 +38,7 @@ class _BubblesComponentState extends State<BubblesComponent> {
           ) // Assuming 'id' column exists and matches document ID usage
           .single();
 
-      if (response != null && response['images'] != null) {
+      if (response['images'] != null) {
         images = List<String>.from(response['images']);
         setState(() {
           widget.onShow(true);
