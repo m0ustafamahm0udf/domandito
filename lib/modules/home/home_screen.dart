@@ -52,6 +52,7 @@
 //     );
 //   }
 // }
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:domandito/core/constants/app_constants.dart';
@@ -87,7 +88,7 @@ class _HomeScreenState extends State<HomeScreen> {
   List<QuestionModel> questions = [];
   bool isQuestionsLoading = false;
   bool hasMore = true;
-  DocumentSnapshot? lastDoc;
+  int _offset = 0;
   int limit = 10;
   bool isFollowing = false;
   bool followLoading = false;
@@ -109,52 +110,40 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() => isQuestionsLoading = true);
 
     try {
-      Query query = FirebaseFirestore.instance
-          .collection('questions')
-          .where('isAnonymous', isEqualTo: false)
-          .where('sender.id', isEqualTo: MySharedPreferences.userId)
-          .where('isDeleted', isEqualTo: false)
-          .where('answeredAt', isNull: false)
-          .orderBy('answeredAt', descending: true)
-          .orderBy('createdAt', descending: true)
-          .limit(limit);
-      // .collection('questions')
-      // .where('receiver.id', isEqualTo: MySharedPreferences.userId)
-      // .where('isDeleted', isEqualTo: false)
-      // .where('answeredAt', isNull: false)
-      // .orderBy('answeredAt', descending: true)
-      // .orderBy('createdAt', descending: true)
-      // .limit(limit);
-      // ابدأ من آخر مستند لو موجود
-      if (lastDoc != null) query = query.startAfterDocument(lastDoc!);
+      final query = Supabase.instance.client
+          .from('questions')
+          .select('*, sender:sender_id(*), receiver:receiver_id(*)')
+          .eq('sender_id', MySharedPreferences.userId)
+          .eq('is_anonymous', false)
+          .eq('is_deleted', false)
+          .not('answered_at', 'is', null)
+          .order('answered_at', ascending: false)
+          .range(_offset, _offset + limit - 1);
 
-      final querySnap = await query.get();
+      final List<dynamic> data = await query;
 
       // لو مفيش داتا جديدة
-      if (querySnap.docs.isEmpty) {
+      if (data.isEmpty) {
         hasMore = false;
+        setState(() => isQuestionsLoading = false);
         return;
       }
 
       // لو عدد الدوكز أقل من اللِيمت يبقى مفيش المزيد بعد كده
-      hasMore = querySnap.docs.length == limit;
+      hasMore = data.length == limit;
 
-      // أضف الأسئلة بدون تكرار — مهم لو حصل reload أو call متكرر
-      for (var doc in querySnap.docs) {
-        // ضمّ doc.id داخل البيانات قبل تحويلها للموديل
-        final qData = doc.data() as Map<String, dynamic>;
-        qData['id'] = doc.id;
+      final newQuestions = data
+          .map((json) => QuestionModel.fromJson(json))
+          .toList();
 
-        final q = QuestionModel.fromJson(qData);
+      for (var q in newQuestions) {
         final exists = questions.any((element) => element.id == q.id);
         if (!exists) questions.add(q);
       }
 
-      // احفظ آخر مستند للـ pagination
-      lastDoc = querySnap.docs.last;
+      _offset += newQuestions.length;
     } catch (e, st) {
       debugPrint("Error loading questions: $e\n$st");
-      // لو Firestore طالب index غالبًا هيطبع استثناء فيه رابط في الـ log — شوف اللوق لو ظهر.
     } finally {
       setState(() => isQuestionsLoading = false);
     }
@@ -209,7 +198,7 @@ class _HomeScreenState extends State<HomeScreen> {
         color: AppColors.primary,
 
         onRefresh: () async {
-          lastDoc = null;
+          _offset = 0;
           hasMore = true;
           questions.clear();
 

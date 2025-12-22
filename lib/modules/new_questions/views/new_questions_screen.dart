@@ -1,6 +1,6 @@
 // }
 
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:domandito/core/constants/app_constants.dart';
 import 'package:domandito/core/utils/extentions.dart';
 import 'package:domandito/core/utils/shared_prefrences.dart';
@@ -28,7 +28,7 @@ class _NewQuestionsScreenState extends State<NewQuestionsScreen> {
   bool isQuestionsLoading = false; // تحميل الصفحة الأساسية
   bool isMoreLoading = false; // تحميل المزيد
   bool hasMore = true;
-  DocumentSnapshot? lastDoc;
+  int _offset = 0;
   int limit = 10;
 
   @override
@@ -47,37 +47,40 @@ class _NewQuestionsScreenState extends State<NewQuestionsScreen> {
     }
 
     try {
-      Query query = FirebaseFirestore.instance
-          .collection('questions')
-          .where('receiver.id', isEqualTo: MySharedPreferences.userId)
-          .where('isDeleted', isEqualTo: false)
-          .where('answeredAt', isNull: true)
-          .orderBy('answeredAt', descending: true)
-          .orderBy('createdAt', descending: true)
-          .limit(limit);
+      final query = Supabase.instance.client
+          .from('questions')
+          .select('*, sender:sender_id(*), receiver:receiver_id(*)')
+          .eq('receiver_id', MySharedPreferences.userId)
+          .eq('is_deleted', false)
+          .filter('answered_at', 'is', null) // Use filter for IS NULL
+          // .order('answered_at', ascending: false) // answered_at is null here, so ordering by it is pointless
+          .order('created_at', ascending: false)
+          .range(_offset, _offset + limit - 1);
 
-      if (lastDoc != null) query = query.startAfterDocument(lastDoc!);
+      final List<dynamic> data = await query;
 
-      final querySnap = await query.get();
-
-      if (querySnap.docs.isEmpty) {
+      if (data.isEmpty) {
         hasMore = false;
+        if (isLoadMore)
+          setState(() => isMoreLoading = false);
+        else
+          setState(() => isQuestionsLoading = false);
         return;
       }
 
-      hasMore = querySnap.docs.length == limit;
+      hasMore = data.length == limit;
 
-      for (var doc in querySnap.docs) {
-        final qData = doc.data() as Map<String, dynamic>;
-        qData['id'] = doc.id;
-        final q = QuestionModel.fromJson(qData);
+      final newQuestions = data
+          .map((json) => QuestionModel.fromJson(json))
+          .toList();
 
+      for (var q in newQuestions) {
         if (!questions.any((e) => e.id == q.id)) {
           questions.add(q);
         }
       }
 
-      lastDoc = querySnap.docs.last;
+      _offset += newQuestions.length;
     } catch (e) {
       debugPrint("Error loading questions: $e");
     } finally {
@@ -91,13 +94,19 @@ class _NewQuestionsScreenState extends State<NewQuestionsScreen> {
 
   Future<void> deleteQuestion(String id) async {
     if (!await hasInternetConnection()) {
-      AppConstance().showInfoToast(context, msg:!context.isCurrentLanguageAr() ? 'No internet connection' : 'لا يوجد اتصال بالانترنت');
+      AppConstance().showInfoToast(
+        context,
+        msg: !context.isCurrentLanguageAr()
+            ? 'No internet connection'
+            : 'لا يوجد اتصال بالانترنت',
+      );
       return;
     }
     try {
-      await FirebaseFirestore.instance.collection('questions').doc(id).update({
-        'isDeleted': true,
-      });
+      await Supabase.instance.client
+          .from('questions')
+          .update({'is_deleted': true})
+          .eq('id', id);
     } catch (e) {
       debugPrint("Error deleting question: $e");
     }
@@ -124,7 +133,7 @@ class _NewQuestionsScreenState extends State<NewQuestionsScreen> {
                       color: AppColors.primary,
 
                       onRefresh: () async {
-                        lastDoc = null;
+                        _offset = 0;
                         hasMore = true;
                         questions.clear();
                         await getQuestions();
@@ -185,9 +194,13 @@ class _NewQuestionsScreenState extends State<NewQuestionsScreen> {
                                   onPressed: () async {
                                     await getQuestions(isLoadMore: true);
                                   },
-                                  child:  Text(!context.isCurrentLanguageAr()? "Load More" : "المزيد"),
+                                  child: Text(
+                                    !context.isCurrentLanguageAr()
+                                        ? "Load More"
+                                        : "المزيد",
+                                  ),
                                 ),
-                              )
+                              ),
                             );
                           }
 
@@ -211,8 +224,9 @@ class _NewQuestionsScreenState extends State<NewQuestionsScreen> {
                                 children: [
                                   Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
-                                    crossAxisAlignment: CrossAxisAlignment.center,
-                                    children:  [
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: [
                                       Icon(
                                         Icons.delete_rounded,
                                         color: Colors.white,
@@ -220,7 +234,9 @@ class _NewQuestionsScreenState extends State<NewQuestionsScreen> {
                                       ),
                                       SizedBox(height: 4),
                                       Text(
-                                      !context.isCurrentLanguageAr()?  'Delete' :    "حذف",
+                                        !context.isCurrentLanguageAr()
+                                            ? 'Delete'
+                                            : "حذف",
                                         style: TextStyle(
                                           color: Colors.white,
                                           fontWeight: FontWeight.bold,
@@ -237,9 +253,13 @@ class _NewQuestionsScreenState extends State<NewQuestionsScreen> {
                               final res = await showDialog(
                                 context: context,
                                 builder: (context) => CustomDialog(
-                                  title: !context.isCurrentLanguageAr()? 'Delete Question' :'حذف السؤال',
+                                  title: !context.isCurrentLanguageAr()
+                                      ? 'Delete Question'
+                                      : 'حذف السؤال',
                                   onConfirm: () {},
-                                  content:!context.isCurrentLanguageAr()? 'Are you sure you want to delete this question?' : 'هل  انت متاكد من حذف السؤال؟',
+                                  content: !context.isCurrentLanguageAr()
+                                      ? 'Are you sure you want to delete this question?'
+                                      : 'هل  انت متاكد من حذف السؤال؟',
                                 ),
                               );
                               if (res == true) {

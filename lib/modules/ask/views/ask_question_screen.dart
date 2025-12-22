@@ -1,8 +1,9 @@
 import 'dart:developer';
 
 import 'package:animate_do/animate_do.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:domandito/core/constants/app_constants.dart';
+import 'package:uuid/uuid.dart';
 import 'package:domandito/core/services/notifications/send_message_notification.dart';
 import 'package:domandito/core/utils/extentions.dart';
 
@@ -85,12 +86,12 @@ class _AskQuestionScreenState extends State<AskQuestionScreen> {
     });
 
     try {
-      final docRef = FirebaseFirestore.instance.collection('questions').doc();
+      final String questionId = const Uuid().v4();
       DateTime now = await getNetworkTime() ?? DateTime.now();
       log(now.toString() + 'now');
       final question = QuestionModel(
-        id: docRef.id,
-        createdAt: Timestamp.fromDate(now),
+        id: questionId,
+        createdAt: now,
         // answeredAt: Timestamp.fromDate(
         //   Timestamp.now().toDate().add(const Duration(minutes: 1)),
         // ),
@@ -117,7 +118,14 @@ class _AskQuestionScreenState extends State<AskQuestionScreen> {
         ),
       );
 
-      await docRef.set(question.toJson());
+      // Insert into Supabase
+      // toJson returns sender_id and receiver_id which matches the table
+      // We explicitly pass 'id' here if we want to use the generated UUID for notifications, otherwise we'd let DB gen it and return it.
+      // Since we need the ID for notification below, we'll send it.
+      var data = question.toJson();
+      data['id'] = questionId; // Explicitly set ID
+
+      await Supabase.instance.client.from('questions').insert(data);
       AppConstance().showSuccesToast(
         context,
         msg: !context.isCurrentLanguageAr()
@@ -131,7 +139,7 @@ class _AskQuestionScreenState extends State<AskQuestionScreen> {
         toToken: widget.recipientToken,
         message: AppConstance.questioned,
         title: 'Domandito',
-        id: docRef.id,
+        id: questionId,
       );
 
       Loader.hide();
@@ -164,7 +172,7 @@ class _AskQuestionScreenState extends State<AskQuestionScreen> {
     /// إنشاء الموديل مرة واحدة فقط
     question = QuestionModel(
       id: '',
-      createdAt: Timestamp.now(),
+      createdAt: DateTime.now(),
       title: '',
       sender: Sender(
         token: MySharedPreferences.deviceToken,

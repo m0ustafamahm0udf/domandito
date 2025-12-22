@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:domandito/core/constants/app_constants.dart';
 import 'package:domandito/core/constants/app_platforms_serv.dart';
 import 'package:domandito/core/services/file_picker_service.dart';
@@ -119,17 +119,18 @@ class _AnswerQuestionScreenState extends State<AnswerQuestionScreen> {
       uploadedImageUrls = await _uploadAnswerImages();
 
       /// 2️⃣ إرسال الجواب
-      final docRef = FirebaseFirestore.instance
-          .collection('questions')
-          .doc(widget.question.id);
-      DateTime now = await getNetworkTime() ?? DateTime.now();
+      /// 2️⃣ إرسال الجواب
+      final DateTime now = await getNetworkTime() ?? DateTime.now();
 
-      await docRef.update({
-        'answeredAt': Timestamp.fromDate(now),
-        'answerText': answerController.text.trim(),
-        'images': uploadedImageUrls,
-        'receiver.token': MySharedPreferences.deviceToken,
-      });
+      await Supabase.instance.client
+          .from('questions')
+          .update({
+            'answered_at': now.toIso8601String(),
+            'answer_text': answerController.text.trim(),
+            'images': uploadedImageUrls,
+          })
+          .eq('id', widget.question.id)
+          .select();
 
       AppConstance().showSuccesToast(
         context,
@@ -139,20 +140,22 @@ class _AnswerQuestionScreenState extends State<AnswerQuestionScreen> {
       );
       String usertokenIfisNotMe = '';
 
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(widget.question.sender.id)
-          .get()
-          .then((value) {
-            usertokenIfisNotMe = value.data()!['token'];
-          });
+      final userResponse = await Supabase.instance.client
+          .from('users')
+          .select('token')
+          .eq('id', widget.question.sender.id)
+          .maybeSingle();
+
+      if (userResponse != null) {
+        usertokenIfisNotMe = userResponse['token'] ?? '';
+      }
       await SendMessageNotificationWithHTTPv1().send2(
         type: AppConstance.answer,
         urll: '',
         toToken: usertokenIfisNotMe,
         message: AppConstance.asnwered,
         title: 'Domandito',
-        id: docRef.id,
+        id: widget.question.id,
       );
 
       context.backWithValue(true);
@@ -227,7 +230,7 @@ class _AnswerQuestionScreenState extends State<AnswerQuestionScreen> {
     /// إنشاء الموديل مرة واحدة فقط
     question = QuestionModel(
       id: widget.question.id,
-      createdAt: Timestamp.now(),
+      createdAt: DateTime.now(),
       title: widget.question.title,
       sender: widget.question.sender,
       receiver: Receiver(

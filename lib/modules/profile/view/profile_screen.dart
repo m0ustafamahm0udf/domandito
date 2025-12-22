@@ -1,6 +1,7 @@
 import 'dart:developer';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
 import 'package:domandito/core/constants/app_constants.dart';
 import 'package:domandito/core/constants/app_icons.dart';
 import 'package:domandito/core/constants/app_platforms_serv.dart';
@@ -64,7 +65,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   List<QuestionModel> questions = [];
   bool isQuestionsLoading = false;
   bool hasMore = true;
-  DocumentSnapshot? lastDoc;
+  int _offset = 0;
   int limit = 10;
   bool isFollowing = false;
   bool isBlocked = false;
@@ -89,15 +90,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
     setState(() => isLoading = true);
     try {
       if (widget.userId.isNotEmpty) {
-        final doc = await FirebaseFirestore.instance
-            .collection('users')
-            .doc(widget.userId)
-            .get();
-        if (doc.exists) {
-          user = UserModel.fromJson(doc.data()!, doc.id);
+        final response = await Supabase.instance.client
+            .from('users')
+            .select()
+            .eq('id', widget.userId)
+            .maybeSingle(); // Use maybeSingle to handle no rows without error
+
+        if (response != null) {
+          user = UserModel.fromJson(response, response['id'].toString());
           if (isMe) {
             canAskedAnonymously = user!.canAskedAnonymously;
-            // log('canAskedAnonymously $canAskedAnonymously');
             MySharedPreferences.userName = user!.name;
             MySharedPreferences.userUserName = user!.userName;
             MySharedPreferences.phone = user!.phone;
@@ -106,7 +108,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             MySharedPreferences.image = user!.image;
             MySharedPreferences.isVerified = user!.isVerified;
           }
-          // await getQuestionsCount();
         } else {
           if (isMe) {
             MySharedPreferences.clearProfile(context: context);
@@ -178,59 +179,50 @@ class _ProfileScreenState extends State<ProfileScreen> {
     setState(() => isQuestionsLoading = true);
 
     try {
-      Query query = FirebaseFirestore.instance
-          .collection('questions')
-          .where('receiver.id', isEqualTo: widget.userId)
-          .where('isDeleted', isEqualTo: false)
-          .where('answeredAt', isNull: false)
-          .orderBy('answeredAt', descending: true)
-          .orderBy('createdAt', descending: true)
-          .limit(limit);
+      // Build Supabase query
+      var query = Supabase.instance.client
+          .from('questions')
+          .select(
+            '*, sender:sender_id(*), receiver:receiver_id(*)',
+          ) // Update to match your joined query structure
+          .eq('receiver_id', widget.userId)
+          .eq('is_deleted', false)
+          // .neq('answered_at', null) // Supabase doesn't support neq null directly easily like this often, better to check not null
+          .not('answered_at', 'is', null)
+          .order('answered_at', ascending: false)
+          .order('created_at', ascending: false)
+          .range(_offset, _offset + limit - 1);
 
       // if (isMe) {
-      //   log("isMe");
-      //   query = query
-      //       .where('sender.id', isEqualTo: widget.userId)
-      //       .where('isAnonymous', isEqualTo: false);
+      //   // Add logic here if needed, but typically profile shows all received questions
       // }
-      // .collection('questions')
-      // .where('receiver.id', isEqualTo: widget.userId)
-      // .where('isDeleted', isEqualTo: false)
-      // .where('answeredAt', isNull: false)
-      // .orderBy('answeredAt', descending: true)
-      // .orderBy('createdAt', descending: true)
-      // .limit(limit);
 
-      // ابدأ من آخر مستند لو موجود
-      if (lastDoc != null) query = query.startAfterDocument(lastDoc!);
-
-      final querySnap = await query.get();
+      final List<dynamic> data = await query;
 
       // لو مفيش داتا جديدة
-      if (querySnap.docs.isEmpty) {
+      if (data.isEmpty) {
         hasMore = false;
+        setState(() => isQuestionsLoading = false);
         return;
       }
 
       // لو عدد الدوكز أقل من اللِيمت يبقى مفيش المزيد بعد كده
-      hasMore = querySnap.docs.length == limit;
+      hasMore = data.length == limit;
 
-      // أضف الأسئلة بدون تكرار — مهم لو حصل reload أو call متكرر
-      for (var doc in querySnap.docs) {
-        // ضمّ doc.id داخل البيانات قبل تحويلها للموديل
-        final qData = doc.data() as Map<String, dynamic>;
-        qData['id'] = doc.id;
+      final newQuestions = data.map((json) {
+        // Ensure json has valid structure for QuestionModel
+        return QuestionModel.fromJson(json as Map<String, dynamic>);
+      }).toList();
 
-        final q = QuestionModel.fromJson(qData);
+      for (var q in newQuestions) {
         final exists = questions.any((element) => element.id == q.id);
         if (!exists) questions.add(q);
       }
 
-      // احفظ آخر مستند للـ pagination
-      lastDoc = querySnap.docs.last;
+      // Update offset for next page
+      _offset += newQuestions.length;
     } catch (e, st) {
       debugPrint("Error loading questions: $e\n$st");
-      // لو Firestore طالب index غالبًا هيطبع استثناء فيه رابط في الـ log — شوف اللوق لو ظهر.
     } finally {
       setState(() => isQuestionsLoading = false);
     }
@@ -247,11 +239,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
       return;
     }
     try {
-      await FirebaseFirestore.instance.collection('questions').doc(id).update({
-        'answeredAt': null,
-        'answerText': null,
-        'images': [],
-      });
+      await Supabase.instance.client
+          .from('questions')
+          .update({
+            'answered_at': null,
+            'answer_text': null,
+            'images': [],
+            // 'is_deleted': true, // The original code didn't set isDeleted=true, it cleared the answer. But the method name is deleteQuestion?
+            // Re-reading original code:
+            // .update({ 'answeredAt': null, 'answerText': null, 'images': [], });
+            // This suggests created "unanswering" the question rather than deleting it?
+            // The method is named deleteQuestion but the success message says "Unanswered successfully" / "تم التراجع عن الإجابة".
+            // So it effectively "un-answers" it or "deletes the answer".
+            // I will replicate this logic.
+          })
+          .eq('id', id);
       // await getQuestionsCount();
 
       AppConstance().showSuccesToast(
@@ -579,10 +581,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
           destinationPath: 'profiles/${MySharedPreferences.userId}',
         );
         if (url.isNotEmpty) {
-          await FirebaseFirestore.instance
-              .collection('users')
-              .doc(MySharedPreferences.userId)
+          await Supabase.instance.client
+              .from('users')
               .update({'image': url})
+              .eq('id', MySharedPreferences.userId)
               .then((value) async {
                 // Loader.hide();
                 AppConstance().showSuccesToast(
@@ -632,7 +634,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               color: AppColors.primary,
 
               onRefresh: () async {
-                lastDoc = null;
+                _offset = 0;
                 hasMore = true;
                 questions.clear();
                 await getAllData();
@@ -678,10 +680,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       value: canAskedAnonymously,
                       onChanged: (value) async {
                         AppConstance().showLoading(context);
-                        await FirebaseFirestore.instance
-                            .collection('users')
-                            .doc(MySharedPreferences.userId)
-                            .update({'canAskedAnonymously': value})
+                        await Supabase.instance.client
+                            .from('users')
+                            .update({
+                              'can_asked_anonymously': value,
+                            }) // Note: snake_case for Supabase column
+                            .eq('id', MySharedPreferences.userId)
                             .then((_) {
                               setState(() {
                                 canAskedAnonymously = value;
