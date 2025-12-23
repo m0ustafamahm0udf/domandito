@@ -11,6 +11,7 @@ class ProfileQuestionsList extends StatelessWidget {
   final bool isMe;
   final Function(String) onDeleteQuestion;
   final Function(bool isPinned, String questionId)? onPinToggle;
+  final bool Function()? canPin;
 
   const ProfileQuestionsList({
     super.key,
@@ -19,6 +20,7 @@ class ProfileQuestionsList extends StatelessWidget {
     required this.isMe,
     required this.onDeleteQuestion,
     this.onPinToggle,
+    this.canPin,
   });
 
   @override
@@ -91,6 +93,7 @@ class ProfileQuestionsList extends StatelessWidget {
               question: q,
               receiverImage: user.image,
               onPinToggle: (isPinned) => onPinToggle?.call(isPinned, q.id),
+              canPin: canPin,
             ),
           );
         }
@@ -100,6 +103,7 @@ class ProfileQuestionsList extends StatelessWidget {
           question: q,
           receiverImage: user.image,
           onPinToggle: (isPinned) => onPinToggle?.call(isPinned, q.id),
+          canPin: canPin,
         );
       },
     );

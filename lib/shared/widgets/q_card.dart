@@ -27,6 +27,8 @@ class QuestionCard extends StatefulWidget {
   final Function(bool isPinned)? onPinToggle;
   final Function()? afterBack;
 
+  final bool Function()? canPin;
+
   const QuestionCard({
     super.key,
     required this.question,
@@ -36,6 +38,7 @@ class QuestionCard extends StatefulWidget {
     this.afterBack,
     required this.currentProfileUserId,
     this.onPinToggle,
+    this.canPin,
   });
 
   @override
@@ -115,6 +118,7 @@ class _QuestionCardState extends State<QuestionCard> {
       isLiked = result;
       likesCount += isLiked ? 1 : -1;
       question.likesCount += isLiked ? 1 : -1;
+      question.isLiked = isLiked; // FIX: Update the model!
       isProcessing = false;
     });
   }
@@ -132,6 +136,10 @@ class _QuestionCardState extends State<QuestionCard> {
     }
 
     final newStatus = !isPinned;
+
+    if (newStatus && widget.canPin != null && !widget.canPin!()) {
+      return;
+    }
 
     // Optimistic update
     setState(() {
@@ -447,7 +455,7 @@ class _QuestionCardState extends State<QuestionCard> {
                               );
                             });
                           },
-                          child: isPinned
+                          child: isPinned && widget.isInProfileScreen
                               ? Text(
                                   "\"${question.answerText}\"",
                                   textAlign: isArabic(question.answerText ?? '')
@@ -470,7 +478,7 @@ class _QuestionCardState extends State<QuestionCard> {
                       ),
                     ],
                   ),
-                if (!isPinned) ...[
+                if (!isPinned || !widget.isInProfileScreen) ...[
                   if (question.images.isNotEmpty) const SizedBox(height: 5),
                   if (question.images.isNotEmpty)
                     Padding(

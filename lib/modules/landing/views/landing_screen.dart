@@ -2,6 +2,7 @@ import 'package:domandito/core/constants/app_icons.dart';
 import 'package:domandito/core/utils/extentions.dart';
 import 'package:domandito/core/utils/shared_prefrences.dart';
 import 'package:domandito/modules/home/home_screen.dart';
+import 'package:domandito/modules/home/views/home_feed_screen.dart';
 import 'package:domandito/modules/landing/controller/landing_cubit.dart';
 import 'package:domandito/modules/new_questions/views/new_questions_screen.dart';
 import 'package:domandito/modules/profile/view/profile_screen.dart';
@@ -29,7 +30,7 @@ class _LandingScreenState extends State<LandingScreen> {
 
   List<PersistentTabConfig> _tabs() => [
     PersistentTabConfig(
-      screen: const HomeScreen(),
+      screen: const HomeFeedScreen(),
       item: ItemConfig(
         icon: SvgPicture.asset(
           AppIcons.anonymous,
@@ -39,10 +40,7 @@ class _LandingScreenState extends State<LandingScreen> {
               : AppColors.primary.withOpacity(0.15),
         ),
         title: "Domandito",
-        textStyle: TextStyle(
-          fontFamily: 'Dancing_Script',
-          fontSize: 14
-        ),
+        textStyle: TextStyle(fontFamily: 'Dancing_Script', fontSize: 14),
         activeForegroundColor: AppColors.primary,
       ),
     ),
@@ -80,7 +78,12 @@ class _LandingScreenState extends State<LandingScreen> {
       PersistentTabConfig(
         screen: ProfileScreen(userId: MySharedPreferences.userId),
         item: ItemConfig(
-          icon: CustomNetworkImage(url: MySharedPreferences.image, radius: 99,height: 28,width: 28,),
+          icon: CustomNetworkImage(
+            url: MySharedPreferences.image,
+            radius: 99,
+            height: 28,
+            width: 28,
+          ),
           // icon: SvgPicture.asset(
           //   AppIcons.profile,
           //   color: currentIndex == 1
@@ -88,7 +91,7 @@ class _LandingScreenState extends State<LandingScreen> {
           //       : AppColors.primary.withOpacity(0.15),
           // ),
           // title: MySharedPreferences.userUserName,
-          title: !context.isCurrentLanguageAr()? 'Profile' : 'الملف الشخصي',
+          title: !context.isCurrentLanguageAr() ? 'Profile' : 'الملف الشخصي',
           activeForegroundColor: AppColors.primary,
         ),
       ),
@@ -102,24 +105,24 @@ class _LandingScreenState extends State<LandingScreen> {
                 ? AppColors.primary
                 : AppColors.primary.withOpacity(0.15),
           ),
-          title: !context.isCurrentLanguageAr()? "New" : "جديد",
+          title: !context.isCurrentLanguageAr() ? "New" : "جديد",
           activeForegroundColor: AppColors.primary,
         ),
       ),
-  // if (MySharedPreferences.isLoggedIn && !kIsWeb)
-  //     PersistentTabConfig(
-  //       screen: const NotificationsScreen(),
-  //       item: ItemConfig(
-  //         icon: SvgPicture.asset(
-  //           AppIcons.notifications,
-  //           color: currentIndex == 3
-  //               ? AppColors.primary
-  //               : AppColors.primary.withOpacity(0.15),
-  //         ),
-  //         title: "الاشعارات",
-  //         activeForegroundColor: AppColors.primary,
-  //       ),
-  //     ),
+    // if (MySharedPreferences.isLoggedIn && !kIsWeb)
+    //     PersistentTabConfig(
+    //       screen: const NotificationsScreen(),
+    //       item: ItemConfig(
+    //         icon: SvgPicture.asset(
+    //           AppIcons.notifications,
+    //           color: currentIndex == 3
+    //               ? AppColors.primary
+    //               : AppColors.primary.withOpacity(0.15),
+    //         ),
+    //         title: "الاشعارات",
+    //         activeForegroundColor: AppColors.primary,
+    //       ),
+    //     ),
   ];
 
   int currentIndex = 0;

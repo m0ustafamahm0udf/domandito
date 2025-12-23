@@ -14,7 +14,7 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
-
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 part 'landing_state.dart';
 
@@ -29,101 +29,119 @@ class LandingCubit extends Cubit<LandingState> {
         .doc('appDetails')
         .get()
         .then((value) {
-      if (value.exists) {
-        if (value.data() != null) {
-          facebookAppLink = value.data()!['facebook'];
-          isProduction = value.data()!['isProduction'];
-          if (!isProduction) {
-            showDialog(
-              context: context,
-              builder: (context) => PopScope(
-                canPop: false,
-                child: AlertDialog(
-                  title: Text(
-                 !context.isCurrentLanguageAr()?  'Wait for us 🔥' :  'انتظرونا 🔥',
-                    style: TextStyle(
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 20,
+          if (value.exists) {
+            if (value.data() != null) {
+              facebookAppLink = value.data()!['facebook'];
+              isProduction = value.data()!['isProduction'];
+              if (!isProduction) {
+                showDialog(
+                  context: context,
+                  builder: (context) => PopScope(
+                    canPop: false,
+                    child: AlertDialog(
+                      title: Text(
+                        !context.isCurrentLanguageAr()
+                            ? 'Wait for us 🔥'
+                            : 'انتظرونا 🔥',
+                        style: TextStyle(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20,
+                        ),
+                      ),
+                      content: Text(
+                        !context.isCurrentLanguageAr()
+                            ? 'We will make some changes to the app properties and it will be updated soon, thanks'
+                            : 'نقوم بتعديل بعض الخصائص الخاصة بالتطبيق وسيتم التحديث قريبا , شكرا لك',
+                        style: TextStyle(fontSize: 14),
+                      ),
+                      actions: [
+                        BounceButton(
+                          height: 40,
+                          onPressed: () {
+                            LaunchUrlsService().launchBrowesr(
+                              uri: value.data()!['facebook'],
+                              context: context,
+                            );
+                          },
+                          title: !context.isCurrentLanguageAr()
+                              ? 'Ok'
+                              : 'موافق',
+                        ),
+                      ],
                     ),
                   ),
-                  content: Text(
-                  !context.isCurrentLanguageAr()? 'We will make some changes to the app properties and it will be updated soon, thanks' :  'نقوم بتعديل بعض الخصائص الخاصة بالتطبيق وسيتم التحديث قريبا , شكرا لك',
-                    style: TextStyle(fontSize: 14),
-                  ),
-                  actions: [
-                    BounceButton(
-                      height: 40,
-                      onPressed: () {
-                        LaunchUrlsService().launchBrowesr(
-                            uri: value.data()!['facebook'], context: context);
-                      },
-                      title:!context.isCurrentLanguageAr()? 'Ok' : 'موافق',
-                    ),
-                  ],
-                ),
-              ),
-            );
-          } else {
-            if (!kIsWeb) {
-             chackUpdate(
-              context: context,
-              appStoreUrl: value.data()!['appStoreUrl'],
-              playStoreUrl: value.data()!['playStoreUrl'],
-              versionIos: value.data()!['appVersionIos'],
-              versionAndroid: value.data()!['appVersionAndroid'],
-            ); 
+                );
+              } else {
+                if (!kIsWeb) {
+                  chackUpdate(
+                    context: context,
+                    appStoreUrl: value.data()!['appStoreUrl'],
+                    playStoreUrl: value.data()!['playStoreUrl'],
+                    versionIos: value.data()!['appVersionIos'],
+                    versionAndroid: value.data()!['appVersionAndroid'],
+                  );
+                }
+              }
             }
-            
+            // log(value.data().toString());
           }
-        }
-        // log(value.data().toString());
-      }
-    });
+        });
     if (MySharedPreferences.isLoggedIn) {
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(MySharedPreferences.userId)
-          .get()
-          .then((value) {
-        if (value.exists) {
-          if (value.data() != null) {
-            if (value.data()!['isBlocked']) {
-              showDialog(
-                context: context,
-                builder: (context) => PopScope(
-                  canPop: false,
-                  child: AlertDialog(
-                    title: Text(
-                     !context.isCurrentLanguageAr()? 'You have been blocked': 'تم حظرك من التطبيق',
-                      style: TextStyle(
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 20,
+      try {
+        await Supabase.instance.client
+            .from('users')
+            .select('is_blocked')
+            .eq('id', MySharedPreferences.userId)
+            .single()
+            .then((value) {
+              if (value['is_blocked'] == true) {
+                if (context.mounted) {
+                  showDialog(
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (context) => PopScope(
+                      canPop: false,
+                      child: AlertDialog(
+                        title: Text(
+                          !context.isCurrentLanguageAr()
+                              ? 'You have been blocked'
+                              : 'تم حظرك من التطبيق',
+                          style: TextStyle(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 20,
+                          ),
+                        ),
+                        content: Text(
+                          !context.isCurrentLanguageAr()
+                              ? 'Please contact support'
+                              : 'يرجى التواصل مع الدعم الفني',
+                          style: TextStyle(fontSize: 14),
+                        ),
+                        actions: [
+                          BounceButton(
+                            height: 40,
+                            onPressed: () async {
+                              await LaunchUrlsService().launchBrowesr(
+                                uri: facebookAppLink,
+                                context: context,
+                              );
+                            },
+                            title: !context.isCurrentLanguageAr()
+                                ? 'Ok'
+                                : 'موافق',
+                          ),
+                        ],
                       ),
                     ),
-                    content: Text(
-                   !context.isCurrentLanguageAr()? 'Please contact support' :   'يرجى التواصل مع الدعم الفني',
-                      style: TextStyle(fontSize: 14),
-                    ),
-                    actions: [
-                      BounceButton(
-                        height: 40,
-                        onPressed: () async {
-                          await LaunchUrlsService().launchBrowesr(
-                              uri: facebookAppLink, context: context);
-                        },
-                        title:!context.isCurrentLanguageAr()? 'Ok' : 'موافق',
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            }
-          }
-          // log(value.data().toString());
-        }
-      });
+                  );
+                }
+              }
+            });
+      } catch (e) {
+        debugPrint("Error checking blocked status: $e");
+      }
     }
   }
 
@@ -147,7 +165,7 @@ class LandingCubit extends Cubit<LandingState> {
             canPop: false,
             child: AlertDialog(
               title: Text(
-              !context.isCurrentLanguageAr()? 'New update':  'تحديث جديد',
+                !context.isCurrentLanguageAr() ? 'New update' : 'تحديث جديد',
                 style: TextStyle(
                   color: AppColors.primary,
                   fontWeight: FontWeight.bold,
@@ -155,7 +173,9 @@ class LandingCubit extends Cubit<LandingState> {
                 ),
               ),
               content: Text(
-               !context.isCurrentLanguageAr()? 'Please update the app' : 'يرجى تحديث التطبيق',
+                !context.isCurrentLanguageAr()
+                    ? 'Please update the app'
+                    : 'يرجى تحديث التطبيق',
                 style: TextStyle(fontSize: 14),
               ),
               actions: [
@@ -163,10 +183,11 @@ class LandingCubit extends Cubit<LandingState> {
                   height: 40,
                   onPressed: () {
                     LaunchUrlsService().launchBrowesr(
-                        uri: isAndroid ? playStoreUrl : appStoreUrl,
-                        context: context);
+                      uri: isAndroid ? playStoreUrl : appStoreUrl,
+                      context: context,
+                    );
                   },
-                  title: !context.isCurrentLanguageAr()? 'Ok' :'موافق',
+                  title: !context.isCurrentLanguageAr() ? 'Ok' : 'موافق',
                 ),
               ],
             ),
@@ -181,7 +202,7 @@ class LandingCubit extends Cubit<LandingState> {
             canPop: false,
             child: AlertDialog(
               title: Text(
-               !context.isCurrentLanguageAr()? 'New update': 'تحديث جديد',
+                !context.isCurrentLanguageAr() ? 'New update' : 'تحديث جديد',
                 style: TextStyle(
                   color: AppColors.primary,
                   fontWeight: FontWeight.bold,
@@ -189,7 +210,9 @@ class LandingCubit extends Cubit<LandingState> {
                 ),
               ),
               content: Text(
-               !context.isCurrentLanguageAr()? 'Please update the app' : 'يرجى تحديث التطبيق',
+                !context.isCurrentLanguageAr()
+                    ? 'Please update the app'
+                    : 'يرجى تحديث التطبيق',
                 style: TextStyle(fontSize: 14),
               ),
               actions: [
@@ -197,10 +220,11 @@ class LandingCubit extends Cubit<LandingState> {
                   height: 40,
                   onPressed: () {
                     LaunchUrlsService().launchBrowesr(
-                        uri: isAndroid ? playStoreUrl : appStoreUrl,
-                        context: context);
+                      uri: isAndroid ? playStoreUrl : appStoreUrl,
+                      context: context,
+                    );
                   },
-                  title: !context.isCurrentLanguageAr()? 'Ok' :'موافق',
+                  title: !context.isCurrentLanguageAr() ? 'Ok' : 'موافق',
                 ),
               ],
             ),

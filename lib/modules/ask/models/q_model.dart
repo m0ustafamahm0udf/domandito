@@ -56,6 +56,7 @@ class QuestionModel {
           ? Receiver.fromJson(json['receiver'])
           : Receiver(id: '', image: '', name: '', userName: '', token: ''),
       isPinned: json['is_pinned'] ?? false,
+      isLiked: json['is_liked'] ?? false, // Optimization: RPC returns this
     );
   }
 
