@@ -281,6 +281,9 @@ class _SearchUsersListState extends State<SearchUsersList> {
                       onPressed: user.isBlockedByMe
                           ? null
                           : () async {
+                              if (!MySharedPreferences.isLoggedIn) {
+                                return;
+                              }
                               setState(() {
                                 // Optimistic update
                                 users[index] = user.copyWith(

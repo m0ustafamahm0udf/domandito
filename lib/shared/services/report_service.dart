@@ -52,21 +52,21 @@ class ReportService {
   }
 
   /// Returns a list of content IDs (questions/answers) reported by [userId]
-  static Future<List<String>> getReportedContentIds(String userId) async {
-    try {
-      final List<dynamic> response = await _supabase
-          .from(reportsTable)
-          .select('content_id')
-          .eq('reporter_id', userId);
+  // static Future<List<String>> getReportedContentIds(String userId) async {
+  //   try {
+  //     final List<dynamic> response = await _supabase
+  //         .from(reportsTable)
+  //         .select('content_id')
+  //         .eq('reporter_id', userId);
 
-      final List<String> reportedIds = response
-          .map((e) => e['content_id'] as String)
-          .toList();
+  //     final List<String> reportedIds = response
+  //         .map((e) => e['content_id'] as String)
+  //         .toList();
 
-      return reportedIds;
-    } catch (e) {
-      debugPrint('Error getReportedContentIds: $e');
-      return [];
-    }
-  }
+  //     return reportedIds;
+  //   } catch (e) {
+  //     debugPrint('Error getReportedContentIds: $e');
+  //     return [];
+  //   }
+  // }
 }

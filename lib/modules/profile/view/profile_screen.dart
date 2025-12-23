@@ -20,7 +20,6 @@ import 'package:domandito/shared/models/follow_model.dart'; // FollowUser might 
 import 'package:domandito/shared/services/block_service.dart';
 import 'package:domandito/shared/services/follow_service.dart';
 import 'package:domandito/shared/services/like_service.dart';
-import 'package:domandito/shared/services/report_service.dart';
 import 'package:domandito/shared/style/app_colors.dart';
 import 'package:domandito/shared/widgets/custom_dialog.dart';
 import 'package:domandito/shared/widgets/download_dialog.dart';
@@ -191,14 +190,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
           .not('answered_at', 'is', null);
 
       // Filter reported content
-      if (MySharedPreferences.isLoggedIn) {
-        final reportedIds = await ReportService.getReportedContentIds(
-          MySharedPreferences.userId,
-        );
-        if (reportedIds.isNotEmpty) {
-          query = query.not('id', 'in', '(${reportedIds.join(',')})');
-        }
-      }
+      // if (MySharedPreferences.isLoggedIn) {
+      //   final reportedIds = await ReportService.getReportedContentIds(
+      //     MySharedPreferences.userId,
+      //   );
+      //   if (reportedIds.isNotEmpty) {
+      //     query = query.not('id', 'in', '(${reportedIds.join(',')})');
+      //   }
+      // }
 
       final List<dynamic> data = await query
           .order('is_pinned', ascending: false) // Pinned first

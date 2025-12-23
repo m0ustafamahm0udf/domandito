@@ -1,3 +1,4 @@
+import 'package:domandito/core/utils/shared_prefrences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:domandito/core/utils/extentions.dart';
 
@@ -21,6 +22,9 @@ class FollowService {
     required FollowUser targetUser, // الشخص اللي هتابعه
     required BuildContext context,
   }) async {
+    if (!MySharedPreferences.isLoggedIn) {
+      return false;
+    }
     if (_isProcessing[targetUser.id] == true) return false;
     _isProcessing[targetUser.id] = true;
 
