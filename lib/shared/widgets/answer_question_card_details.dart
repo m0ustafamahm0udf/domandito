@@ -71,7 +71,7 @@ class _AnswerQuestionCardDetailsState extends State<AnswerQuestionCardDetails> {
         },
         child: Card(
           color: AppColors.white,
-          elevation: 20,
+          elevation: 10,
 
           shadowColor: Colors.white,
           shape: RoundedRectangleBorder(

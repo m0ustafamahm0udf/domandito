@@ -221,7 +221,7 @@ class _QuestionCardState extends State<QuestionCard> {
         },
         child: Card(
           color: AppColors.white,
-          elevation: 20,
+          elevation: 8,
           shadowColor: Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(24),

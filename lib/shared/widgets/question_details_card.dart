@@ -64,7 +64,7 @@ class _QuestionDetailsCardState extends State<QuestionDetailsCard> {
         : question.sender.name;
     return Card(
       color: AppColors.white,
-      elevation: 20,
+      elevation: 10,
 
       shadowColor: Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
