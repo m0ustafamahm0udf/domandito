@@ -101,6 +101,7 @@ class CreateAccountForm extends StatelessWidget {
             controller: bioCtrl!,
             hintText: !context.isCurrentLanguageAr() ? 'Bio' : 'اكتب نبذة عنك',
             maxLines: 3,
+            lenght: 150,
           ),
           const SizedBox(height: 10),
         ],
