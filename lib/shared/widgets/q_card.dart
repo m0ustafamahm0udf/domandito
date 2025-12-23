@@ -15,6 +15,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
 import 'package:svg_flutter/svg_flutter.dart';
+import 'package:domandito/shared/services/question_service.dart';
 
 class QuestionCard extends StatefulWidget {
   final QuestionModel question;
@@ -23,17 +24,18 @@ class QuestionCard extends StatefulWidget {
 
   final bool isInProfileScreen;
   final String currentProfileUserId;
+  final Function(bool isPinned)? onPinToggle;
   final Function()? afterBack;
+
   const QuestionCard({
     super.key,
     required this.question,
     required this.receiverImage,
     this.isInProfileScreen = true,
     required this.receiverToken,
-
     this.afterBack,
-
     required this.currentProfileUserId,
+    this.onPinToggle,
   });
 
   @override
@@ -42,19 +44,34 @@ class QuestionCard extends StatefulWidget {
 
 class _QuestionCardState extends State<QuestionCard> {
   bool isLiked = false;
+  bool isPinned = false;
   int likesCount = 0;
+  bool isProcessing = false;
+  late QuestionModel question;
+  bool isVerified = false;
 
   @override
   void initState() {
     super.initState();
-    question = widget.question; // نسخة داخلية
-    likesCount = question.likesCount;
-    isLiked = question.isLiked;
+    initializeState();
   }
 
-  bool isProcessing = false;
-  late QuestionModel question;
-  bool isVerified = false;
+  @override
+  void didUpdateWidget(covariant QuestionCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Always sync state if the model changes or if the ID changes
+    // Since QuestionModel is mutable, we should refresh if the parent rebuilds
+    initializeState();
+  }
+
+  void initializeState() {
+    question = widget.question;
+    likesCount = question.likesCount;
+    isLiked = question.isLiked;
+    // Ensure local isPinned syncs with model
+    isPinned = question.isPinned;
+  }
+
   Future<void> toggleLike() async {
     if (!MySharedPreferences.isLoggedIn) {
       AppConstance().showInfoToast(
@@ -100,6 +117,65 @@ class _QuestionCardState extends State<QuestionCard> {
       question.likesCount += isLiked ? 1 : -1;
       isProcessing = false;
     });
+  }
+
+  Future<void> togglePin() async {
+    if (!MySharedPreferences.isLoggedIn) return;
+    if (!await hasInternetConnection()) {
+      AppConstance().showInfoToast(
+        context,
+        msg: !context.isCurrentLanguageAr()
+            ? 'No internet connection'
+            : 'لا يوجد اتصال بالانترنت',
+      );
+      return;
+    }
+
+    final newStatus = !isPinned;
+
+    // Optimistic update
+    setState(() {
+      isPinned = newStatus;
+    });
+
+    // Show toast immediately before potentially unmounting
+    if (mounted) {
+      AppConstance().showSuccesToast(
+        context,
+        msg: newStatus
+            ? (!context.isCurrentLanguageAr()
+                  ? 'Pinned successfully'
+                  : 'تم التثبيت')
+            : (!context.isCurrentLanguageAr()
+                  ? 'Unpinned successfully'
+                  : 'تم إلغاء التثبيت'),
+      );
+    }
+
+    // Notify parent immediately for instant UI update
+    // This might cause the widget to be removed from the tree
+    widget.onPinToggle?.call(newStatus);
+
+    try {
+      // Pass the NEW status (which is isPinned now) to toggle it
+      await QuestionService().togglePin(question.id, newStatus);
+    } catch (e) {
+      // Notify parent to revert
+      widget.onPinToggle?.call(!newStatus);
+
+      if (mounted) {
+        // Revert on error
+        setState(() {
+          isPinned = !newStatus;
+        });
+
+        AppConstance().showErrorToast(
+          context,
+          msg: !context.isCurrentLanguageAr() ? 'Error' : 'حدث خطأ',
+        );
+      }
+      debugPrint("Error toggling pin: $e");
+    }
   }
 
   @override
@@ -250,6 +326,22 @@ class _QuestionCardState extends State<QuestionCard> {
                             ),
                           ],
                         ),
+                        if (MySharedPreferences.userId ==
+                                question.receiver.id &&
+                            widget.isInProfileScreen) ...[
+                          const SizedBox(width: 10),
+                          GestureDetector(
+                            child: SvgPicture.asset(
+                              AppIcons.pin,
+                              color: isPinned ? AppColors.primary : Colors.grey,
+                              height: 20,
+                              width: 20,
+                            ),
+                            onTap: () {
+                              togglePin();
+                            },
+                          ),
+                        ],
                       ],
                     ),
                   ),
@@ -355,24 +447,39 @@ class _QuestionCardState extends State<QuestionCard> {
                               );
                             });
                           },
-                          child: linkifyText(
-                            context: context,
-                            text: question.answerText.toString(),
-                            isInProfileScreen: widget.isInProfileScreen,
-                          ),
+                          child: isPinned
+                              ? Text(
+                                  "\"${question.answerText}\"",
+                                  textAlign: isArabic(question.answerText ?? '')
+                                      ? TextAlign.right
+                                      : TextAlign.left,
+                                  textDirection:
+                                      isArabic(question.answerText ?? '')
+                                      ? TextDirection.rtl
+                                      : TextDirection.ltr,
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
+                                  style: const TextStyle(fontSize: 16),
+                                )
+                              : linkifyText(
+                                  context: context,
+                                  text: question.answerText.toString(),
+                                  isInProfileScreen: widget.isInProfileScreen,
+                                ),
                         ),
                       ),
                     ],
                   ),
+                if (!isPinned) ...[
+                  if (question.images.isNotEmpty) const SizedBox(height: 5),
+                  if (question.images.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 0),
+                      child: buildImages(question.images),
+                    ),
 
-                if (question.images.isNotEmpty) const SizedBox(height: 5),
-                if (question.images.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 0),
-                    child: buildImages(question.images),
-                  ),
-
-                const SizedBox(height: 8),
+                  const SizedBox(height: 8),
+                ],
 
                 // --- Like Button row ---
                 if (question.answerText != null)

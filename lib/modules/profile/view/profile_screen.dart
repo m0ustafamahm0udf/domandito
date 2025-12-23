@@ -40,6 +40,7 @@ import 'package:domandito/modules/profile/view/widgets/profile_info_section.dart
 import 'package:domandito/modules/profile/view/widgets/profile_stats_section.dart';
 import 'package:domandito/modules/profile/view/widgets/profile_actions_section.dart';
 import 'package:domandito/modules/profile/view/widgets/profile_questions_list.dart';
+import 'package:domandito/modules/profile/view/widgets/pinned_questions_section.dart';
 import 'package:domandito/modules/profile/view/edit_profile_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -63,6 +64,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool isMe = false;
 
   List<QuestionModel> questions = [];
+  List<QuestionModel> pinnedQuestions = [];
+  List<QuestionModel> unpinnedQuestions = [];
   bool isQuestionsLoading = false;
   bool hasMore = true;
   int _offset = 0;
@@ -198,6 +201,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       }
 
       final List<dynamic> data = await query
+          .order('is_pinned', ascending: false) // Pinned first
           .order('answered_at', ascending: false)
           .order('created_at', ascending: false)
           .range(_offset, _offset + limit - 1);
@@ -230,6 +234,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         final exists = questions.any((element) => element.id == q.id);
         if (!exists) questions.add(q);
       }
+
+      pinnedQuestions = questions.where((q) => q.isPinned).toList();
+      unpinnedQuestions = questions.where((q) => !q.isPinned).toList();
 
       // 🚀 Batch Check Likes
       if (questions.isNotEmpty) {
@@ -658,98 +665,114 @@ class _ProfileScreenState extends State<ProfileScreen> {
               onRefresh: () async {
                 _offset = 0;
                 hasMore = true;
+                hasMore = true;
                 questions.clear();
+                pinnedQuestions.clear();
+                unpinnedQuestions.clear();
                 await getAllData();
                 await getQuestionsCount();
                 setState(() {});
               },
               child: ListView(
-                padding: EdgeInsets.only(top: 0, right: 16, left: 16),
+                padding: EdgeInsets.only(top: 0, right: 0, left: 0),
                 children: [
-                  ProfileImageSection(
-                    user: user!,
-                    isMe: isMe,
-                    isBlocked: isBlocked,
-                    onEditProfile: () {
-                      pushScreen(
-                        context,
-                        screen: const EditProfileScreen(),
-                      ).then((value) {
-                        if (value == true) {
-                          // Refresh profile after coming back from edit
-                          getProfile();
-                          setState(() {});
-                        }
-                      });
-                    },
+                  Padding(
+                    padding: EdgeInsets.only(top: 0, right: 16, left: 16),
+
+                    child: ProfileImageSection(
+                      user: user!,
+                      isMe: isMe,
+                      isBlocked: isBlocked,
+                      onEditProfile: () {
+                        pushScreen(
+                          context,
+                          screen: const EditProfileScreen(),
+                        ).then((value) {
+                          if (value == true) {
+                            // Refresh profile after coming back from edit
+                            getProfile();
+                            setState(() {});
+                          }
+                        });
+                      },
+                    ),
                   ),
 
                   // const SizedBox(height: 0),
-                  ProfileInfoSection(
-                    user: user!,
-                    isMe: isMe,
-                    isBlocked: isBlocked,
-                    blockLoading: blockLoading,
-                    onToggleBlock: toggleBlockAction,
+                  Padding(
+                    padding: EdgeInsets.only(top: 0, right: 16, left: 16),
+                    child: ProfileInfoSection(
+                      user: user!,
+                      isMe: isMe,
+                      isBlocked: isBlocked,
+                      blockLoading: blockLoading,
+                      onToggleBlock: toggleBlockAction,
+                    ),
                   ),
 
                   const SizedBox(height: 15),
 
-                  ProfileStatsSection(
-                    user: user!,
-                    isMe: isMe,
-                    onFollowingTap: () {
-                      if (isMe) {
+                  Padding(
+                    padding: EdgeInsets.only(top: 0, right: 16, left: 16),
+                    child: ProfileStatsSection(
+                      user: user!,
+                      isMe: isMe,
+                      onFollowingTap: () {
+                        if (isMe) {
+                          pushScreen(
+                            context,
+                            screen: FollowingScreen(
+                              followingCount: (count) {
+                                user!.followingCount = count;
+                                setState(() {});
+                              },
+                            ),
+                          ).then((value) async {
+                            //  await getProfile();
+                          });
+                        }
+                      },
+                      questionsCount: totalQuestionsCount,
+                    ),
+                  ),
+
+                  const SizedBox(height: 15),
+                  Padding(
+                    padding: EdgeInsets.only(top: 0, right: 16, left: 16),
+                    child: ProfileActionsSection(
+                      user: user!,
+                      isMe: isMe,
+                      isFollowing: isFollowing,
+                      followLoading: followLoading,
+                      isBlocked: isBlocked,
+                      onAsk: () {
+                        if (!MySharedPreferences.isLoggedIn) {
+                          AppConstance().showInfoToast(
+                            context,
+                            msg: !context.isCurrentLanguageAr()
+                                ? 'Please log in'
+                                : 'يرجى تسجيل الدخول',
+                            isLogin: true,
+                          );
+
+                          return;
+                        }
+
                         pushScreen(
                           context,
-                          screen: FollowingScreen(
-                            followingCount: (count) {
-                              user!.followingCount = count;
-                              setState(() {});
-                            },
+                          screen: AskQuestionScreen(
+                            canAskedAnonymously: user!.canAskedAnonymously,
+                            recipientToken: user!.token,
+                            recipientUserName: user!.userName,
+                            isVerified: user!.isVerified,
+                            recipientId: user!.id,
+                            recipientName: user!.name,
+                            recipientImage: user!.image,
                           ),
-                        ).then((value) async {
-                          //  await getProfile();
-                        });
-                      }
-                    },
-                    questionsCount: totalQuestionsCount,
-                  ),
-
-                  const SizedBox(height: 15),
-                  ProfileActionsSection(
-                    user: user!,
-                    isMe: isMe,
-                    isFollowing: isFollowing,
-                    followLoading: followLoading,
-                    isBlocked: isBlocked,
-                    onAsk: () {
-                      if (!MySharedPreferences.isLoggedIn) {
-                        AppConstance().showInfoToast(
-                          context,
-                          msg: !context.isCurrentLanguageAr()
-                              ? 'Please log in'
-                              : 'يرجى تسجيل الدخول',
-                          isLogin: true,
                         );
-
-                        return;
-                      }
-
-                      pushScreen(
-                        context,
-                        screen: AskQuestionScreen(
-                          canAskedAnonymously: user!.canAskedAnonymously,
-                          recipientToken: user!.token,
-                          recipientUserName: user!.userName,
-                          isVerified: user!.isVerified,
-                          recipientId: user!.id,
-                          recipientName: user!.name,
-                          recipientImage: user!.image,
-                        ),
-                      );
-                    },
-                    onToggleFollow: toggleFollowAction,
+                      },
+                      onToggleFollow: toggleFollowAction,
+                    ),
                   ),
 
                   const SizedBox(height: 4),
@@ -757,7 +780,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                   // UserShareCard(username: user!.name, userImage: user!.image),
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: Divider(thickness: 0.1, color: AppColors.primary),
                   ),
                   const SizedBox(height: 4),
@@ -797,26 +820,74 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ),
                         ],
                       ),
-                    )
+                    ),
+                  PinnedQuestionsSection(
+                    pinnedQuestions: pinnedQuestions,
+                    currentProfileUserId: widget.userId,
+                    receiverImage: user?.image ?? '',
+                    receiverToken: user?.token ?? '',
+                    isMe: isMe,
+                    onPinToggle: (isPinned, id) {
+                      setState(() {
+                        if (!isPinned) {
+                          // Move from pinned to unpinned
+                          final index = pinnedQuestions.indexWhere(
+                            (e) => e.id == id,
+                          );
+                          if (index != -1) {
+                            final q = pinnedQuestions.removeAt(index);
+                            q.isPinned = false;
+                            unpinnedQuestions.insert(0, q);
+                            // Sort unpinned by date (answeredAt or createdAt descending)
+                            unpinnedQuestions.sort((a, b) {
+                              final aTime = a.answeredAt ?? a.createdAt;
+                              final bTime = b.answeredAt ?? b.createdAt;
+                              return bTime.compareTo(aTime);
+                            });
+                          }
+                        }
+                      });
+                    },
+                  ),
+                  if (questions.isEmpty)
+                    const SizedBox()
                   else
-                    ProfileQuestionsList(
-                      questions: questions,
-                      user: user!,
-                      isMe: isMe,
-                      onDeleteQuestion: (id) async {
-                        await deleteQuestion(id);
-                        // Note: parent doesn't strictly know which index here unless we find it
-                        // The original logic removed by index in Dismissible confirmDismiss
-                        // But if we call this callback, we might want to refresh or rely on setState passed down?
-                        // The ProfileQuestionsList widget handles the specific item removal via dismissible logic?
-                        // Ah, wait. In ProfileQuestionsList I wrote:
-                        // if (res == true) { onDeleteQuestion(q.id); } return false;
-                        // So the UI won't animate removal automatically if I return false.
-                        // But if I want to remove it from `questions` list in parent:
-                        setState(() {
-                          questions.removeWhere((element) => element.id == id);
-                        });
-                      },
+                    Padding(
+                      padding: EdgeInsets.only(top: 0, right: 16, left: 16),
+                      child: ProfileQuestionsList(
+                        questions: unpinnedQuestions,
+                        user: user!,
+                        isMe: isMe,
+                        onDeleteQuestion: (id) async {
+                          await deleteQuestion(id);
+                          setState(() {
+                            questions.removeWhere(
+                              (element) => element.id == id,
+                            );
+                            pinnedQuestions.removeWhere(
+                              (element) => element.id == id,
+                            );
+                            unpinnedQuestions.removeWhere(
+                              (element) => element.id == id,
+                            );
+                          });
+                        },
+                        onPinToggle: (isPinned, id) {
+                          setState(() {
+                            if (isPinned) {
+                              // Move from unpinned to pinned
+                              final index = unpinnedQuestions.indexWhere(
+                                (e) => e.id == id,
+                              );
+                              if (index != -1) {
+                                final q = unpinnedQuestions.removeAt(index);
+                                q.isPinned = true;
+                                pinnedQuestions.insert(0, q);
+                              }
+                            }
+                          });
+                        },
+                      ),
                     ),
 
                   if (kIsWeb)

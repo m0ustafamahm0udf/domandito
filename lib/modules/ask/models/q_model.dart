@@ -12,6 +12,7 @@ class QuestionModel {
   final int commentCount;
   final Receiver receiver;
   bool isLiked;
+  bool isPinned;
 
   QuestionModel({
     required this.id,
@@ -27,6 +28,7 @@ class QuestionModel {
     this.commentCount = 0,
     required this.receiver,
     this.isLiked = false,
+    this.isPinned = false,
   });
 
   factory QuestionModel.fromJson(Map<String, dynamic> json) {
@@ -53,6 +55,7 @@ class QuestionModel {
       receiver: json['receiver'] != null
           ? Receiver.fromJson(json['receiver'])
           : Receiver(id: '', image: '', name: '', userName: '', token: ''),
+      isPinned: json['is_pinned'] ?? false,
     );
   }
 
@@ -70,6 +73,7 @@ class QuestionModel {
       'likes_count': likesCount,
       'comments_count': commentCount,
       'receiver_id': receiver.id, // For inserting, we typically send just ID
+      'is_pinned': isPinned,
     };
   }
 }
