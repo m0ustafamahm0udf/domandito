@@ -37,14 +37,18 @@ class ProfileImageSection extends StatelessWidget {
           child: GestureDetector(
             onTap: isBlocked
                 ? null
-                : () => pushScreen(
-                    context,
-                    screen: ImageViewScreen(
-                      images: [user.image],
-                      // title: '',
-                      onBack: (i) {},
-                    ),
-                  ),
+                : () {
+                    if (isMe) {
+                      pushScreen(
+                        context,
+                        screen: ImageViewScreen(
+                          images: [user.image],
+                          // title: '',
+                          onBack: (i) {},
+                        ),
+                      );
+                    }
+                  },
             child: Container(
               height: 175,
               width: 175,

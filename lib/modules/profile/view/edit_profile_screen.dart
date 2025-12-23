@@ -16,6 +16,8 @@ import 'package:domandito/shared/apis/upload_images_services.dart';
 import 'package:domandito/core/services/file_picker_service.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:domandito/shared/services/crop_image_service.dart';
+import 'package:domandito/shared/widgets/custom_network_image.dart';
+import 'package:domandito/shared/widgets/show_image_picker.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -54,12 +56,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     setState(() {});
   }
 
-  Future<void> _pickImage() async {
-    AppConstance().showLoading(context);
+  Future<void> _pickImage(ImageSource source) async {
+    // AppConstance().showLoading(context);
 
     try {
       final pickedFilePath = await ImagePickerService.pickFile(
-        source: ImageSource.gallery,
+        source: source,
         type: FileType.image,
       );
       if (pickedFilePath != null) {
@@ -67,7 +69,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           filePath: pickedFilePath,
         );
         if (croppedPath == null) {
-          Loader.hide();
+          // Loader.hide();
           return;
         }
 
@@ -75,10 +77,23 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           _imageFile = File(croppedPath);
         });
       }
-      Loader.hide();
+      // Loader.hide();
     } catch (e) {
       debugPrint("Error picking image: $e");
-      Loader.hide();
+      // Loader.hide();
+    }
+  }
+
+  Future<void> _showImageSourceDialog() async {
+    final ImageSource? source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => const ImagePickerSheet(),
+    );
+
+    if (source != null) {
+      _pickImage(source);
     }
   }
 
@@ -224,8 +239,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         child: Stack(
                           children: [
                             GestureDetector(
-                              onTap: _pickImage,
+                              onTap: _showImageSourceDialog,
                               child: Container(
+                                height: 100,
+                                width: 100,
                                 decoration: BoxDecoration(
                                   border: Border.all(
                                     color: AppColors.primary,
@@ -233,25 +250,28 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                   ),
                                   shape: BoxShape.circle,
                                 ),
-                                child: CircleAvatar(
-                                  radius: 50,
-                                  backgroundColor: Colors.grey.shade200,
-                                  backgroundImage: _imageFile != null
-                                      ? FileImage(_imageFile!) as ImageProvider
+                                child: ClipOval(
+                                  child: _imageFile != null
+                                      ? Image.file(
+                                          _imageFile!,
+                                          fit: BoxFit.cover,
+                                          height: 100,
+                                          width: 100,
+                                        )
                                       : (_currentImageUrl != null &&
-                                                _currentImageUrl!.isNotEmpty
-                                            ? NetworkImage(_currentImageUrl!)
-                                            : null),
-                                  child:
-                                      (_imageFile == null &&
-                                          (_currentImageUrl == null ||
-                                              _currentImageUrl!.isEmpty))
-                                      ? const Icon(
+                                            _currentImageUrl!.isNotEmpty)
+                                      ? CustomNetworkImage(
+                                          url: _currentImageUrl!,
+                                          radius: 999,
+                                          height: 100,
+                                          width: 100,
+                                          boxFit: BoxFit.cover,
+                                        )
+                                      : const Icon(
                                           Icons.person,
                                           size: 50,
                                           color: Colors.grey,
-                                        )
-                                      : null,
+                                        ),
                                 ),
                               ),
                             ),
@@ -259,7 +279,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               bottom: 0,
                               right: 0,
                               child: GestureDetector(
-                                onTap: _pickImage,
+                                onTap: _showImageSourceDialog,
                                 child: CircleAvatar(
                                   radius: 16,
                                   backgroundColor: AppColors.primary,
