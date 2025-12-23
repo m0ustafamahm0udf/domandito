@@ -153,7 +153,7 @@ class _NewQuestionsScreenState extends State<NewQuestionsScreen> {
                         physics: const AlwaysScrollableScrollPhysics(),
                         padding: const EdgeInsets.symmetric(
                           horizontal: 16,
-                          vertical: 16,
+                          vertical: 10,
                         ),
 
                         itemCount: questions.length + 1,

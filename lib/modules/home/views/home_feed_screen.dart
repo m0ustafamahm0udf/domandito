@@ -138,6 +138,7 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
                 ),
               ),
 
+            SliverToBoxAdapter(child: SizedBox(height: 10)),
             // 4. Questions List (The Infinite List)
             SliverList(
               delegate: SliverChildBuilderDelegate((context, index) {
