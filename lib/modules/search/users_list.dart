@@ -84,7 +84,7 @@ class _SearchUsersListState extends State<SearchUsersList> {
           .from('users')
           .select('id, name, username, image, is_verified, token');
 
-      if (MySharedPreferences.userId.isNotEmpty) {
+      if (MySharedPreferences.isLoggedIn) {
         query = query.neq('id', MySharedPreferences.userId);
       }
 
@@ -119,7 +119,7 @@ class _SearchUsersListState extends State<SearchUsersList> {
           .toList();
 
       // 4. Check Follow Status
-      if (newUsers.isNotEmpty && MySharedPreferences.userId.isNotEmpty) {
+      if (newUsers.isNotEmpty && MySharedPreferences.isLoggedIn) {
         final ids = newUsers.map((e) => e.id).toList();
         final followsData = await _supabase
             .from('follows')
