@@ -6,6 +6,7 @@ import 'package:domandito/shared/style/app_colors.dart';
 import 'package:domandito/shared/widgets/logo_widg.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:domandito/core/services/badge_service.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -28,6 +29,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
   void initState() {
     super.initState();
     getNotifications();
+    BadgeService.updateBadgeCount();
   }
 
   Future<void> getNotifications({bool isLoadMore = false}) async {
@@ -110,6 +112,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                         hasMore = true;
                         notifications.clear();
                         await getNotifications();
+                        BadgeService.updateBadgeCount();
                       },
                       child: ListView.builder(
                         physics: const AlwaysScrollableScrollPhysics(),

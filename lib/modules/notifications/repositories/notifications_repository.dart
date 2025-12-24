@@ -60,7 +60,18 @@ class NotificationsRepository {
       });
     } catch (e) {
       print('Error sending persistent notification: $e');
-      // rethrow; // Optional: rethrow if you want the caller to know
+    }
+  }
+
+  Future<int> getUnreadCount() async {
+    try {
+      final count = await _client.rpc(
+        'get_unread_notifications_count',
+        params: {'p_user_id': MySharedPreferences.userId},
+      );
+      return count as int;
+    } catch (e) {
+      return 0;
     }
   }
 }

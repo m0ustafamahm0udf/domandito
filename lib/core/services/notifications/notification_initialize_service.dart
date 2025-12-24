@@ -24,7 +24,7 @@ class InitFirebaseNotification {
 
     // إشعار أثناء عمل التطبيق في الخلفية وتم فتحه
     FirebaseMessaging.onMessageOpenedApp.listen((message) {
-      CloudMessagingService().background(message);
+      CloudMessagingService().handleTap(message);
       // CloudMessagingService().routeToggle(message.data);
     });
 

@@ -2,7 +2,7 @@ import 'dart:developer';
 
 import 'package:domandito/core/constants/app_constants.dart';
 import 'package:domandito/core/services/launch_urls.dart';
-import 'package:domandito/core/services/notifications/local_notifications_service.dart';
+
 import 'package:domandito/core/utils/extentions.dart';
 import 'package:domandito/core/utils/shared_prefrences.dart';
 import 'package:domandito/core/utils/utils.dart';
@@ -15,20 +15,23 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
+import 'package:domandito/core/services/badge_service.dart';
 
 class CloudMessagingService {
   void terminated(RemoteMessage? message) {
+    BadgeService.updateBadgeCount();
     if (message == null) return;
     if (message.notification != null && message.data.isNotEmpty) {
       // final data = message.notification;
       // print(
       //     "terminatedMessage::\nTitle:: ${data?.title}\nBody:: ${data?.body}\nData:: ${message.data}");
       routeToggle(message.data);
-      LocalNotificationsService().display(message);
+      // LocalNotificationsService().display(message);
     }
   }
 
   void foreground(RemoteMessage? message) async {
+    BadgeService.updateBadgeCount();
     if (message == null) return;
 
     if (message.notification != null) {
@@ -123,16 +126,20 @@ class CloudMessagingService {
     }
   }
 
-  void background(RemoteMessage? message) {
+  // Called when user taps a notification that was delivered in background
+  void handleTap(RemoteMessage? message) {
+    BadgeService.updateBadgeCount();
     if (message == null) return;
     if (message.notification != null && message.data.isNotEmpty) {
-      // final data = message.notification;
-      // print(
-      //     "backgroundMessage::\nTitle:: ${data?.title}\nBody:: ${data?.body}\nData:: ${message.data}");
-      // RoutesService().toggle(message.data);
       routeToggle(message.data);
-      LocalNotificationsService().display(message);
+      // LocalNotificationsService().display(message);
     }
+  }
+
+  // Called when a notification is received in background (HEADLESS)
+  void handleBackgroundReceipt(RemoteMessage? message) {
+    BadgeService.updateBadgeCount();
+    // DO NOT navigate or show local notification here
   }
 
   void routeToggle(Map<String, dynamic> data) async {

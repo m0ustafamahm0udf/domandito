@@ -17,6 +17,8 @@ import 'package:gms_check/gms_check.dart';
 import 'package:one_context/one_context.dart';
 import 'package:domandito/core/services/connectivity/connectivity.dart';
 import 'package:domandito/core/services/notifications/notification_initialize_service.dart';
+import 'package:domandito/core/services/notifications/cloud_messaging_service.dart';
+import 'package:domandito/core/services/badge_service.dart';
 import 'package:domandito/core/utils/bloc_helpers.dart';
 import 'package:domandito/core/utils/extentions.dart';
 import 'package:domandito/core/utils/shared_prefrences.dart';
@@ -32,9 +34,14 @@ Map<String, dynamic> notificationsMap = {};
 
 @pragma("vm:entry-point")
 Future<void> _onBackgroundMessage(RemoteMessage message) async {
-  if (message.notification != null) {
-    // Handle background notification
-  }
+  await dotenv.load(fileName: ".env");
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await MySharedPreferences.init();
+  await Supabase.initialize(
+    url: dotenv.env['SUPABASE_URL']!,
+    anonKey: dotenv.env['SUPABASE_ANON_KEY']!,
+  );
+  CloudMessagingService().handleBackgroundReceipt(message);
 }
 
 void main() async {
@@ -55,7 +62,13 @@ void main() async {
   Bloc.observer = AppBlocObserver();
   await EasyLocalization.ensureInitialized();
   await ConnectivityHandler().checkConnection();
+
   await GmsCheck().checkGmsAvailability();
+  try {
+    BadgeService.updateBadgeCount();
+  } catch (e) {
+    //
+  }
 
   runApp(
     EasyLocalization(

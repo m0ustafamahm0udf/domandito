@@ -3,7 +3,6 @@ import 'package:domandito/shared/style/app_colors.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
-
 class LocalNotificationsService {
   final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
@@ -53,9 +52,9 @@ class LocalNotificationsService {
             playSound: true,
             icon: '@mipmap/notification_icon', //
             color: AppColors.primary,
-            colorized: true
+            colorized: true,
           ),
-          iOS: DarwinNotificationDetails(sound: 'default', badgeNumber: 0),
+          iOS: DarwinNotificationDetails(sound: 'default'),
         ),
       );
     } on Exception {

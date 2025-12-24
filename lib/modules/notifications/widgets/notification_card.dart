@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:svg_flutter/svg_flutter.dart';
+import 'package:domandito/core/services/badge_service.dart';
 
 class NotificationCard extends StatefulWidget {
   final NotificationModel notificationsData;
@@ -107,6 +108,7 @@ class _NotificationCardState extends State<NotificationCard>
       }
       // Fire and forget usually, or await if critical
       NotificationsRepository().markAsRead(widget.notificationsData.id);
+      BadgeService.updateBadgeCount();
     }
   }
 
