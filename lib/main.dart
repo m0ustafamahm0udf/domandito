@@ -1,3 +1,4 @@
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:domandito/core/app_router.dart';
 import 'package:domandito/modules/landing/views/landing_screen.dart';
 import 'package:domandito/modules/signin/signin_screen.dart';
@@ -38,12 +39,12 @@ Future<void> _onBackgroundMessage(RemoteMessage message) async {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: ".env");
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   await Supabase.initialize(
-    url: 'https://dnmxkskwmjvrumfsyeiv.supabase.co',
-    anonKey:
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRubXhrc2t3bWp2cnVtZnN5ZWl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYzMTU0NDEsImV4cCI6MjA4MTg5MTQ0MX0.H88IW9msmiy1xDqAx95zbuSb1WdOI809VajTUZCzVYY',
+    url: dotenv.env['SUPABASE_URL']!,
+    anonKey: dotenv.env['SUPABASE_ANON_KEY']!,
   );
 
   InitFirebaseNotification().init();
