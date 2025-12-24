@@ -9,9 +9,9 @@ import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
 import 'package:svg_flutter/svg.dart';
 
 class FollowingScreen extends StatefulWidget {
-  final Function(int)? followingCount;
+  // final Function(int)? followingCount;
   final bool isHome;
-  const FollowingScreen({super.key, this.followingCount, this.isHome = false});
+  const FollowingScreen({super.key, this.isHome = false});
 
   @override
   State<FollowingScreen> createState() => _FollowingScreenState();
@@ -77,12 +77,7 @@ class _FollowingScreenState extends State<FollowingScreen> {
 
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
-            child: Column(
-              children: [
-                SizedBox(height: 20),
-                FollowingList(followingCount: widget.followingCount),
-              ],
-            ),
+            child: Column(children: [SizedBox(height: 20), FollowingList()]),
           ),
         ),
       ),

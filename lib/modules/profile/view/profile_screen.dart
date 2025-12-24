@@ -731,10 +731,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           pushScreen(
                             context,
                             screen: FollowingScreen(
-                              followingCount: (count) {
-                                user!.followingCount = count;
-                                setState(() {});
-                              },
+                              // followingCount: (count) {
+                              //   user!.followingCount = count;
+                              //   setState(() {});
+                              // },
                             ),
                           ).then((value) async {
                             //  await getProfile();

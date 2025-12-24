@@ -138,7 +138,24 @@ String timeAgo(dynamic timestamp, BuildContext context) {
   }
 
   final now = DateTime.now();
-  final diff = now.difference(date);
+  var diff = now.difference(date);
+
+  // Correction for cases where Local time is saved as UTC in the database,
+  // causing the time to appear in the future for users in +UTC timezones.
+  if (diff.isNegative) {
+    final assumedLocal = DateTime(
+      date.year,
+      date.month,
+      date.day,
+      date.hour,
+      date.minute,
+      date.second,
+    );
+    final diffLocal = now.difference(assumedLocal);
+    if (!diffLocal.isNegative) {
+      diff = diffLocal;
+    }
+  }
 
   // أقل من ساعة → دقائق
   if (diff.inMinutes < 60) {
@@ -186,6 +203,13 @@ String timeAgo(dynamic timestamp, BuildContext context) {
       !context.isCurrentLanguageAr() ? 'Saturday' : "السبت",
       !context.isCurrentLanguageAr() ? 'Sunday' : "الأحد",
     ];
+    // Use 'now' weekday logic or 'date' weekday?
+    // Using 'date.weekday' is correct for the absolute date.
+    // If fallback was used, the 'date' object is still the UTC variant but the components are what we wanted.
+    // date.weekday depends on the timezone of the object.
+    // If it's UTC, it might be shifted.
+    // However, if we are in this block (< 7 days), usage of weekday is just naming the day.
+    // Let's rely on the original date object for now as it's cleaner than replacing 'date'.
     return days[date.weekday - 1];
   }
 

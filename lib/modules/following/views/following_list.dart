@@ -7,6 +7,7 @@ import 'package:domandito/modules/profile/view/profile_screen.dart';
 import 'package:domandito/modules/search/search.dart';
 import 'package:domandito/shared/models/follow_model.dart';
 import 'package:domandito/shared/services/block_service.dart';
+import 'package:domandito/shared/services/follow_service.dart';
 import 'package:domandito/shared/style/app_colors.dart';
 import 'package:domandito/shared/widgets/custom_network_image.dart';
 import 'package:domandito/shared/widgets/logo_widg.dart';
@@ -16,9 +17,9 @@ import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
 import 'package:svg_flutter/svg.dart';
 
 class FollowingList extends StatefulWidget {
-  final Function(int)? followingCount;
+  // final Function(int)? followingCount;
   final Function? onBack;
-  const FollowingList({super.key, this.followingCount, this.onBack});
+  const FollowingList({super.key, this.onBack});
 
   @override
   State<FollowingList> createState() => _FollowingListState();
@@ -79,20 +80,20 @@ class _FollowingListState extends State<FollowingList> {
             .toList();
         following.addAll(newFollowing);
 
-        _offset += newFollowing.length;
+        _offset += data.length;
       }
 
       hasMore = data.length == pageSize;
     } catch (e) {
       debugPrint('Error fetching following: $e');
     } finally {
-      setState(() => isLoading = false);
+      if (mounted) setState(() => isLoading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (isLoading) {
+    if (isLoading && following.isEmpty) {
       return SizedBox(
         height: MediaQuery.of(context).size.height * 0.75,
 
@@ -156,7 +157,9 @@ class _FollowingListState extends State<FollowingList> {
 
     return PopScope(
       onPopInvoked: (didPop) {
-        widget.followingCount!(following.length);
+        // if (widget.followingCount != null) {
+        //   widget.followingCount!(following.length);
+        // }
       },
       child: Expanded(
         child: SizedBox(
@@ -177,7 +180,6 @@ class _FollowingListState extends State<FollowingList> {
                 if (index == following.length) {
                   // زر تحميل المزيد
                   return SizedBox(
-                    height: context.h - AppConstance.hPadding * 12,
                     child: Center(
                       child: TextButton(
                         onPressed: isLoading ? null : fetchFollowing,
@@ -266,6 +268,43 @@ class _FollowingListState extends State<FollowingList> {
                                 ),
                               ),
                             ],
+                          ),
+                        ),
+                        // Unfollow Button
+                        SizedBox(
+                          height: 32,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.grey[300],
+                              foregroundColor: Colors.black,
+                              padding: EdgeInsets.symmetric(horizontal: 12),
+                              elevation: 0,
+                            ),
+                            onPressed: () async {
+                              final res = await FollowService.toggleFollow(
+                                context: context,
+                                me: FollowUser(
+                                  id: MySharedPreferences.userId,
+                                  name: MySharedPreferences.userName,
+                                  image: MySharedPreferences.image,
+                                  userName: MySharedPreferences.userUserName,
+                                  userToken: MySharedPreferences.deviceToken,
+                                ),
+                                targetUser: f.targetUser,
+                              );
+                              // If res is false, it means we unfollowed
+                              if (!res) {
+                                setState(() {
+                                  following.remove(f);
+                                });
+                              }
+                            },
+                            child: Text(
+                              !context.isCurrentLanguageAr()
+                                  ? "Following"
+                                  : "أتابعه",
+                              style: TextStyle(fontSize: 12),
+                            ),
                           ),
                         ),
                       ],
