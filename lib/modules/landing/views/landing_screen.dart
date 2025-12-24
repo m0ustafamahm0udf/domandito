@@ -91,7 +91,10 @@ class _LandingScreenState extends State<LandingScreen> {
           //       : AppColors.primary.withOpacity(0.15),
           // ),
           // title: MySharedPreferences.userUserName,
-          title: !context.isCurrentLanguageAr() ? 'Profile' : 'الملف الشخصي',
+          // title: !context.isCurrentLanguageAr() ? 'Profile' : 'الملف الشخصي',
+          title: '@${MySharedPreferences.userUserName}',
+          textStyle: TextStyle(fontFamily: 'Dancing_Script', fontSize: 13),
+
           activeForegroundColor: AppColors.primary,
         ),
       ),
@@ -105,7 +108,14 @@ class _LandingScreenState extends State<LandingScreen> {
                 ? AppColors.primary
                 : AppColors.primary.withOpacity(0.15),
           ),
-          title: !context.isCurrentLanguageAr() ? "New" : "جديد",
+          title: !context.isCurrentLanguageAr() ? "New Questions" : "جديد",
+          textStyle: TextStyle(
+            fontFamily: context.isCurrentLanguageAr()
+                ? 'Rubik'
+                : 'Dancing_Script',
+            fontSize: 14,
+          ),
+
           activeForegroundColor: AppColors.primary,
         ),
       ),

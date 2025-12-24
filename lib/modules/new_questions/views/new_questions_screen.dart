@@ -130,6 +130,11 @@ class _NewQuestionsScreenState extends State<NewQuestionsScreen> {
         backgroundColor: AppColors.primary,
         title: Text(
           !context.isCurrentLanguageAr() ? "New Questions" : "أسئلة جديدة",
+          style: TextStyle(
+            fontFamily: context.isCurrentLanguageAr()
+                ? 'Rubik'
+                : 'Dancing_Script',
+          ),
         ),
       ),
       body: SafeArea(

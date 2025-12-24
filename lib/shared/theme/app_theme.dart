@@ -84,7 +84,7 @@ class AppTheme {
         // color: AppColors.white,
         backgroundColor: AppColors.primary,
         foregroundColor: AppColors.primary,
-        centerTitle: true,
+        // centerTitle: true,
         iconTheme: IconThemeData(color: AppColors.white),
         shadowColor: AppColors.primary,
         // color: AppColors.primary,

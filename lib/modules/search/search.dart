@@ -52,6 +52,7 @@ class _SearchUsersScreenState extends State<SearchUsersScreen> {
         child: Column(
           children: [
             CustomTextField(
+              padding: 0,
               autoFocus: true,
               label: !context.isCurrentLanguageAr()
                   ? valll.contains('@')

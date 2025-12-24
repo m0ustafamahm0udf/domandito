@@ -24,7 +24,11 @@ class _FollowingScreenState extends State<FollowingScreen> {
       child: Scaffold(
         appBar: AppBar(
           title: Text(
-            widget.isHome ? 'Domandito' : !context.isCurrentLanguageAr()? 'Following' : 'أتابعهم',
+            widget.isHome
+                ? 'Domandito'
+                : !context.isCurrentLanguageAr()
+                ? 'Following'
+                : 'أتابعهم',
             style: TextStyle(
               fontSize: widget.isHome ? 36 : null,
               fontFamily: widget.isHome ? 'Dancing_Script' : null,
@@ -55,20 +59,17 @@ class _FollowingScreenState extends State<FollowingScreen> {
                   icon: Icon(Icons.arrow_back),
                 ),
           actions: [
-            if (widget.isHome)
-              IconButton.filled(
-                style: ButtonStyle(
-                  backgroundColor: WidgetStatePropertyAll(AppColors.white),
-                ),
-                onPressed: () =>
-                    pushScreen(context, screen: SearchUsersScreen()),
-                icon: SvgPicture.asset(
-                  AppIcons.searchIcon,
-                  color: AppColors.primary,
-                ),
+            IconButton.filled(
+              style: ButtonStyle(
+                backgroundColor: WidgetStatePropertyAll(AppColors.white),
               ),
-          SizedBox(width: 4),
-
+              onPressed: () => pushScreen(context, screen: SearchUsersScreen()),
+              icon: SvgPicture.asset(
+                AppIcons.searchIcon,
+                color: AppColors.primary,
+              ),
+            ),
+            SizedBox(width: 4),
           ],
         ),
         body: SafeArea(

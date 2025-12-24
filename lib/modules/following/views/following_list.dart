@@ -225,8 +225,8 @@ class _FollowingListState extends State<FollowingList> {
                         CustomNetworkImage(
                           url: f.targetUser.image,
                           radius: 999,
-                          height: 40,
-                          width: 40,
+                          height: 50,
+                          width: 50,
                         ),
                         const SizedBox(width: 8),
                         Expanded(
