@@ -10,6 +10,7 @@ import 'package:domandito/core/utils/extentions.dart';
 import 'package:domandito/core/utils/shared_prefrences.dart';
 import 'package:domandito/core/utils/utils.dart';
 import 'package:domandito/modules/ask/models/q_model.dart';
+import 'package:domandito/modules/notifications/repositories/notifications_repository.dart';
 import 'package:domandito/shared/apis/upload_images_services.dart';
 import 'package:domandito/shared/style/app_colors.dart';
 import 'package:domandito/shared/widgets/answer_question_card_details.dart';
@@ -148,14 +149,26 @@ class _AnswerQuestionScreenState extends State<AnswerQuestionScreen> {
       if (userResponse != null) {
         usertokenIfisNotMe = userResponse['token'] ?? '';
       }
-      await SendMessageNotificationWithHTTPv1().send2(
-        type: AppConstance.answer,
-        urll: '',
-        toToken: usertokenIfisNotMe,
-        message: AppConstance.asnwered,
-        title: 'Domandito',
-        id: widget.question.id,
-      );
+
+      // Send persistent notification and push notification in parallel
+      await Future.wait([
+        NotificationsRepository().sendNotification(
+          senderId: MySharedPreferences.userId,
+          receiverId: widget.question.sender.id,
+          type: AppConstance.answer,
+          entityId: widget.question.id,
+          title: MySharedPreferences.userName,
+          body: AppConstance.asnwered,
+        ),
+        SendMessageNotificationWithHTTPv1().send2(
+          type: AppConstance.answer,
+          urll: '',
+          toToken: usertokenIfisNotMe,
+          message: AppConstance.asnwered,
+          title: MySharedPreferences.userName,
+          id: widget.question.id,
+        ),
+      ]);
 
       context.backWithValue(true);
     } catch (e) {

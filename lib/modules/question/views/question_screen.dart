@@ -31,6 +31,24 @@ class QuestionScreen extends StatefulWidget {
 
 class _QuestionScreenState extends State<QuestionScreen> {
   @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    if (widget.question.answerText == null ||
+        widget.question.answerText!.isEmpty) {
+      Future.delayed(const Duration(milliseconds: 0), () {
+        AppConstance().showInfoToast(
+          context,
+          msg: context.isCurrentLanguageAr()
+              ? 'لا يوجد إجابة'
+              : 'No answer found',
+        );
+        context.back();
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return PopScope(
       child: Scaffold(

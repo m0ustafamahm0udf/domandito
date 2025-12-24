@@ -50,8 +50,8 @@ class ProfileImageSection extends StatelessWidget {
                     }
                   },
             child: Container(
-              height: 175,
-              width: 175,
+              height: 140,
+              width: 140,
               padding: const EdgeInsets.all(2.0),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
@@ -61,8 +61,8 @@ class ProfileImageSection extends StatelessWidget {
                 child: CustomNetworkImage(
                   radius: 999,
                   url: user.image,
-                  height: 175,
-                  width: 175,
+                  height: 140,
+                  width: 140,
                   boxFit: BoxFit.cover,
                 ),
               ),
@@ -74,8 +74,8 @@ class ProfileImageSection extends StatelessWidget {
               AppPlatform.webIOS != platform &&
               AppPlatform.webDesktop != platform)
             Positioned(
-              top: 20,
-              left: context.w * 0.24,
+              top: 10,
+              left: context.w * 0.28,
               child: Container(
                 // padding: const EdgeInsets.all(0.0),
                 decoration: BoxDecoration(

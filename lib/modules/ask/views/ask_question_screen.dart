@@ -12,6 +12,7 @@ import 'package:domandito/core/utils/extentions.dart';
 import 'package:domandito/core/utils/shared_prefrences.dart';
 import 'package:domandito/core/utils/utils.dart';
 import 'package:domandito/modules/ask/models/q_model.dart';
+import 'package:domandito/modules/notifications/repositories/notifications_repository.dart';
 import 'package:domandito/shared/style/app_colors.dart';
 import 'package:domandito/shared/widgets/ask_question_details_card.dart';
 import 'package:domandito/shared/widgets/custom_bounce_button.dart';
@@ -135,14 +136,44 @@ class _AskQuestionScreenState extends State<AskQuestionScreen> {
             : 'تم إرسال السؤال بنجاح',
       );
 
-      await SendMessageNotificationWithHTTPv1().send2(
-        type: AppConstance.question,
-        urll: '',
-        toToken: widget.recipientToken,
-        message: AppConstance.questioned,
-        title: 'Domandito',
-        id: questionId,
-      );
+      log('Attempting to send notifications...');
+      try {
+        // Send persistent notification and push notification in parallel
+        await Future.wait([
+          NotificationsRepository()
+              .sendNotification(
+                senderId: MySharedPreferences.userId,
+                receiverId: widget.recipientId,
+                type: AppConstance.question,
+                entityId: questionId,
+                title: isAnonymous
+                    ? (!context.isCurrentLanguageAr() ? 'Anonymous' : 'مجهول')
+                    : MySharedPreferences.userName,
+                body: AppConstance.questioned,
+              )
+              .then((_) => log('Persistent notification sent successfully')),
+
+          SendMessageNotificationWithHTTPv1()
+              .send2(
+                type: AppConstance.question,
+                urll: '',
+                toToken: widget.recipientToken,
+                message: AppConstance.questioned,
+                title: isAnonymous
+                    ? (!context.isCurrentLanguageAr() ? 'Anonymous' : 'مجهول')
+                    : MySharedPreferences.userName,
+                id: questionId,
+              )
+              .then((_) => log('Push notification sent successfully')),
+        ]);
+        log('All notifications sent.');
+      } catch (e, stack) {
+        log(
+          'Error sending notifications: $e\n$stack',
+          error: e,
+          stackTrace: stack,
+        );
+      }
       log(questionId + 'questionId');
 
       Loader.hide();

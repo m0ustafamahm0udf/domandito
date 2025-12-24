@@ -193,7 +193,8 @@ class _BounceButtonState extends State<BounceButton> {
       child: flutter_bounce.Bounce(
         duration: const Duration(milliseconds: 150),
         onTap: _handleOnPressed,
-        child: widget.child ??
+        child:
+            widget.child ??
             Container(
               alignment: Alignment.center,
               height: widget.height,
@@ -201,8 +202,8 @@ class _BounceButtonState extends State<BounceButton> {
               decoration: BoxDecoration(
                 color: widget.gradient == null
                     ? (!widget.isOutline
-                        ? widget.color ?? AppColors.primary
-                        : AppColors.white)
+                          ? widget.color ?? AppColors.primary
+                          : AppColors.white)
                     : null, // إذا فيه gradient، اللون يبقى null
                 gradient: widget.gradient, // استخدام التدرج إذا موجود
                 borderRadius: BorderRadius.circular(widget.radius),
@@ -220,7 +221,8 @@ class _BounceButtonState extends State<BounceButton> {
                     Text(
                       widget.title,
                       textAlign: TextAlign.center,
-                      style: widget.textStyle ??
+                      style:
+                          widget.textStyle ??
                           TextStyle(
                             fontSize: widget.textSize,
                             color: !widget.isOutline

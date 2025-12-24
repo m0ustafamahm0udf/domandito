@@ -81,6 +81,7 @@ class AppTheme {
         secondary: AppColors.white,
       ),
       appBarTheme: AppBarTheme(
+        centerTitle: false,
         // color: AppColors.white,
         backgroundColor: AppColors.primary,
         foregroundColor: AppColors.primary,

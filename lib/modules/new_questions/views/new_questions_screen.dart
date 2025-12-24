@@ -201,10 +201,10 @@ class _NewQuestionsScreenState extends State<NewQuestionsScreen> {
                               );
                             }
 
-                            if (!hasMore) return const SizedBox(height: 40);
+                            if (!hasMore) return const SizedBox(height: 10);
 
                             return Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              padding: const EdgeInsets.symmetric(vertical: 5),
                               child: Center(
                                 child: ElevatedButton(
                                   onPressed: () async {

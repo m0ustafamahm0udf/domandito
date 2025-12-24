@@ -1,10 +1,11 @@
 import 'package:domandito/core/constants/app_icons.dart';
 import 'package:domandito/core/utils/extentions.dart';
 import 'package:domandito/core/utils/shared_prefrences.dart';
-import 'package:domandito/modules/home/home_screen.dart';
+
 import 'package:domandito/modules/home/views/home_feed_screen.dart';
 import 'package:domandito/modules/landing/controller/landing_cubit.dart';
 import 'package:domandito/modules/new_questions/views/new_questions_screen.dart';
+import 'package:domandito/modules/notifications/notifications_screen.dart';
 import 'package:domandito/modules/profile/view/profile_screen.dart';
 import 'package:domandito/shared/style/app_colors.dart';
 import 'package:domandito/shared/widgets/custom_network_image.dart';
@@ -119,20 +120,26 @@ class _LandingScreenState extends State<LandingScreen> {
           activeForegroundColor: AppColors.primary,
         ),
       ),
-    // if (MySharedPreferences.isLoggedIn && !kIsWeb)
-    //     PersistentTabConfig(
-    //       screen: const NotificationsScreen(),
-    //       item: ItemConfig(
-    //         icon: SvgPicture.asset(
-    //           AppIcons.notifications,
-    //           color: currentIndex == 3
-    //               ? AppColors.primary
-    //               : AppColors.primary.withOpacity(0.15),
-    //         ),
-    //         title: "الاشعارات",
-    //         activeForegroundColor: AppColors.primary,
-    //       ),
-    //     ),
+    if (MySharedPreferences.isLoggedIn)
+      PersistentTabConfig(
+        screen: const NotificationsScreen(),
+        item: ItemConfig(
+          icon: SvgPicture.asset(
+            AppIcons.notifications,
+            color: currentIndex == 3
+                ? AppColors.primary
+                : AppColors.primary.withOpacity(0.15),
+          ),
+          title: !context.isCurrentLanguageAr() ? "Notifications" : "الاشعارات",
+          textStyle: TextStyle(
+            fontFamily: context.isCurrentLanguageAr()
+                ? 'Rubik'
+                : 'Dancing_Script',
+            fontSize: 14,
+          ),
+          activeForegroundColor: AppColors.primary,
+        ),
+      ),
   ];
 
   int currentIndex = 0;
@@ -161,7 +168,7 @@ class _LandingScreenState extends State<LandingScreen> {
               });
             },
             controller: landingCubit.controller,
-            navBarBuilder: (navBarConfig) => Style7BottomNavBar(
+            navBarBuilder: (navBarConfig) => Style10BottomNavBar(
               navBarConfig: navBarConfig,
               navBarDecoration: NavBarDecoration(color: Colors.white),
             ),

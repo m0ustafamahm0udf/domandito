@@ -1,7 +1,9 @@
 import 'package:domandito/core/constants/app_constants.dart';
 import 'package:domandito/core/services/notifications/send_message_notification.dart';
 import 'package:domandito/core/utils/extentions.dart';
+
 import 'package:domandito/core/utils/utils.dart';
+import 'package:domandito/modules/notifications/repositories/notifications_repository.dart';
 import 'package:domandito/shared/models/like_model.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -55,18 +57,42 @@ class LikeService {
 
         result = true; // دلوقتي لایک (DB operation successful)
 
-        try {
-          await SendMessageNotificationWithHTTPv1().send2(
-            type: AppConstance.like,
-            urll: '',
-            toToken: user.token,
-            message: AppConstance.liked,
-            title: 'Domandito',
-            id: questionId,
-          );
-        } catch (e) {
-          debugPrint("Notification Error: $e");
-          // Don't fail the like operation just because notification failed
+        // Fetch question owner to notify them
+        // Fetch question owner to notify them
+        final questionResponse = await _supabase
+            .from('questions')
+            .select('receiver_id, receiver:receiver_id(token)')
+            .eq('id', questionId)
+            .maybeSingle();
+
+        if (questionResponse != null) {
+          final receiverId = questionResponse['receiver_id'] as String;
+          final receiverToken =
+              questionResponse['receiver']['token'] as String?;
+
+          // if (receiverId != user.id) {
+          // Don't notify self
+          // Send persistent notification and push notification in parallel
+          await Future.wait([
+            if (receiverToken != null)
+              SendMessageNotificationWithHTTPv1().send2(
+                type: AppConstance.like,
+                urll: '',
+                toToken: receiverToken,
+                message: AppConstance.liked,
+                title: 'Domandito',
+                id: questionId,
+              ),
+            NotificationsRepository().sendNotification(
+              senderId: user.id,
+              receiverId: receiverId,
+              type: AppConstance.like,
+              entityId: questionId,
+              title: 'Domandito',
+              body: AppConstance.liked,
+            ),
+          ]);
+          // }
         }
       }
     } catch (e) {

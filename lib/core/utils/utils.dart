@@ -7,7 +7,7 @@ import 'package:domandito/core/services/launch_urls.dart';
 import 'package:domandito/core/utils/extentions.dart';
 import 'package:domandito/core/utils/shared_prefrences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:domandito/main.dart';
+
 import 'package:domandito/modules/ask/models/q_model.dart';
 import 'package:domandito/modules/signin/models/user_model.dart';
 import 'package:flutter/foundation.dart';
@@ -37,24 +37,16 @@ String getOrderTypeText(String type) {
   }
 }
 
-String getTranslatedContent(String content) {
+String getTranslatedContent(String content, BuildContext context) {
   switch (content) {
     case AppConstance.liked:
-      return AppConstance().likedAnswerNotification(
-        context: navigatorKey.currentState!.context,
-      );
+      return AppConstance().likedAnswerNotification(context: context);
     case AppConstance.asnwered:
-      return AppConstance().answeredQNotification(
-        context: navigatorKey.currentState!.context,
-      );
+      return AppConstance().answeredQNotification(context: context);
     case AppConstance.questioned:
-      return AppConstance().questionedNotification(
-        context: navigatorKey.currentState!.context,
-      );
+      return AppConstance().questionedNotification(context: context);
     case AppConstance.followed:
-      return AppConstance().followedNotification(
-        context: navigatorKey.currentState!.context,
-      );
+      return AppConstance().followedNotification(context: context);
     default:
       return content;
   }

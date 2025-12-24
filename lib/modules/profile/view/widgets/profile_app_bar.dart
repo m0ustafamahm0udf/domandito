@@ -27,7 +27,7 @@ class ProfileAppBar extends StatelessWidget implements PreferredSizeWidget {
               textDirection: TextDirection.ltr,
               style: TextStyle(
                 color: Colors.white,
-                fontSize: 24,
+                // fontSize: 18,
                 fontFamily: 'Dancing_Script',
               ),
             )

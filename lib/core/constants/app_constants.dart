@@ -44,29 +44,25 @@ class AppConstance {
   // Generic
   static const String unknown = "Unknown";
 
-  static const String asnwered = "تم الإجابة على سؤالك";
-  static const String liked = 'إعجاب جديد على إجابتك';
-  static const String questioned = 'لديك سؤال جديد 🌚';
-  static const String followed = 'لديك متابعة جديدة';
+  static const String asnwered = "Your question has been answered";
+  static const String liked = 'New like on your answer';
+  static const String questioned = 'You have a new question 🌚';
+  static const String followed = 'You have a new follower';
 
   String answeredQNotification({required BuildContext context}) {
-    return context.isCurrentLanguageAr()
-        ? asnwered
-        : 'Your question has been answered';
+    return !context.isCurrentLanguageAr() ? asnwered : 'تم الإجابة على سؤالك';
   }
 
   String likedAnswerNotification({required BuildContext context}) {
-    return context.isCurrentLanguageAr() ? liked : 'New like on your answer';
+    return !context.isCurrentLanguageAr() ? liked : 'إعجاب جديد على إجابتك';
   }
 
   String questionedNotification({required BuildContext context}) {
-    return context.isCurrentLanguageAr()
-        ? questioned
-        : 'You have a new question 🌚';
+    return !context.isCurrentLanguageAr() ? questioned : 'سؤال جديد 🌚';
   }
 
   String followedNotification({required BuildContext context}) {
-    return context.isCurrentLanguageAr() ? followed : 'You have a new follower';
+    return !context.isCurrentLanguageAr() ? followed : 'متابعة جديدة';
   }
 
   static const double textFieldH = 18;
@@ -206,7 +202,7 @@ class AppConstance {
         textAlign: !context.isCurrentLanguageAr()
             ? TextAlign.left
             : TextAlign.right,
-            maxLines: 5,
+        maxLines: 5,
       ),
       autoCloseDuration: Duration(seconds: duration),
       // applyBlurEffect: true,

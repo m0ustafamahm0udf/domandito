@@ -111,7 +111,10 @@ class CloudMessagingService {
             isConfirm: false,
             // ignore: unnecessary_null_comparison
             title: data!.title == null ? 'Domandito' : data.title.toString(),
-            content: getTranslatedContent(data.body.toString()),
+            content: getTranslatedContent(
+              data.body.toString(),
+              navigatorKey.currentState!.context,
+            ),
           ),
         );
       });

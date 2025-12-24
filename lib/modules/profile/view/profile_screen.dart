@@ -14,6 +14,7 @@ import 'package:domandito/core/utils/utils.dart';
 import 'package:domandito/modules/ask/models/q_model.dart';
 import 'package:domandito/modules/ask/views/ask_question_screen.dart';
 import 'package:domandito/modules/following/views/following_screen.dart';
+import 'package:domandito/modules/notifications/repositories/notifications_repository.dart';
 import 'package:domandito/shared/models/bloced_user.dart';
 // blocked_user import might handle BlockUser class if not in block_service
 import 'package:domandito/shared/models/follow_model.dart'; // FollowUser might be here
@@ -439,15 +440,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ? 'Followed successfully'
             : 'تم المتابعة',
       );
-      log(user!.token + ' token');
-      await SendMessageNotificationWithHTTPv1().send2(
-        type: AppConstance.follow,
-        urll: '',
-        toToken: user!.token,
-        message: AppConstance.followed,
-        title: 'Domandito',
-        id: '',
-      );
+      await Future.wait([
+        SendMessageNotificationWithHTTPv1().send2(
+          type: AppConstance.follow,
+          urll: '',
+          toToken: user!.token,
+          message: AppConstance.followed,
+          title: 'Domandito',
+          id: '',
+        ),
+        NotificationsRepository().sendNotification(
+          senderId: MySharedPreferences.userId,
+          receiverId: user!.id,
+          type: AppConstance.follow,
+          title: 'Domandito',
+          body: AppConstance.followed,
+        ),
+      ]);
+      // Send persistent notification to Supabase
     } else {
       //////
       //
@@ -955,7 +965,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   // const SizedBox(height: 2),
                   Center(
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      padding: const EdgeInsets.symmetric(vertical: 5),
                       child: Builder(
                         builder: (context) {
                           if (!hasMore && questions.isNotEmpty) {

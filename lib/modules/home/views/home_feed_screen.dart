@@ -168,7 +168,7 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
             if (_hasMore && !_isLoading && _questions.isNotEmpty)
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 20),
+                  padding: const EdgeInsets.symmetric(vertical: 5),
                   child: Center(
                     child: _isMoreLoading
                         ? const CupertinoActivityIndicator(
