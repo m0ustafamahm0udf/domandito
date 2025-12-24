@@ -4,6 +4,7 @@ import 'package:domandito/core/constants/app_constants.dart';
 import 'package:domandito/core/constants/app_icons.dart';
 import 'package:domandito/core/constants/app_images.dart';
 import 'package:domandito/core/constants/app_platforms_serv.dart';
+import 'package:domandito/core/services/badge_service.dart';
 import 'package:domandito/core/services/get_device_serv.dart';
 import 'package:domandito/core/services/launch_urls.dart';
 import 'package:domandito/core/services/share_service.dart';
@@ -452,6 +453,7 @@ class _AccountScreenState extends State<AccountScreen> {
           context: context,
         );
         if (rest != null && rest) {
+          BadgeService.removeBadge();
           MySharedPreferences.clearProfile(context: context);
         }
         break;
@@ -462,6 +464,8 @@ class _AccountScreenState extends State<AccountScreen> {
           context: context,
         );
         if (rest != null && rest) {
+          BadgeService.removeBadge();
+
           MySharedPreferences.clearProfile(context: context);
         }
         break;
