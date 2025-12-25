@@ -245,10 +245,16 @@ class _QuestionCardState extends State<QuestionCard> {
                 // --- Header ---
                 GestureDetector(
                   onTap: () {
+                    final isMe =
+                        MySharedPreferences.userId == question.sender.id;
+                    final isSameProfile =
+                        widget.isInProfileScreen &&
+                        widget.currentProfileUserId == question.sender.id;
+
                     if (!question.isAnonymous &&
                         !isProcessing &&
-                        widget.currentProfileUserId != question.sender.id &&
-                        (MySharedPreferences.userId != question.sender.id)) {
+                        !isMe &&
+                        !isSameProfile) {
                       pushScreen(
                         context,
                         screen: ProfileScreen(userId: question.sender.id),
@@ -497,23 +503,34 @@ class _QuestionCardState extends State<QuestionCard> {
                       if (question.receiver.userName.isNotEmpty)
                         GestureDetector(
                           onTap: () {
-                            // log(
-                            //   question.receiver.id !=
-                            //               MySharedPreferences.userId &&
-                            //           (question.receiver.id !=
-                            //               widget.currentProfileUserId)
-                            //       ? 'true'
-                            //       : 'false',
-                            // );
-                            if (question.receiver.id !=
-                                MySharedPreferences.userId) {
+                            final isMe =
+                                MySharedPreferences.userId ==
+                                question.sender.id;
+                            final isSameProfile =
+                                widget.isInProfileScreen &&
+                                widget.currentProfileUserId ==
+                                    question.sender.id;
+
+                            if (!question.isAnonymous &&
+                                !isProcessing &&
+                                !isMe &&
+                                !isSameProfile) {
                               pushScreen(
                                 context,
                                 screen: ProfileScreen(
-                                  userId: question.receiver.id,
+                                  userId: question.sender.id,
                                 ),
                               );
                             }
+                            // if (question.receiver.id !=
+                            //     MySharedPreferences.userId) {
+                            //   pushScreen(
+                            //     context,
+                            //     screen: ProfileScreen(
+                            //       userId: question.receiver.id,
+                            //     ),
+                            //   );
+                            // }
                           },
                           child: Text(
                             "@${question.receiver.userName}",
