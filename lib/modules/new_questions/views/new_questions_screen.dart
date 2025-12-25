@@ -103,7 +103,7 @@ class _NewQuestionsScreenState extends State<NewQuestionsScreen> {
     }
   }
 
-  Future<void> deleteQuestion(String id) async {
+  Future<bool> deleteQuestion(String id) async {
     if (!await hasInternetConnection()) {
       AppConstance().showInfoToast(
         context,
@@ -111,15 +111,30 @@ class _NewQuestionsScreenState extends State<NewQuestionsScreen> {
             ? 'No internet connection'
             : 'لا يوجد اتصال بالانترنت',
       );
-      return;
+      return false;
     }
     try {
       await Supabase.instance.client
           .from('questions')
           .update({'is_deleted': true})
           .eq('id', id);
+
+      AppConstance().showSuccesToast(
+        context,
+        msg: !context.isCurrentLanguageAr()
+            ? 'Question deleted successfully'
+            : 'تم حذف السؤال بنجاح',
+      );
+      return true;
     } catch (e) {
       debugPrint("Error deleting question: $e");
+      AppConstance().showErrorToast(
+        context,
+        msg: !context.isCurrentLanguageAr()
+            ? 'Error deleting question'
+            : 'حدث خطأ',
+      );
+      return false;
     }
   }
 
@@ -279,12 +294,15 @@ class _NewQuestionsScreenState extends State<NewQuestionsScreen> {
                                 ),
                               );
                               if (res == true) {
-                                await deleteQuestion(q.id);
-                                setState(() {
-                                  questions.removeAt(index);
-                                });
+                                final success = await deleteQuestion(q.id);
+                                if (success && context.mounted) {
+                                  setState(() {
+                                    questions.removeAt(index);
+                                  });
+                                  return true;
+                                }
                               }
-                              return;
+                              return false;
                             },
 
                             child: AnswerQuestionCardDetails(

@@ -260,7 +260,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  Future<void> deleteQuestion(String id) async {
+  Future<bool> deleteQuestion(String id) async {
     if (!await hasInternetConnection()) {
       AppConstance().showInfoToast(
         context,
@@ -268,7 +268,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ? 'No internet connection'
             : 'لا يوجد اتصال بالانترنت',
       );
-      return;
+      return false;
     }
     try {
       await Supabase.instance.client
@@ -294,6 +294,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ? 'Unanswered successfully'
             : 'تم التراجع عن الإجابة',
       );
+      return true;
     } catch (e) {
       AppConstance().showErrorToast(
         context,
@@ -302,6 +303,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             : 'حدث خطأ',
       );
       debugPrint("Error deleting question: $e");
+      return false;
     }
   }
 
@@ -868,18 +870,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         user: user!,
                         isMe: isMe,
                         onDeleteQuestion: (id) async {
-                          await deleteQuestion(id);
-                          setState(() {
-                            questions.removeWhere(
-                              (element) => element.id == id,
-                            );
-                            pinnedQuestions.removeWhere(
-                              (element) => element.id == id,
-                            );
-                            unpinnedQuestions.removeWhere(
-                              (element) => element.id == id,
-                            );
-                          });
+                          final success = await deleteQuestion(id);
+                          if (success && context.mounted) {
+                            setState(() {
+                              questions.removeWhere(
+                                (element) => element.id == id,
+                              );
+                              pinnedQuestions.removeWhere(
+                                (element) => element.id == id,
+                              );
+                              unpinnedQuestions.removeWhere(
+                                (element) => element.id == id,
+                              );
+                            });
+                          }
                         },
                         canPin: () {
                           if (pinnedQuestions.length >= 3) {
