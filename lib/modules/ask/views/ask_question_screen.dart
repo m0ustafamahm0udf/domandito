@@ -94,7 +94,7 @@ class _AskQuestionScreenState extends State<AskQuestionScreen> {
       log(now.toString() + 'now');
       final question = QuestionModel(
         id: questionId,
-        createdAt: now,
+        createdAt: now.toUtc(),
         // answeredAt: Timestamp.fromDate(
         //   Timestamp.now().toDate().add(const Duration(minutes: 1)),
         // ),

@@ -126,7 +126,7 @@ class _AnswerQuestionScreenState extends State<AnswerQuestionScreen> {
       await Supabase.instance.client
           .from('questions')
           .update({
-            'answered_at': now.toIso8601String(),
+            'answered_at': now.toUtc().toIso8601String(),
             'answer_text': answerController.text.trim(),
             'images': uploadedImageUrls,
           })
