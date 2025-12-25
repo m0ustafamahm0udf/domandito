@@ -505,32 +505,20 @@ class _QuestionCardState extends State<QuestionCard> {
                           onTap: () {
                             final isMe =
                                 MySharedPreferences.userId ==
-                                question.sender.id;
+                                question.receiver.id;
                             final isSameProfile =
                                 widget.isInProfileScreen &&
                                 widget.currentProfileUserId ==
-                                    question.sender.id;
+                                    question.receiver.id;
 
-                            if (!question.isAnonymous &&
-                                !isProcessing &&
-                                !isMe &&
-                                !isSameProfile) {
+                            if (!isProcessing && !isMe && !isSameProfile) {
                               pushScreen(
                                 context,
                                 screen: ProfileScreen(
-                                  userId: question.sender.id,
+                                  userId: question.receiver.id,
                                 ),
                               );
                             }
-                            // if (question.receiver.id !=
-                            //     MySharedPreferences.userId) {
-                            //   pushScreen(
-                            //     context,
-                            //     screen: ProfileScreen(
-                            //       userId: question.receiver.id,
-                            //     ),
-                            //   );
-                            // }
                           },
                           child: Text(
                             "@${question.receiver.userName}",

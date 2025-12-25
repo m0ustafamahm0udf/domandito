@@ -21,6 +21,7 @@ class QuestionDetailsCard extends StatefulWidget {
   final String receiverImage;
   final bool isVerified;
   final String currentProfileUserId;
+  final bool isInProfileScreen;
 
   const QuestionDetailsCard({
     super.key,
@@ -29,6 +30,7 @@ class QuestionDetailsCard extends StatefulWidget {
     required this.receiverImage,
     required this.isVerified,
     required this.currentProfileUserId,
+    this.isInProfileScreen = false,
   });
 
   @override
@@ -79,13 +81,12 @@ class _QuestionDetailsCardState extends State<QuestionDetailsCard> {
             // --- Header ---
             GestureDetector(
               onTap: () {
-                if (!question.isAnonymous &&
-                    (question.sender.id == widget.currentProfileUserId)) {
-                  context.back();
-                  return;
-                }
-                if (!question.isAnonymous &&
-                    (MySharedPreferences.userId != question.sender.id)) {
+                final isMe = MySharedPreferences.userId == question.sender.id;
+                final isSameProfile =
+                    widget.isInProfileScreen &&
+                    widget.currentProfileUserId == question.sender.id;
+
+                if (!question.isAnonymous && !isMe && !isSameProfile) {
                   pushScreen(
                     context,
                     screen: ProfileScreen(userId: question.sender.id),
@@ -324,8 +325,13 @@ class _QuestionDetailsCardState extends State<QuestionDetailsCard> {
                   if (question.receiver.userName.isNotEmpty)
                     GestureDetector(
                       onTap: () {
-                        if (question.receiver.id !=
-                            MySharedPreferences.userId) {
+                        final isMe =
+                            MySharedPreferences.userId == question.receiver.id;
+                        final isSameProfile =
+                            widget.isInProfileScreen &&
+                            widget.currentProfileUserId == question.receiver.id;
+
+                        if (!isMe && !isSameProfile) {
                           pushScreen(
                             context,
                             screen: ProfileScreen(userId: question.receiver.id),

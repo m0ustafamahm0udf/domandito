@@ -6,6 +6,9 @@ import 'package:domandito/modules/ask/models/q_model.dart';
 import 'package:domandito/shared/style/app_colors.dart';
 import 'package:domandito/shared/widgets/custom_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:domandito/modules/profile/view/profile_screen.dart';
+import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
+import 'package:domandito/core/utils/shared_prefrences.dart';
 import 'package:svg_flutter/svg_flutter.dart';
 
 class AskQuestionDetailsCard extends StatefulWidget {
@@ -57,84 +60,99 @@ class _AskQuestionDetailsCardState extends State<AskQuestionDetailsCard> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // --- Header ---
-            Row(
-              children: [
-                if (question.isAnonymous)
-                  CircleAvatar(
-                    radius: 15,
-                    backgroundColor: AppColors.primary,
-                    child: SvgPicture.asset(
-                      AppIcons.anonymous,
-                      height: 21,
-                      width: 21,
-                      color: AppColors.white,
-                    ),
-                  )
-                else
-                  CustomNetworkImage(
-                    url: question.sender.image.toString(),
-                    radius: 999,
-                    height: 30,
-                    width: 30,
-                  ),
-                const SizedBox(width: 5),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Text(
-                            !question.isAnonymous
-                                ? question.sender.name
-                                : !context.isCurrentLanguageAr()
-                                ? 'Anonymous'
-                                : 'مجهول',
-                            maxLines: 1,
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          if (!question.isAnonymous &&
-                              question.sender.isVerified)
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 4,
-                              ),
-                              child: SvgPicture.asset(
-                                AppIcons.verified,
-                                height: 14,
-                                width: 14,
-                                color: AppColors.primary,
-                              ),
-                            ),
-                        ],
-                      ),
-                      Text(
-                        question.isAnonymous
-                            ? "@x"
-                            : "@${question.sender.userName}",
-                        maxLines: 1,
-                        textDirection: TextDirection.ltr,
+            GestureDetector(
+              onTap: () {
+                final isMe = MySharedPreferences.userId == question.sender.id;
+                // Since this card is usually in a separate screen (QuestionScreen),
+                // we are not "in" the profile screen, so we can always navigate unless it's me.
+                // However, avoiding navigating to self is key.
 
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey,
-                        ),
+                if (!question.isAnonymous && !isMe) {
+                  pushScreen(
+                    context,
+                    screen: ProfileScreen(userId: question.sender.id),
+                  );
+                }
+              },
+              child: Row(
+                children: [
+                  if (question.isAnonymous)
+                    CircleAvatar(
+                      radius: 15,
+                      backgroundColor: AppColors.primary,
+                      child: SvgPicture.asset(
+                        AppIcons.anonymous,
+                        height: 21,
+                        width: 21,
+                        color: AppColors.white,
                       ),
-                    ],
+                    )
+                  else
+                    CustomNetworkImage(
+                      url: question.sender.image.toString(),
+                      radius: 999,
+                      height: 30,
+                      width: 30,
+                    ),
+                  const SizedBox(width: 5),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Text(
+                              !question.isAnonymous
+                                  ? question.sender.name
+                                  : !context.isCurrentLanguageAr()
+                                  ? 'Anonymous'
+                                  : 'مجهول',
+                              maxLines: 1,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            if (!question.isAnonymous &&
+                                question.sender.isVerified)
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 4,
+                                ),
+                                child: SvgPicture.asset(
+                                  AppIcons.verified,
+                                  height: 14,
+                                  width: 14,
+                                  color: AppColors.primary,
+                                ),
+                              ),
+                          ],
+                        ),
+                        Text(
+                          question.isAnonymous
+                              ? "@x"
+                              : "@${question.sender.userName}",
+                          maxLines: 1,
+                          textDirection: TextDirection.ltr,
+
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                Text(
-                  timeAgo(question.answeredAt ?? question.createdAt, context),
-                  style: const TextStyle(
-                    color: Colors.grey,
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
+                  Text(
+                    timeAgo(question.answeredAt ?? question.createdAt, context),
+                    style: const TextStyle(
+                      color: Colors.grey,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
 
             const SizedBox(height: 10),
