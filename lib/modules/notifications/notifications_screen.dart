@@ -7,6 +7,9 @@ import 'package:domandito/shared/widgets/logo_widg.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:domandito/core/services/badge_service.dart';
+import 'package:domandito/shared/widgets/custom_dialog.dart';
+import 'package:domandito/core/constants/app_constants.dart';
+import 'package:domandito/core/utils/utils.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -33,6 +36,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
   }
 
   Future<void> getNotifications({bool isLoadMore = false}) async {
+    // ... existing implementation
     if (isNotificationsLoading || isMoreLoading || !hasMore) return;
 
     if (isLoadMore) {
@@ -80,6 +84,44 @@ class _NotificationsScreenState extends State<NotificationsScreen>
       } else {
         setState(() => isNotificationsLoading = false);
       }
+    }
+  }
+
+  Future<bool> _deleteNotification(String id, int index) async {
+    if (!await hasInternetConnection()) {
+      AppConstance().showInfoToast(
+        context,
+        msg: !context.isCurrentLanguageAr()
+            ? 'No internet connection'
+            : 'لا يوجد اتصال بالانترنت',
+      );
+      return false;
+    }
+    try {
+      await _repository.deleteNotification(id);
+
+      AppConstance().showSuccesToast(
+        context,
+        msg: !context.isCurrentLanguageAr()
+            ? 'Notification deleted successfully'
+            : 'تم حذف الإشعار بنجاح',
+      );
+
+      if (mounted) {
+        setState(() {
+          notifications.removeAt(index);
+        });
+      }
+      return true;
+    } catch (e) {
+      debugPrint("Error deleting notification: $e");
+      AppConstance().showErrorToast(
+        context,
+        msg: !context.isCurrentLanguageAr()
+            ? 'Error deleting notification'
+            : 'حدث خطأ أثناء الحذف',
+      );
+      return false;
     }
   }
 
@@ -186,13 +228,76 @@ class _NotificationsScreenState extends State<NotificationsScreen>
 
                           // ----------- Notification Item -----------
                           final notification = notifications[index];
-                          return NotificationCard(
-                            notificationsData: notification,
-                            onRemove: () {
-                              setState(() {
-                                notifications.removeAt(index);
-                              });
+                          return Dismissible(
+                            key: ValueKey(notification.id),
+                            direction: DismissDirection.startToEnd,
+                            background: Container(
+                              margin: const EdgeInsets.symmetric(vertical: 8),
+                              decoration: BoxDecoration(
+                                color: Colors.red.shade600,
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: [
+                                      const Icon(
+                                        Icons.delete_rounded,
+                                        color: Colors.white,
+                                        size: 30,
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        !context.isCurrentLanguageAr()
+                                            ? "Delete"
+                                            : "حذف",
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                            confirmDismiss: (direction) async {
+                              final res = await showDialog(
+                                context: context,
+                                builder: (context) => CustomDialog(
+                                  title: !context.isCurrentLanguageAr()
+                                      ? 'Delete Notification'
+                                      : 'حذف الإشعار',
+                                  onConfirm: () {},
+                                  content: !context.isCurrentLanguageAr()
+                                      ? 'Are you sure you want to delete this notification?'
+                                      : 'هل  انت متاكد من حذف الإشعار؟',
+                                ),
+                              );
+                              if (res == true) {
+                                return await _deleteNotification(
+                                  notification.id,
+                                  index,
+                                );
+                              }
+                              return false;
                             },
+                            child: NotificationCard(
+                              notificationsData: notification,
+                              onRemove: () {
+                                setState(() {
+                                  notifications.removeAt(index);
+                                });
+                              },
+                            ),
                           );
                         },
                       ),

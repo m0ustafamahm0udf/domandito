@@ -41,6 +41,14 @@ class NotificationsRepository {
     }
   }
 
+  Future<void> deleteNotification(String id) async {
+    try {
+      await _client.from('notifications').delete().eq('id', id);
+    } catch (e) {
+      throw Exception('Failed to delete notification: $e');
+    }
+  }
+
   Future<void> sendNotification({
     required String senderId,
     required String receiverId,

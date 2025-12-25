@@ -43,11 +43,17 @@ begin
     return; -- Return empty if invalid ID provided
   end;
 
-  -- 2. Get Blocked IDs (Using INDEX on blocker_id)
-  select array_agg(blocked_id)
+  -- 2. Get Blocked IDs (Both directions: I blocked them OR They blocked me)
+  -- This ensures:
+  -- A. I don't see content from people I blocked.
+  -- B. I don't see content from people who blocked me (Mutual visibility restriction).
+  select array_agg(uid)
   into v_blocked_ids
-  from blocks
-  where blocker_id = v_user_uuid; 
+  from (
+    select blocked_id as uid from blocks where blocker_id = v_user_uuid
+    union
+    select blocker_id as uid from blocks where blocked_id = v_user_uuid
+  ) as combined_blocks; 
 
   return query
   select 
