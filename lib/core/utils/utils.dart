@@ -602,7 +602,7 @@ Widget linkifyText({
 
   if (matches.isEmpty) {
     return Text(
-      "\"$text\"",
+      text,
       textAlign: isArabic(text) ? TextAlign.right : TextAlign.left,
       textDirection: isArabic(text)
           ? ui.TextDirection.rtl

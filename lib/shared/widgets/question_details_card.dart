@@ -235,13 +235,13 @@ class _QuestionDetailsCardState extends State<QuestionDetailsCard> {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  CustomNetworkImage(
-                    url: widget.receiverImage,
-                    radius: 999,
-                    height: 20,
-                    width: 20,
-                  ),
-                  const SizedBox(width: 5),
+                  // CustomNetworkImage(
+                  //   url: widget.receiverImage,
+                  //   radius: 999,
+                  //   height: 20,
+                  //   width: 20,
+                  // ),
+                  // const SizedBox(width: 5),
                   Expanded(
                     child: InkWell(
                       focusColor: Colors.transparent,
@@ -320,8 +320,16 @@ class _QuestionDetailsCardState extends State<QuestionDetailsCard> {
 
             if (question.answerText != null)
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
+                  CustomNetworkImage(
+                    url: widget.receiverImage,
+                    radius: 999,
+                    height: 20,
+                    width: 20,
+                  ),
+                  const SizedBox(width: 5),
                   if (question.receiver.userName.isNotEmpty)
                     GestureDetector(
                       onTap: () {
