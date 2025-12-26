@@ -92,7 +92,8 @@ begin
     and q.is_deleted = false
     and q.answered_at is not null
     and (v_blocked_ids is null or not (q.receiver_id = any(v_blocked_ids)))
-    and (v_blocked_ids is null or not (q.sender_id = any(v_blocked_ids)))
+    -- Filter blocked users (sender checks), allowing anonymous
+    and (v_blocked_ids is null or q.is_anonymous = true or not (q.sender_id = any(v_blocked_ids)))
   order by q.answered_at desc
   limit p_limit
   offset p_offset;

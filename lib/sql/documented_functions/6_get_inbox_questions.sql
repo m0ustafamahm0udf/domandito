@@ -77,8 +77,8 @@ begin
     q.receiver_id = v_my_uuid
     and q.is_deleted = false
     and q.answered_at is null -- شرط أساسي: لم تتم الإجابة
-    -- Filter blocked users
-    and (v_blocked_ids is null or not (q.sender_id = any(v_blocked_ids)))
+    -- Filter blocked users, EXCEPT if anonymous
+    and (v_blocked_ids is null or q.is_anonymous = true or not (q.sender_id = any(v_blocked_ids)))
   order by q.created_at desc
   limit p_limit
   offset p_offset;

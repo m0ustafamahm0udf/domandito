@@ -13,6 +13,8 @@ CREATE OR REPLACE FUNCTION public.force_delete_follow(p_follower_id uuid, p_foll
  SECURITY DEFINER
 AS $function$
 begin
+  -- Simple, atomic delete.
+  -- The 'handle_follow_counts' TRIGGER will handle the counters automatically.
   delete from public.follows
   where follower_id = p_follower_id
     and following_id = p_following_id;

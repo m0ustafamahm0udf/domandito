@@ -497,26 +497,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             : 'تم حظر المستخدم',
       );
       if (isFollowing) {
-        FollowUser me = FollowUser(
-          userToken: MySharedPreferences.deviceToken,
-          id: MySharedPreferences.userId,
-          name: MySharedPreferences.userName,
-          userName: MySharedPreferences.userUserName,
-          image: MySharedPreferences.image,
-        );
-
-        FollowUser target = FollowUser(
-          userToken: user!.token,
-          id: user!.id,
-          name: user!.name,
-          userName: user!.userName,
-          image: user!.image,
-        );
-        await FollowService.toggleFollow(
-          me: me,
-          targetUser: target,
-          context: context,
-        );
+        // Follow relationship is already handled by BlockService.toggleBlock
+        // which calls forceUnfollow internally. No need to toggle again.
       }
 
       context.back();

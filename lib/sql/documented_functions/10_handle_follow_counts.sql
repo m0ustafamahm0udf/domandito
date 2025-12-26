@@ -27,29 +27,54 @@ begin
   if (TG_OP = 'INSERT') then
     -- User A follows User B
     -- User B gains a follower
-    update public.users
-    set followers_count = coalesce(followers_count, 0) + 1
-    where id = new.following_id;
+    begin
+      update public.users
+      set followers_count = coalesce(followers_count, 0) + 1
+      where id = new.following_id;
+    exception when others then
+      raise notice 'Error updating followers_count on INSERT: %', SQLERRM;
+    end;
+    
     -- User A gains a following
-    update public.users
-    set following_count = coalesce(following_count, 0) + 1
-    where id = new.follower_id;
+    begin
+      update public.users
+      set following_count = coalesce(following_count, 0) + 1
+      where id = new.follower_id;
+    exception when others then
+      raise notice 'Error updating following_count on INSERT: %', SQLERRM;
+    end;
     
     return new;
   
   elsif (TG_OP = 'DELETE') then
     -- User A unfollows User B
     -- User B loses a follower
-    update public.users
-    set followers_count = greatest(coalesce(followers_count, 0) - 1, 0)
-    where id = old.following_id;
+    begin
+      update public.users
+      set followers_count = greatest(coalesce(followers_count, 0) - 1, 0)
+      where id = old.following_id;
+    exception when others then
+      raise notice 'Error updating followers_count on DELETE: %', SQLERRM;
+    end;
+    
     -- User A loses a following
-    update public.users
-    set following_count = greatest(coalesce(following_count, 0) - 1, 0)
-    where id = old.follower_id;
+    begin
+      update public.users
+      set following_count = greatest(coalesce(following_count, 0) - 1, 0)
+      where id = old.follower_id;
+    exception when others then
+      raise notice 'Error updating following_count on DELETE: %', SQLERRM;
+    end;
     
     return old;
   end if;
   return null;
 end;
-$function$
+$function$;
+
+-- تأكيد ربط التريجر بالجدول (Run this part to ensure the trigger is active)
+DROP TRIGGER IF EXISTS on_follow_change ON public.follows;
+
+CREATE TRIGGER on_follow_change
+AFTER INSERT OR DELETE ON public.follows
+FOR EACH ROW EXECUTE FUNCTION public.handle_follow_counts();

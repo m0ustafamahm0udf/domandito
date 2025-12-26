@@ -104,8 +104,8 @@ begin
     q.receiver_id = v_target_uuid
     and q.is_deleted = false
     and q.answered_at is not null
-    -- Filter blocked users (sender)
-    and (v_blocked_ids is null or not (q.sender_id = any(v_blocked_ids)))
+    -- Filter blocked users (sender), EXCEPT if anonymous
+    and (v_blocked_ids is null or q.is_anonymous = true or not (q.sender_id = any(v_blocked_ids)))
   order by 
     q.is_pinned desc,     -- المثبت أولاً
     q.answered_at desc    -- الأحدث إجابة
