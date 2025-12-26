@@ -61728,7 +61728,7 @@ n=new A.by(Date.now(),0,!1).k(0)
 m=B.c.bL(p.d.a.a)
 l=B.c.bL(l.a.a)
 k=p.a.c
-f=A.a6(["created_at",n,"name",m,"phone",l,"id",g,"image",k.as,"provider",k.y,"email",k.r,"token",k.z,"is_blocked",!1,"is_verified",k.x,"username",B.c.bL(j.a.a),"app_version","1.0.1+15","followers_count",0,"following_count",0,"posts_count",0,"can_asked_anonymously",!0,"bio",""],t.N,t.K)
+f=A.a6(["created_at",n,"name",m,"phone",l,"id",g,"image",k.as,"provider",k.y,"email",k.r,"token",k.z,"is_blocked",!1,"is_verified",k.x,"username",B.c.bL(j.a.a),"app_version","1.0.1+16","followers_count",0,"following_count",0,"posts_count",0,"can_asked_anonymously",!0,"bio",""],t.N,t.K)
 s=10
 return A.j(new A.r0(o.b).Ca(f).aS(new A.aWc(p,g),t.P),$async$ur)
 case 10:s=8
@@ -62099,7 +62099,7 @@ a4=k.c
 a5=f.b
 a6=J.bG(i.gue().a.c.a.b)
 a7=i.gue().a.c.a.b!=null?i.gue().a.c.a.b.split("@")[0]:""
-d=A.a8W("1.0.1+15","",!1,e,a6,0,0,a0.c.a.a,a,!1,!1,!1,!1,A.i(a1)+" "+A.i(a4),"",0,a5,g,!1,a7)
+d=A.a8W("1.0.1+16","",!1,e,a6,0,0,a0.c.a.a,a,!1,!1,!1,!1,A.i(a1)+" "+A.i(a4),"",0,a5,g,!1,a7)
 s=k.b!=null?14:16
 break
 case 14:a=$.ct().b
@@ -62182,7 +62182,7 @@ a=A.wO()
 a0=a3.a.c.a.b
 if(a0==null)a0=""
 a1=a3.a.c.a.b!=null?a3.a.c.a.b.split("@")[0]:""
-i=A.a8W("1.0.1+15","",!1,j,a0,0,0,c.c.a.a,f,!1,!1,!1,!1,b,"",0,a.b,"",!1,a1)
+i=A.a8W("1.0.1+16","",!1,j,a0,0,0,c.c.a.a,f,!1,!1,!1,!1,b,"",0,a.b,"",!1,a1)
 a3.a.c.a.b.split("@")
 a1=$.ct().b
 a1===$&&A.a()
@@ -63381,7 +63381,7 @@ var $async$$0=A.m(function(a,b){if(a===1)return A.n(b,r)
 while(true)switch(s){case 0:p=q.a.a.c
 s=p.length!==0?2:3
 break
-case 2:p=A.aNE(q.b,"Ask me at domandito.com/#/"+p)
+case 2:p=A.aNE(q.b,"Ask me at domandito.com/"+p)
 s=4
 return A.j(p,$async$$0)
 case 4:case 3:return A.o(null,r)}})
