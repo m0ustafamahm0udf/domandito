@@ -6,9 +6,7 @@ class SafetyStandardsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Child Safety Standards'),
-      ),
+      appBar: AppBar(title: const Text('Child Safety Standards')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -16,10 +14,7 @@ class SafetyStandardsScreen extends StatelessWidget {
           children: [
             const Text(
               'Child Safety and Abuse Prevention Standards',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
             const Text(
@@ -30,10 +25,7 @@ class SafetyStandardsScreen extends StatelessWidget {
             const SizedBox(height: 24),
             const Text(
               '1. Our Commitment',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             const Text(
@@ -45,10 +37,7 @@ class SafetyStandardsScreen extends StatelessWidget {
             const SizedBox(height: 24),
             const Text(
               '2. Policies Against Child Sexual Abuse',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             const Text(
@@ -60,10 +49,7 @@ class SafetyStandardsScreen extends StatelessWidget {
             const SizedBox(height: 24),
             const Text(
               '3. Reporting Mechanisms',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             const Text(
@@ -76,10 +62,7 @@ class SafetyStandardsScreen extends StatelessWidget {
             const SizedBox(height: 24),
             const Text(
               '4. Education and Awareness',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             const Text(
@@ -91,17 +74,14 @@ class SafetyStandardsScreen extends StatelessWidget {
             const SizedBox(height: 24),
             const Text(
               '5. Contact Information',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             const Text(
               'For questions or concerns about child safety:\n'
               '• Email: m0ustafamahm0ud@yahoo.com\n'
               '• Phone: +201062429287\n'
-              '• Website: https://domandito.com/#/child_safety',
+              '• Website: https://domandito.com/child_safety',
               style: TextStyle(fontSize: 16, color: Colors.blue),
             ),
             const SizedBox(height: 32),
