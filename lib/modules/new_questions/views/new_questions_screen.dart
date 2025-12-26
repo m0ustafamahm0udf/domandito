@@ -48,17 +48,14 @@ class _NewQuestionsScreenState extends State<NewQuestionsScreen> {
     }
 
     try {
-      final query = Supabase.instance.client
-          .from('questions')
-          .select('*, sender:sender_id(id, name, username, image, is_verified)')
-          .eq('receiver_id', MySharedPreferences.userId)
-          .eq('is_deleted', false)
-          .filter('answered_at', 'is', null) // Use filter for IS NULL
-          // .order('answered_at', ascending: false) // answered_at is null here, so ordering by it is pointless
-          .order('created_at', ascending: false)
-          .range(_offset, _offset + limit - 1);
+      final myId = MySharedPreferences.userId;
 
-      final List<dynamic> data = await query;
+      final response = await Supabase.instance.client.rpc(
+        'get_inbox_questions',
+        params: {'p_my_id': myId, 'p_limit': limit, 'p_offset': _offset},
+      );
+
+      final List<dynamic> data = response as List<dynamic>;
 
       if (data.isEmpty) {
         hasMore = false;
@@ -71,17 +68,8 @@ class _NewQuestionsScreenState extends State<NewQuestionsScreen> {
 
       hasMore = data.length == limit;
 
-      final myReceiverData = {
-        'id': MySharedPreferences.userId,
-        'name': MySharedPreferences.userName,
-        'username': MySharedPreferences.userUserName,
-        'image': MySharedPreferences.image,
-        'is_verified': MySharedPreferences.isVerified,
-        'token': MySharedPreferences.deviceToken,
-      };
-
       final newQuestions = data.map((json) {
-        json['receiver'] = myReceiverData;
+        // RPC returns full objects now
         return QuestionModel.fromJson(json);
       }).toList();
 

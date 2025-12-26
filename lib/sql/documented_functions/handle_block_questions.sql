@@ -39,6 +39,7 @@ begin
       deleted_by_block = true
     where 
       is_deleted = false -- Only affect currently visible questions
+      and is_anonymous = false -- 🛡️ SECURITY: Don't hide anonymous questions to protect sender identity
       and (
         (sender_id = NEW.blocker_id and receiver_id = NEW.blocked_id)
         or
@@ -55,6 +56,7 @@ begin
       deleted_by_block = false
     where 
       deleted_by_block = true -- Safety check: restore only what we hid
+      and is_anonymous = false -- Safety check: consistent with block logic
       and (
         (sender_id = OLD.blocker_id and receiver_id = OLD.blocked_id)
         or

@@ -14,65 +14,6 @@ import 'package:domandito/modules/landing/views/landing_screen.dart';
 class AddUserToSupabase {
   final _supabase = Supabase.instance.client;
 
-  Future<bool> isPhoneUsed(String phone, String? currentUserId) async {
-    if (phone.isEmpty) return false;
-    try {
-      var query = _supabase.from('users').select('id').eq('phone', phone);
-      if (currentUserId != null && currentUserId.isNotEmpty) {
-        query = query.neq('id', currentUserId); // Exclude current user
-      }
-      final response = await query.limit(1);
-
-      if (response.isEmpty) {
-        return false; // الرقم غير مستخدم
-      }
-
-      return true;
-    } catch (e) {
-      log('Error checking phone: $e');
-      return true; // لمنع التكرار في حالة error
-    }
-  }
-
-  Future<bool> isUsernameUsed(String username, String? currentUserId) async {
-    try {
-      log('username: $username');
-      var query = _supabase.from('users').select('id').eq('username', username);
-      if (currentUserId != null && currentUserId.isNotEmpty) {
-        query = query.neq('id', currentUserId); // Exclude current user
-      }
-      final response = await query.limit(1);
-
-      if (response.isEmpty) {
-        return false; // الاسم غير مستخدم
-      }
-
-      return true;
-    } catch (e) {
-      log('Error checking username: $e');
-      return true;
-    }
-  }
-
-  Future<bool> isEmailUsed(String email, String? currentUserId) async {
-    try {
-      log('email: $email');
-      var query = _supabase.from('users').select('id').eq('email', email);
-      if (currentUserId != null && currentUserId.isNotEmpty) {
-        query = query.neq('id', currentUserId); // Exclude current user
-      }
-      final response = await query.limit(1);
-
-      if (response.isEmpty) {
-        return false; // الاسم غير مستخدم
-      }
-      return true;
-    } catch (e) {
-      log('Error checking email: $e');
-      return true;
-    }
-  }
-
   Future<String?> validatePhoneAndUsername({
     required String phone,
     required String username,
@@ -81,16 +22,19 @@ class AddUserToSupabase {
     required BuildContext context,
   }) async {
     try {
-      // تنفيذ جميع الفحوصات في نفس الوقت
-      final results = await Future.wait([
-        isPhoneUsed(phone, currentUserId),
-        isUsernameUsed(username, currentUserId),
-        isEmailUsed(email, currentUserId),
-      ]);
+      final response = await _supabase.rpc(
+        'check_user_availability',
+        params: {
+          'p_phone': phone,
+          'p_username': username,
+          'p_email': email,
+          'p_exclude_user_id': currentUserId,
+        },
+      );
 
-      final phoneUsed = results[0];
-      final usernameUsed = results[1];
-      final emailUsed = results[2];
+      final phoneUsed = response['phone_exists'] as bool;
+      final usernameUsed = response['username_exists'] as bool;
+      final emailUsed = response['email_exists'] as bool;
 
       if (phoneUsed) {
         return !context.isCurrentLanguageAr()
@@ -136,11 +80,16 @@ class AddUserToSupabase {
 
       if (response.isEmpty) {
         // البريد غير موجود، تابع إنشاء اسم المستخدم
-        final emailUsed = await isEmailUsed(newUser.email, null);
-        if (!emailUsed) {
-          context.to(CreateAccountScreen(newUser: newUser));
-          return;
-        }
+        // We only check email here, logic inside validatePhoneAndUsername handles the rest usually
+        // But here we need to know if email is used to proceed.
+
+        // Since we removed isEmailUsed, we can use the new RPC just for email or assume response.isEmpty means email is free.
+        // Actually line 131 already checked if email exists: .eq('email').limit(1).
+        // If response.isEmpty, then email is definitely NOT used by anyone else (or at all).
+        // So we don't need to call isEmailUsed again.
+
+        context.to(CreateAccountScreen(newUser: newUser));
+        return;
       } else {
         // البريد موجود، استخدم id الموجود للتحديث
         final existingUser = response.first;

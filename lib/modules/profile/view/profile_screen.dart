@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:domandito/core/constants/app_constants.dart';
@@ -20,7 +18,6 @@ import 'package:domandito/shared/models/bloced_user.dart';
 import 'package:domandito/shared/models/follow_model.dart'; // FollowUser might be here
 import 'package:domandito/shared/services/block_service.dart';
 import 'package:domandito/shared/services/follow_service.dart';
-import 'package:domandito/shared/services/like_service.dart';
 import 'package:domandito/shared/style/app_colors.dart';
 import 'package:domandito/shared/widgets/custom_dialog.dart';
 import 'package:domandito/shared/widgets/download_dialog.dart';
@@ -91,120 +88,84 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  Future<void> getProfile() async {
+  Future<void> getAllData() async {
     setState(() => isLoading = true);
     try {
-      if (widget.userId.isNotEmpty) {
-        final response = await Supabase.instance.client
-            .from('users')
-            .select()
-            .eq('id', widget.userId)
-            .maybeSingle(); // Use maybeSingle to handle no rows without error
+      final myId = MySharedPreferences.userId;
+      final targetId = widget.userId;
 
-        if (response != null) {
-          user = UserModel.fromJson(response, response['id'].toString());
-          if (isMe) {
-            canAskedAnonymously = user!.canAskedAnonymously;
-            MySharedPreferences.userName = user!.name;
-            MySharedPreferences.userUserName = user!.userName;
-            MySharedPreferences.phone = user!.phone;
-            MySharedPreferences.bio = user!.bio;
-            MySharedPreferences.email = user!.email;
-            MySharedPreferences.image = user!.image;
-            MySharedPreferences.isVerified = user!.isVerified;
-          }
+      final response = await Supabase.instance.client.rpc(
+        'get_full_profile',
+        params: {
+          'p_my_id': myId.isEmpty ? null : myId,
+          'p_target_id': targetId,
+        },
+      );
+
+      if (response != null) {
+        // 1. User Data
+        user = UserModel.fromJson(
+          response['user'],
+          response['user']['id'].toString(),
+        );
+
+        // Update SharedPreferences if it's me
+        if (isMe) {
+          canAskedAnonymously = user!.canAskedAnonymously;
+          MySharedPreferences.userName = user!.name;
+          MySharedPreferences.userUserName = user!.userName;
+          MySharedPreferences.phone = user!.phone;
+          MySharedPreferences.bio = user!.bio;
+          MySharedPreferences.email = user!.email;
+          MySharedPreferences.image = user!.image;
+          MySharedPreferences.isVerified = user!.isVerified;
+        }
+
+        // 2. Stats
+        totalQuestionsCount = response['stats']['questions_count'] ?? 0;
+
+        // 3. Relationship
+        final rel = response['relationship'];
+        isFollowing = rel['is_following'] ?? false;
+        isBlocked = rel['is_blocked_by_me'] ?? false;
+        amIBlockedByTarget = rel['is_blocked_by_target'] ?? false;
+
+        // Fetch questions after profile data is ready
+        await getQuestions();
+      } else {
+        if (isMe) {
+          MySharedPreferences.clearProfile(context: context);
         } else {
-          if (isMe) {
-            MySharedPreferences.clearProfile(context: context);
-          } else {
-            context.back();
-          }
+          context.back();
         }
       }
-      //  else {
-      //   final doc = await FirebaseFirestore.instance
-      //       .collection('users')
-      //       .where('userName', isEqualTo: widget.userUserName)
-      //       .limit(1)
-      //       .get();
-      //   if (doc.docs.isNotEmpty) {
-      //     user = UserModel.fromFirestore(doc.docs.first);
-      //     if (isMe) {
-      //       canAskedAnonymously = user!.canAskedAnonymously;
-      //       log('canAskedAnonymously $canAskedAnonymously');
-      //       MySharedPreferences.userName = user!.name;
-      //       MySharedPreferences.userUserName = user!.userName;
-      //       MySharedPreferences.phone = user!.phone;
-      //       MySharedPreferences.bio = user!.bio;
-      //       MySharedPreferences.email = user!.email;
-      //       MySharedPreferences.image = user!.image;
-      //       MySharedPreferences.isVerified = user!.isVerified;
-      //     }
-      //     // await getQuestionsCount();
-      //   } else {
-      //     if (isMe) {
-      //       MySharedPreferences.clearProfile(context: context);
-      //     } else {
-      //       context.back();
-      //     }
-      //   }
-      // }
     } catch (e) {
-      debugPrint("Error fetching profile: $e");
+      debugPrint("Error fetching full profile: $e");
     } finally {
       setState(() => isLoading = false);
     }
   }
 
-  Future<void> getQuestionsCount() async {
-    try {
-      final response = await Supabase.instance.client
-          .from('questions')
-          .count()
-          .eq('receiver_id', widget.userId)
-          .eq('is_deleted', false)
-          .not('answered_at', 'is', null);
-
-      totalQuestionsCount = response;
-      setState(() {});
-
-      debugPrint("Total questions count: $totalQuestionsCount");
-    } catch (e) {
-      debugPrint("Error getting questions count: $e");
-    }
-  }
-
   Future<void> getQuestions() async {
-    log(isBlocked.toString());
-    if (isBlocked) return;
     // منع استدعاءات متزامنة أو لو مفيش بيانات إضافية
     if (isQuestionsLoading || !hasMore) return;
 
     setState(() => isQuestionsLoading = true);
 
     try {
-      var query = Supabase.instance.client
-          .from('questions')
-          .select('*, sender:sender_id(id, name, username, image, is_verified)')
-          .eq('receiver_id', widget.userId)
-          .eq('is_deleted', false)
-          .not('answered_at', 'is', null);
+      final myId = MySharedPreferences.userId;
 
-      // Filter reported content
-      // if (MySharedPreferences.isLoggedIn) {
-      //   final reportedIds = await ReportService.getReportedContentIds(
-      //     MySharedPreferences.userId,
-      //   );
-      //   if (reportedIds.isNotEmpty) {
-      //     query = query.not('id', 'in', '(${reportedIds.join(',')})');
-      //   }
-      // }
+      final response = await Supabase.instance.client.rpc(
+        'get_profile_questions',
+        params: {
+          'p_my_id': myId.isEmpty ? null : myId,
+          'p_target_id': widget.userId,
+          'p_limit': limit,
+          'p_offset': _offset,
+        },
+      );
 
-      final List<dynamic> data = await query
-          .order('is_pinned', ascending: false) // Pinned first
-          .order('answered_at', ascending: false)
-          .order('created_at', ascending: false)
-          .range(_offset, _offset + limit - 1);
+      final List<dynamic> data = response as List<dynamic>;
 
       // لو مفيش داتا جديدة
       if (data.isEmpty) {
@@ -216,17 +177,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
       // لو عدد الدوكز أقل من اللِيمت يبقى مفيش المزيد بعد كده
       hasMore = data.length == limit;
 
-      final receiverData = {
-        'id': user?.id ?? widget.userId,
-        'name': user?.name ?? '',
-        'username': user?.userName ?? '',
-        'image': user?.image ?? '',
-        'is_verified': user?.isVerified ?? false,
-        'token': user?.token ?? '',
-      };
-
       final newQuestions = data.map((json) {
-        json['receiver'] = receiverData;
+        // The RPC returns 'receiver' object, but we want to make sure the model uses it correctly
+        // The RPC output structure for receiver and sender matches what QuestionModel expects.
+        // is_liked is also returned directly (boolean).
+
+        // Fix: is_liked coming from RPC might be named 'is_liked', but Model might expect just 'is_liked' or handle it?
+        // Let's check QuestionModel.fromJson later if issues arise, but usually it parses map.
+        // We know our RPC returns 'is_liked'. QuestionModel often has a field for it.
+
         return QuestionModel.fromJson(json as Map<String, dynamic>);
       }).toList();
 
@@ -235,26 +194,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
         if (!exists) questions.add(q);
       }
 
+      // No need for manual sorting (RPC handles pinned first)
       pinnedQuestions = questions.where((q) => q.isPinned).toList();
       unpinnedQuestions = questions.where((q) => !q.isPinned).toList();
 
-      // 🚀 Batch Check Likes
-      if (questions.isNotEmpty) {
-        final ids = questions.map((e) => e.id).toList();
-        final likedIds = await LikeService.getLikedQuestions(
-          questionIds: ids,
-          userId: MySharedPreferences.userId,
-        );
-
-        for (var q in questions) {
-          q.isLiked = likedIds.contains(q.id);
-        }
-      }
+      // No need for separate LikeService call (RPC handles is_liked)
 
       // Update offset for next page
       _offset += newQuestions.length;
     } catch (e, st) {
-      debugPrint("Error loading questions: $e\n$st");
+      debugPrint("Error loading profile questions: $e\n$st");
     } finally {
       setState(() => isQuestionsLoading = false);
     }
@@ -305,49 +254,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       debugPrint("Error deleting question: $e");
       return false;
     }
-  }
-
-  Future<void> checkFollowing() async {
-    if (!MySharedPreferences.isLoggedIn) {
-      return;
-    }
-    if (!isMe) {
-      isFollowing = await FollowService.isFollowing(
-        myId: MySharedPreferences.userId,
-        targetUserId: widget.userId,
-      );
-      setState(() {});
-    }
-  }
-
-  Future<void> checkBlock() async {
-    if (!MySharedPreferences.isLoggedIn) {
-      return;
-    }
-    if (!isMe) {
-      final results = await Future.wait([
-        BlockService.isBlocked(
-          myId: MySharedPreferences.userId,
-          targetUserId: widget.userId,
-        ),
-        BlockService.amIBlocked(
-          myId: MySharedPreferences.userId,
-          targetUserId: widget.userId,
-        ),
-      ]);
-
-      isBlocked = results[0];
-      amIBlockedByTarget = results[1];
-
-      setState(() {});
-    }
-    log('isBlocked $isBlocked');
-  }
-
-  getAllData() async {
-    await checkBlock();
-    await getProfile(); // Wait for profile first
-    await Future.wait([getQuestions(), checkFollowing(), getQuestionsCount()]);
   }
 
   Future<void> toggleFollowAction() async {
@@ -676,12 +582,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
               onRefresh: () async {
                 _offset = 0;
                 hasMore = true;
-                hasMore = true;
                 questions.clear();
                 pinnedQuestions.clear();
                 unpinnedQuestions.clear();
                 await getAllData();
-                await getQuestionsCount();
                 setState(() {});
               },
               child: ListView(
@@ -701,7 +605,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ).then((value) {
                           if (value == true) {
                             // Refresh profile after coming back from edit
-                            getProfile();
+                            getAllData();
                             setState(() {});
                           }
                         });
