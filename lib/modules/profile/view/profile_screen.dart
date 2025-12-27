@@ -58,6 +58,7 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   UserModel? user;
   bool isLoading = true;
+  bool isError = false;
   bool isMe = false;
 
   List<QuestionModel> questions = [];
@@ -89,7 +90,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> getAllData() async {
-    setState(() => isLoading = true);
+    setState(() {
+      isLoading = true;
+      isError = false;
+    });
     try {
       final myId = MySharedPreferences.userId;
       final targetId = widget.userId;
@@ -97,7 +101,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       final response = await Supabase.instance.client.rpc(
         'get_full_profile',
         params: {
-          'p_my_id': myId.isEmpty ? null : myId,
+          'p_my_id': (myId.isEmpty || myId == '0') ? null : myId,
           'p_target_id': targetId,
         },
       );
@@ -136,11 +140,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
         if (isMe) {
           MySharedPreferences.clearProfile(context: context);
         } else {
-          context.back();
+          // Instead of popping, show error state
+          setState(() => isError = true);
         }
       }
     } catch (e) {
       debugPrint("Error fetching full profile: $e");
+      setState(() => isError = true);
     } finally {
       setState(() => isLoading = false);
     }
@@ -158,7 +164,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       final response = await Supabase.instance.client.rpc(
         'get_profile_questions',
         params: {
-          'p_my_id': myId.isEmpty ? null : myId,
+          'p_my_id': (myId.isEmpty || myId == '0') ? null : myId,
           'p_target_id': widget.userId,
           'p_limit': limit,
           'p_offset': _offset,
@@ -556,8 +562,39 @@ class _ProfileScreenState extends State<ProfileScreen> {
             )
           : isLoading
           ? Center(child: CupertinoActivityIndicator(color: AppColors.primary))
-          : user == null
-          ? const Center(child: Text(''))
+          : (user == null || isError)
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  LogoWidg(),
+                  const SizedBox(height: 16),
+                  Text(
+                    !context.isCurrentLanguageAr()
+                        ? 'Something went wrong'
+                        : 'حدث خطأ ما',
+                    style: TextStyle(
+                      color: AppColors.primary,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: getAllData,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                    ),
+                    child: Text(
+                      !context.isCurrentLanguageAr()
+                          ? 'Retry'
+                          : 'إعادة المحاولة',
+                    ),
+                  ),
+                ],
+              ),
+            )
           : RefreshIndicator.adaptive(
               color: AppColors.primary,
 

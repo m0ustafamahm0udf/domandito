@@ -59,14 +59,16 @@ class AppPages {
 
         // 2. التحقق من وجود اسم المستخدم
         if (userUserName == null || userUserName.isEmpty) {
-          // يمكن هنا العودة إلى الصفحة الرئيسية أو صفحة 404
           return AppRoutes._getInitialScreen();
         }
+
+        // Sanitize username (remove query params like ?fbclid=...)
+        final String cleanUserName = userUserName.split('?').first;
 
         // 3. استخدام FutureBuilder لانتظار جلب البيانات (لأن دالة page غير متزامنة)
         return FutureBuilder<dynamic>(
           // 'dynamic' يمكن استبدالها بـ 'UserModel?' أو نوع الإرجاع الفعلي
-          future: getProfileByUserNameForDeepLink(userUserName: userUserName),
+          future: getProfileByUserNameForDeepLink(userUserName: cleanUserName),
           builder: (context, snapshot) {
             // انتظار جلب البيانات
             if (snapshot.connectionState == ConnectionState.waiting) {
