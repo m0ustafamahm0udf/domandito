@@ -55,7 +55,8 @@ class ProfileScreen extends StatefulWidget {
   State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen> {
+class _ProfileScreenState extends State<ProfileScreen>
+    with AutomaticKeepAliveClientMixin {
   UserModel? user;
   bool isLoading = true;
   bool isError = false;
@@ -530,6 +531,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Scaffold(
       appBar: ProfileAppBar(user: user, isLoading: isLoading, isMe: isMe),
       body: (isBlocked || amIBlockedByTarget)
@@ -931,4 +933,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
     );
   }
+
+  @override
+  // TODO: implement wantKeepAlive
+  bool get wantKeepAlive => true;
 }

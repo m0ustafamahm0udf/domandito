@@ -45,7 +45,8 @@ class QuestionCard extends StatefulWidget {
   State<QuestionCard> createState() => _QuestionCardState();
 }
 
-class _QuestionCardState extends State<QuestionCard> {
+class _QuestionCardState extends State<QuestionCard>
+    with AutomaticKeepAliveClientMixin {
   bool isLiked = false;
   bool isPinned = false;
   int likesCount = 0;
@@ -188,6 +189,7 @@ class _QuestionCardState extends State<QuestionCard> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final displayName = question.isAnonymous
         ? !context.isCurrentLanguageAr()
               ? "Anonymous"
@@ -706,4 +708,8 @@ class _QuestionCardState extends State<QuestionCard> {
       ),
     );
   }
+
+  @override
+  // TODO: implement wantKeepAlive
+  bool get wantKeepAlive => true;
 }

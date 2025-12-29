@@ -9,17 +9,18 @@ class CustomDialog extends StatelessWidget {
   final String content;
   final bool isConfirm;
   final dynamic Function() onConfirm;
-  const CustomDialog(
-      {super.key,
-      required this.title,
-      required this.onConfirm,
-      required this.content,
-      this.isConfirm = true});
+  const CustomDialog({
+    super.key,
+    required this.title,
+    required this.onConfirm,
+    required this.content,
+    this.isConfirm = true,
+  });
 
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      canPop: false,
+      canPop: false, // Allow dismissing the dialog
       child: AlertDialog(
         title: Text(
           title,
@@ -29,41 +30,38 @@ class CustomDialog extends StatelessWidget {
             fontSize: 20,
           ),
         ),
-        content: Text(
-          content,
-          style: TextStyle(fontSize: 14),
-        ),
+        content: Text(content, style: TextStyle(fontSize: 14)),
         actions: [
           Row(
             children: [
+              // Cancel button - always shown
               Expanded(
                 child: BounceButton(
                   onPressed: () {
-                    if (!isConfirm) {
-                      onConfirm();
-                    }
-                    else{
                     Navigator.pop(context, false);
-
-                    }
                   },
-                  title: !isConfirm ? 
-                  
-                  !context.isCurrentLanguageAr()? 'Ok' :'موافق' : !context.isCurrentLanguageAr()? 'Cancel' : 'إلغاء',
+                  title: !context.isCurrentLanguageAr() ? 'Cancel' : 'إلغاء',
                   height: 40,
-                  isOutline: isConfirm,
+                  isOutline: true,
                 ),
               ),
-              if (isConfirm) SizedBox(width: AppConstance.hPadding),
-              if (isConfirm)
-                Expanded(
-                  child: BounceButton(
-                    height: 40,
-                    onPressed: () => Navigator.pop(context, true),
-                    title:
-                    !context.isCurrentLanguageAr()? 'Confirm' : 'تأكيد',
-                  ),
+              SizedBox(width: AppConstance.hPadding),
+              // Confirm/View button
+              Expanded(
+                child: BounceButton(
+                  height: 40,
+                  onPressed: () {
+                    if (!isConfirm) {
+                      onConfirm();
+                    } else {
+                      Navigator.pop(context, true);
+                    }
+                  },
+                  title: !isConfirm
+                      ? (!context.isCurrentLanguageAr() ? 'View' : 'عرض')
+                      : (!context.isCurrentLanguageAr() ? 'Confirm' : 'تأكيد'),
                 ),
+              ),
             ],
           ),
         ],
