@@ -17,7 +17,7 @@ import 'package:domandito/shared/style/app_colors.dart';
 import 'package:domandito/shared/widgets/custom_network_image.dart';
 import 'package:domandito/shared/widgets/fading_effect.dart';
 import 'package:domandito/shared/widgets/featured_widget.dart';
-import 'package:domandito/shared/widgets/logout_dialog.dart';
+import 'package:domandito/shared/widgets/custom_dialog.dart';
 import 'package:domandito/shared/widgets/profile_tile.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
@@ -448,9 +448,16 @@ class _AccountScreenState extends State<AccountScreen> {
       //   );
       // break;
       case 4:
-        final rest = await showLogOutButtomSheet(
-          isDelete: false,
+        final rest = await showDialog<bool>(
           context: context,
+          builder: (context) => CustomDialog(
+            title: !context.isCurrentLanguageAr() ? 'Logout' : 'تسجيل الخروج',
+            content: !context.isCurrentLanguageAr()
+                ? 'Are you sure you want to logout?'
+                : 'هل أنت متأكد من تسجيل الخروج؟',
+            isConfirm: true,
+            onConfirm: () {},
+          ),
         );
         if (rest != null && rest) {
           BadgeService.removeBadge();
@@ -459,9 +466,18 @@ class _AccountScreenState extends State<AccountScreen> {
         break;
       case 5:
         // context.to(const AboutCpvApp());
-        final rest = await showLogOutButtomSheet(
-          isDelete: true,
+        final rest = await showDialog<bool>(
           context: context,
+          builder: (context) => CustomDialog(
+            title: !context.isCurrentLanguageAr()
+                ? 'Delete Account'
+                : 'حذف الحساب',
+            content: !context.isCurrentLanguageAr()
+                ? 'Are you sure you want to delete your account? Your account will be permanently deleted after 30 days.'
+                : 'هل أنت متأكد من حذف حسابك؟ سيتم حذف حسابك نهائياً بعد 30 يوم.',
+            isConfirm: true,
+            onConfirm: () {},
+          ),
         );
         if (rest != null && rest) {
           BadgeService.removeBadge();
