@@ -85,10 +85,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   Future<void> _showImageSourceDialog() async {
-    final ImageSource? source = await showModalBottomSheet<ImageSource>(
+    final ImageSource? source = await showDialog<ImageSource>(
       context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
       builder: (context) => const ImagePickerSheet(),
     );
 

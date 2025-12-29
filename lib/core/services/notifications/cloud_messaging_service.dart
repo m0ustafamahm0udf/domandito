@@ -9,7 +9,6 @@ import 'package:domandito/core/utils/utils.dart';
 import 'package:domandito/firebase_options.dart';
 import 'package:domandito/main.dart';
 import 'package:domandito/modules/answer/views/answer_question_screen.dart';
-import 'package:domandito/modules/profile/view/profile_screen.dart';
 import 'package:domandito/modules/question/views/question_screen.dart';
 import 'package:domandito/shared/widgets/custom_dialog.dart';
 import 'package:firebase_core/firebase_core.dart';

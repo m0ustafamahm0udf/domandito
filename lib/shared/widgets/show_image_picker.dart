@@ -1,4 +1,3 @@
-
 import 'package:domandito/core/constants/app_constants.dart';
 import 'package:domandito/core/utils/extentions.dart';
 import 'package:domandito/shared/style/app_colors.dart';
@@ -11,38 +10,41 @@ class ImagePickerSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: AppColors.white,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppConstance.radiusBig)),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: AppConstance.hPadding, vertical: AppConstance.vPadding),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          spacing: 10,
-          children: <Widget>[
-            // SvgPicture.asset(AppIcons.bottomSheetDivider),
-            BounceButton(
-              onPressed: () => Navigator.pop(context, ImageSource.camera),
-              isOutline: true,
-              title: !context.isCurrentLanguageAr()? 'Add from Camera' : 'إضافة من الكاميرا',
-            ),
-            BounceButton(
-              onPressed: () => Navigator.pop(context, ImageSource.gallery),
-              isOutline: true,
-              title: !context.isCurrentLanguageAr()? 'Add from Gallery' : 'إضافة من المعرض',
-            ),
-          ],
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      child: Material(
+        color: AppColors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppConstance.radiusBig),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppConstance.hPadding,
+            vertical: AppConstance.vPadding,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            spacing: 10,
+            children: <Widget>[
+              BounceButton(
+                onPressed: () => Navigator.pop(context, ImageSource.camera),
+                isOutline: true,
+                title: !context.isCurrentLanguageAr()
+                    ? 'Add from Camera'
+                    : 'إضافة من الكاميرا',
+              ),
+              BounceButton(
+                onPressed: () => Navigator.pop(context, ImageSource.gallery),
+                isOutline: true,
+                title: !context.isCurrentLanguageAr()
+                    ? 'Add from Gallery'
+                    : 'إضافة من المعرض',
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 }
-
-
-
-// Future showImagePicker(BuildContext context) async {
-//   showModalBottomSheet(
-//     context: context,
-//     builder: (BuildContext context) => ImagePickerSheet(),
-//   );
-// }
