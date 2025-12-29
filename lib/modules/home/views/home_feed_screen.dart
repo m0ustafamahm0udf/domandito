@@ -224,17 +224,22 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
               ),
             )
           : null,
-      actions: [
-        IconButton.filled(
-          style: ButtonStyle(
-            backgroundColor: WidgetStatePropertyAll(AppColors.white),
-          ),
-          onPressed: () =>
-              pushScreen(context, screen: const SearchUsersScreen()),
-          icon: SvgPicture.asset(AppIcons.searchIcon, color: AppColors.primary),
-        ),
-        const SizedBox(width: 8),
-      ],
+      actions: _questions.isNotEmpty
+          ? [
+              IconButton.filled(
+                style: ButtonStyle(
+                  backgroundColor: WidgetStatePropertyAll(AppColors.white),
+                ),
+                onPressed: () =>
+                    pushScreen(context, screen: const SearchUsersScreen()),
+                icon: SvgPicture.asset(
+                  AppIcons.searchIcon,
+                  color: AppColors.primary,
+                ),
+              ),
+              const SizedBox(width: 8),
+            ]
+          : null,
     );
   }
 

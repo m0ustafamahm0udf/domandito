@@ -464,7 +464,7 @@ class _QuestionCardState extends State<QuestionCard> {
                                       ? TextDirection.rtl
                                       : TextDirection.ltr,
                                   overflow: TextOverflow.ellipsis,
-                                  maxLines: 1,
+                                  maxLines: 2,
                                   style: const TextStyle(fontSize: 16),
                                 )
                               : linkifyText(

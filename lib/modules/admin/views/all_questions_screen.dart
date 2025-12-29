@@ -1,7 +1,6 @@
 import 'package:domandito/core/utils/extentions.dart';
 import 'package:domandito/core/utils/shared_prefrences.dart';
 import 'package:domandito/modules/ask/models/q_model.dart';
-import 'package:domandito/shared/services/like_service.dart';
 import 'package:domandito/shared/style/app_colors.dart';
 import 'package:domandito/shared/widgets/q_card.dart';
 import 'package:flutter/cupertino.dart';
@@ -43,32 +42,22 @@ class _AllQuestionsScreenState extends State<AllQuestionsScreen> {
     setState(() => isLoading = true);
 
     try {
-      final List<dynamic> data = await _supabase
-          .from('questions')
-          .select(
-            '*, sender:sender_id(id, name, username, image, is_verified), receiver:receiver_id(id, name, username, image, is_verified, token)',
-          )
-          .not('answered_at', 'is', null)
-          .range(_offset, _offset + pageSize - 1)
-          .order('created_at', ascending: false);
+      // Fetch Questions using RPC (Server-side optimization)
+      final List<dynamic> data = await _supabase.rpc(
+        'get_all_questions',
+        params: {
+          'p_user_id': MySharedPreferences.userId,
+          'p_limit': pageSize,
+          'p_offset': _offset,
+        },
+      );
 
       if (data.isNotEmpty) {
         final newQuestions = data
             .map((json) => QuestionModel.fromJson(json))
             .toList();
 
-        // 🚀 Batch Check Likes
-        if (newQuestions.isNotEmpty) {
-          final ids = newQuestions.map((e) => e.id).toList();
-          final likedIds = await LikeService.getLikedQuestions(
-            questionIds: ids,
-            userId: MySharedPreferences.userId,
-          );
-
-          for (var q in newQuestions) {
-            q.isLiked = likedIds.contains(q.id);
-          }
-        }
+        // Note: isLiked is already calculated by the RPC!
 
         questions.addAll(newQuestions);
         _offset += newQuestions.length;

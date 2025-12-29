@@ -31,6 +31,7 @@ class NotificationCard extends StatefulWidget {
 class _NotificationCardState extends State<NotificationCard>
     with AutomaticKeepAliveClientMixin {
   late bool _isRead;
+  bool _isProcessing = false; // Prevent multiple taps
 
   @override
   void initState() {
@@ -39,6 +40,9 @@ class _NotificationCardState extends State<NotificationCard>
   }
 
   Future<void> _handleTap(BuildContext context) async {
+    // Prevent multiple taps
+    if (_isProcessing) return;
+    _isProcessing = true;
     bool shouldUpdateReadStatus = false;
 
     if (widget.notificationsData.entityId != null) {
@@ -110,6 +114,9 @@ class _NotificationCardState extends State<NotificationCard>
       NotificationsRepository().markAsRead(widget.notificationsData.id);
       BadgeService.updateBadgeCount();
     }
+
+    // Reset processing flag
+    _isProcessing = false;
   }
 
   @override

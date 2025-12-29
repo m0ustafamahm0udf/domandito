@@ -49,7 +49,7 @@ class PinnedQuestionsSection extends StatelessWidget {
           ),
         ),
         SizedBox(
-          height: 165, // Height for the horizontal list
+          height: 190, // Height for the horizontal list
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.only(
