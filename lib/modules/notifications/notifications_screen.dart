@@ -10,6 +10,8 @@ import 'package:domandito/core/services/badge_service.dart';
 import 'package:domandito/shared/widgets/custom_dialog.dart';
 import 'package:domandito/core/constants/app_constants.dart';
 import 'package:domandito/core/utils/utils.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:domandito/core/utils/shared_prefrences.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -27,6 +29,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
   bool hasMore = true;
   int _offset = 0;
   final int limit = 10;
+  bool _isMarkingAllAsRead = false;
 
   @override
   void initState() {
@@ -125,6 +128,67 @@ class _NotificationsScreenState extends State<NotificationsScreen>
     }
   }
 
+  Future<void> _markAllAsRead() async {
+    if (_isMarkingAllAsRead) return;
+
+    if (!await hasInternetConnection()) {
+      AppConstance().showInfoToast(
+        context,
+        msg: !context.isCurrentLanguageAr()
+            ? 'No internet connection'
+            : 'لا يوجد اتصال بالانترنت',
+      );
+      return;
+    }
+
+    setState(() => _isMarkingAllAsRead = true);
+
+    try {
+      // Call Supabase RPC to mark all notifications as read
+      final result = await Supabase.instance.client.rpc(
+        'mark_all_notifications_read',
+        params: {'p_user_id': MySharedPreferences.userId},
+      );
+
+      final updatedCount = result as int;
+
+      if (updatedCount > 0) {
+        // Refresh notifications list to get updated data
+        _offset = 0;
+        hasMore = true;
+        notifications.clear();
+        await getNotifications();
+
+        // Update badge count
+        BadgeService.updateBadgeCount();
+
+        AppConstance().showSuccesToast(
+          context,
+          msg: !context.isCurrentLanguageAr()
+              ? 'All notifications marked as read'
+              : 'تم قراءة جميع الإشعارات',
+        );
+      } else {
+        AppConstance().showInfoToast(
+          context,
+          msg: !context.isCurrentLanguageAr()
+              ? 'No unread notifications'
+              : 'لا توجد إشعارات غير مقروءة',
+        );
+      }
+    } catch (e) {
+      debugPrint("Error marking all as read: $e");
+      AppConstance().showErrorToast(
+        context,
+        msg: !context.isCurrentLanguageAr()
+            ? 'Error marking notifications as read'
+            : 'حدث خطأ أثناء قراءة الإشعارات',
+      );
+    } finally {
+      setState(() => _isMarkingAllAsRead = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
@@ -136,8 +200,30 @@ class _NotificationsScreenState extends State<NotificationsScreen>
             fontFamily: context.isCurrentLanguageAr()
                 ? 'Rubik'
                 : 'Dancing_Script',
+            fontSize: 32,
           ),
         ),
+        actions: [
+          if (notifications.isNotEmpty)
+            _isMarkingAllAsRead
+                ? const Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CupertinoActivityIndicator(
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  )
+                : IconButton(
+                    icon: const Icon(Icons.done_all),
+                    tooltip: !context.isCurrentLanguageAr()
+                        ? 'Mark all as read'
+                        : 'وضع علامة مقروء على الكل',
+                    onPressed: _markAllAsRead,
+                  ),
+        ],
       ),
       body: SafeArea(
         child: isNotificationsLoading

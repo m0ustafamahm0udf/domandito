@@ -137,6 +137,7 @@ class _NewQuestionsScreenState extends State<NewQuestionsScreen> {
             fontFamily: context.isCurrentLanguageAr()
                 ? 'Rubik'
                 : 'Dancing_Script',
+            fontSize: 32,
           ),
         ),
       ),

@@ -201,7 +201,7 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
     return AppBar(
       title: const Text(
         'Domandito',
-        style: TextStyle(fontSize: 36, fontFamily: 'Dancing_Script'),
+        style: TextStyle(fontSize: 32, fontFamily: 'Dancing_Script'),
       ),
       // centerTitle: false,
       leading: !MySharedPreferences.isLoggedIn
