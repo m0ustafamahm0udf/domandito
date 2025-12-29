@@ -106,21 +106,21 @@ class _CachedVideoPlayerScreenState extends State<CachedVideoPlayerScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      // appBar: AppBar(
-      //   // backgroundColor: Colors.black,
-      //   iconTheme: const IconThemeData(color: AppColors.primary),
-      //   title: widget.title != null
-      //       ? Text(
-      //           widget.title!,
-      //           style: const TextStyle(color: AppColors.primary),
-      //         )
-      //       : null,
-      // ),
-      body: GestureDetector(
-        onTap: _togglePlayPause,
-        child: Center(
+    return GestureDetector(
+        onTap: _toggleControls,
+      child: Scaffold(
+        backgroundColor: Colors.black,
+        // appBar: AppBar(
+        //   // backgroundColor: Colors.black,
+        //   iconTheme: const IconThemeData(color: AppColors.primary),
+        //   title: widget.title != null
+        //       ? Text(
+        //           widget.title!,
+        //           style: const TextStyle(color: AppColors.primary),
+        //         )
+        //       : null,
+        // ),
+        body: Center(
           child: _hasError
               ? _buildErrorWidget()
               : !_isInitialized

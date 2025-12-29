@@ -98,11 +98,11 @@ class _IOSVideoPlayerScreenState extends State<IOSVideoPlayerScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: GestureDetector(
+    return GestureDetector(
         onTap: _toggleControls,
-        child: Center(
+      child: Scaffold(
+        backgroundColor: Colors.black,
+        body: Center(
           child: _hasError
               ? _buildErrorWidget()
               : !_isInitialized
