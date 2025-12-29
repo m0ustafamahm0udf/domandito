@@ -667,7 +667,7 @@ class _AnswerQuestionScreenState extends State<AnswerQuestionScreen> {
                               : 'إضافة فيديو',
                           style: TextStyle(
                             color: AppColors.primary,
-                            // fontSize: 16,
+                            fontSize: 14,
                             fontWeight: FontWeight.bold,
                           ),
                         ),

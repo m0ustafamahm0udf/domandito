@@ -118,12 +118,15 @@ class _CachedVideoPlayerScreenState extends State<CachedVideoPlayerScreen> {
       //         )
       //       : null,
       // ),
-      body: Center(
-        child: _hasError
-            ? _buildErrorWidget()
-            : !_isInitialized
-            ? _buildLoadingWidget()
-            : _buildVideoPlayer(),
+      body: GestureDetector(
+        onTap: _togglePlayPause,
+        child: Center(
+          child: _hasError
+              ? _buildErrorWidget()
+              : !_isInitialized
+              ? _buildLoadingWidget()
+              : _buildVideoPlayer(),
+        ),
       ),
     );
   }
@@ -159,156 +162,153 @@ class _CachedVideoPlayerScreenState extends State<CachedVideoPlayerScreen> {
   }
 
   Widget _buildVideoPlayer() {
-    return GestureDetector(
-      onTap: _toggleControls,
-      child: Stack(
-        alignment: Alignment.center,
-        clipBehavior: Clip.none,
-        children: [
-          // Video player
-          AspectRatio(
-            aspectRatio: _controller.controller.value.aspectRatio,
-            child: VideoPlayer(_controller.controller),
-          ),
+    return Stack(
+      alignment: Alignment.center,
+      clipBehavior: Clip.none,
+      children: [
+        // Video player
+        AspectRatio(
+          aspectRatio: _controller.controller.value.aspectRatio,
+          child: VideoPlayer(_controller.controller),
+        ),
 
-          // Controls overlay
-          if (_showControls)
-            Container(
-              color: Colors.black.withOpacity(0.3),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  // Play/Pause button in center
-                  Expanded(
-                    child: Center(
-                      child: IconButton(
-                        style: ButtonStyle(
-                          backgroundColor: WidgetStatePropertyAll(
-                            AppColors.white.withOpacity(0.3),
-                          ),
+        // Controls overlay
+        if (_showControls)
+          Container(
+            color: Colors.black.withOpacity(0.3),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                // Play/Pause button in center
+                Expanded(
+                  child: Center(
+                    child: IconButton(
+                      style: ButtonStyle(
+                        backgroundColor: WidgetStatePropertyAll(
+                          AppColors.white.withOpacity(0.3),
                         ),
-                        onPressed: _togglePlayPause,
-                        icon: Icon(
-                          _controller.controller.value.isPlaying
-                              ? Icons.pause_circle_filled
-                              : Icons.play_circle_filled,
-                          size: 24,
-                          color: AppColors.primary,
-                        ),
+                      ),
+                      onPressed: _togglePlayPause,
+                      icon: Icon(
+                        _controller.controller.value.isPlaying
+                            ? Icons.pause_circle_filled
+                            : Icons.play_circle_filled,
+                        size: 24,
+                        color: AppColors.primary,
                       ),
                     ),
                   ),
+                ),
 
-                  // Progress bar and controls
-                  Column(
-                    children: [
-                      // Progress bar
-                      VideoProgressIndicator(
-                        _controller.controller,
-                        allowScrubbing: true,
-                        padding: EdgeInsets.zero,
+                // Progress bar and controls
+                Column(
+                  children: [
+                    // Progress bar
+                    VideoProgressIndicator(
+                      _controller.controller,
+                      allowScrubbing: true,
+                      padding: EdgeInsets.zero,
 
-                        colors: VideoProgressColors(
-                          playedColor: AppColors.primary,
-                          bufferedColor: Colors.grey,
-                          backgroundColor: Colors.white24,
-                        ),
+                      colors: VideoProgressColors(
+                        playedColor: AppColors.primary,
+                        bufferedColor: Colors.grey,
+                        backgroundColor: Colors.white24,
                       ),
-                      // VideoProgressIndicator(
+                    ),
+                    // VideoProgressIndicator(
 
-                      //   _controller.controller,
-                      //   allowScrubbing: true,
-                      //   colors: const VideoProgressColors(
-                      //     playedColor: AppColors.primary,
-                      //     bufferedColor: Colors.grey,
-                      //     backgroundColor: Colors.white24,
-                      //   ),
-                      // ),
-                      // const SizedBox(height: 8),
+                    //   _controller.controller,
+                    //   allowScrubbing: true,
+                    //   colors: const VideoProgressColors(
+                    //     playedColor: AppColors.primary,
+                    //     bufferedColor: Colors.grey,
+                    //     backgroundColor: Colors.white24,
+                    //   ),
+                    // ),
+                    // const SizedBox(height: 8),
 
-                      // Time and fullscreen
-                      Row(
-                        // mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const SizedBox(width: 8),
-                          RichText(
-                            text: TextSpan(
-                              children: [
-                                TextSpan(
-                                  text: _formatDuration(
-                                    _controller.controller.value.position,
-                                  ),
-                                  style: const TextStyle(
-                                    color: AppColors.primary,
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                    // Time and fullscreen
+                    Row(
+                      // mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const SizedBox(width: 8),
+                        RichText(
+                          text: TextSpan(
+                            children: [
+                              TextSpan(
+                                text: _formatDuration(
+                                  _controller.controller.value.position,
                                 ),
-                                const TextSpan(
-                                  text: ' / ',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 14,
-                                  ),
+                                style: const TextStyle(
+                                  color: AppColors.primary,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
                                 ),
-                                TextSpan(
-                                  text: _formatDuration(
-                                    _controller.controller.value.duration,
-                                  ),
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const Spacer(),
-                          IconButton(
-                            style: ButtonStyle(
-                              backgroundColor: WidgetStatePropertyAll(
-                                AppColors.white.withOpacity(0.3),
                               ),
-                            ),
-                            onPressed: _toggleMute,
-                            icon: Icon(
-                              _isMuted ? Icons.volume_off : Icons.volume_up,
-                              color: AppColors.primary,
-                              size: 24,
+                              const TextSpan(
+                                text: ' / ',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 14,
+                                ),
+                              ),
+                              TextSpan(
+                                text: _formatDuration(
+                                  _controller.controller.value.duration,
+                                ),
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Spacer(),
+                        IconButton(
+                          style: ButtonStyle(
+                            backgroundColor: WidgetStatePropertyAll(
+                              AppColors.white.withOpacity(0.3),
                             ),
                           ),
-                          const SizedBox(width: 8),
+                          onPressed: _toggleMute,
+                          icon: Icon(
+                            _isMuted ? Icons.volume_off : Icons.volume_up,
+                            color: AppColors.primary,
+                            size: 24,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
 
-                          // IconButton(
-                          //   onPressed: () {
-                          //     if (MediaQuery.of(context).orientation ==
-                          //         Orientation.portrait) {
-                          //       SystemChrome.setPreferredOrientations([
-                          //         DeviceOrientation.landscapeLeft,
-                          //         DeviceOrientation.landscapeRight,
-                          //       ]);
-                          //     } else {
-                          //       SystemChrome.setPreferredOrientations([
-                          //         DeviceOrientation.portraitUp,
-                          //       ]);
-                          //     }
-                          //   },
-                          //   icon: const Icon(
-                          //     Icons.fullscreen,
-                          //     color: Colors.white,
-                          //     size: 30,
-                          //   ),
-                          // ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                    ],
-                  ),
-                ],
-              ),
+                        // IconButton(
+                        //   onPressed: () {
+                        //     if (MediaQuery.of(context).orientation ==
+                        //         Orientation.portrait) {
+                        //       SystemChrome.setPreferredOrientations([
+                        //         DeviceOrientation.landscapeLeft,
+                        //         DeviceOrientation.landscapeRight,
+                        //       ]);
+                        //     } else {
+                        //       SystemChrome.setPreferredOrientations([
+                        //         DeviceOrientation.portraitUp,
+                        //       ]);
+                        //     }
+                        //   },
+                        //   icon: const Icon(
+                        //     Icons.fullscreen,
+                        //     color: Colors.white,
+                        //     size: 30,
+                        //   ),
+                        // ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                  ],
+                ),
+              ],
             ),
-        ],
-      ),
+          ),
+      ],
     );
   }
 }

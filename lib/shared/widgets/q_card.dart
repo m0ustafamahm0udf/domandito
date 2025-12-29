@@ -461,7 +461,7 @@ class _QuestionCardState extends State<QuestionCard>
                             },
                             child: isPinned && widget.isInProfileScreen
                                 ? Text(
-                                    "\"${question.answerText}\"",
+                                    question.answerText.toString(),
                                     textAlign:
                                         isArabic(question.answerText ?? '')
                                         ? TextAlign.right
