@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:domandito/core/constants/app_icons.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:domandito/core/constants/app_constants.dart';
 import 'package:domandito/core/constants/app_platforms_serv.dart';
@@ -22,6 +23,10 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_overlay_loader/flutter_overlay_loader.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:svg_flutter/svg_flutter.dart';
+import 'package:video_compress/video_compress.dart';
+import 'package:video_thumbnail/video_thumbnail.dart';
+import 'package:path_provider/path_provider.dart';
 
 class AnswerQuestionScreen extends StatefulWidget {
   final QuestionModel question;
@@ -40,7 +45,29 @@ class _AnswerQuestionScreenState extends State<AnswerQuestionScreen> {
   List<String> localImagePaths = [];
   List<String> uploadedImageUrls = [];
 
+  // Video state
+  String? localVideoPath;
+  String? originalVideoPath; // Store original video before compression
+  String? uploadedVideoUrl;
+  String? uploadedThumbnailUrl; // Added
+  String? videoThumbnailPath;
+  String mediaType = 'none'; // 'none', 'image', 'video'
+  bool isCompressing = false;
+  double compressionProgress = 0.0;
+  String? videoSizeText;
+  String? videoDurationText;
+
   Future<void> _pickImage(ImageSource source) async {
+    if (mediaType == 'video') {
+      AppConstance().showErrorToast(
+        context,
+        msg: !context.isCurrentLanguageAr()
+            ? 'Please remove video first'
+            : 'يرجى حذف الفيديو أولاً',
+      );
+      return;
+    }
+
     try {
       final pickedFilePath = await ImagePickerService.pickFile(
         source: source,
@@ -50,6 +77,9 @@ class _AnswerQuestionScreenState extends State<AnswerQuestionScreen> {
       if (pickedFilePath != null) {
         setState(() {
           localImagePaths.add(pickedFilePath);
+          if (localImagePaths.isNotEmpty) {
+            mediaType = 'image';
+          }
         });
       }
     } catch (e) {
@@ -62,11 +92,11 @@ class _AnswerQuestionScreenState extends State<AnswerQuestionScreen> {
 
   Future<List<String>> _uploadAnswerImages() async {
     List<String> urls = [];
-
-    for (final path in localImagePaths) {
+    for (var i = 0; i < localImagePaths.length; i++) {
+      final path = localImagePaths[i];
       final url = await UploadImagesToS3Api().uploadFiles(
         filePath: path,
-        fileName: '${DateTime.now().millisecondsSinceEpoch}.png',
+        fileName: 'image_${DateTime.now().millisecondsSinceEpoch}_$i.png',
         destinationPath: 'answers/${widget.question.id}',
       );
 
@@ -76,13 +106,220 @@ class _AnswerQuestionScreenState extends State<AnswerQuestionScreen> {
         throw Exception('Image upload failed');
       }
     }
-
     return urls;
+  }
+
+  Future<String> _uploadThumbnail() async {
+    if (videoThumbnailPath == null) return '';
+
+    final url = await UploadImagesToS3Api().uploadFiles(
+      filePath: videoThumbnailPath!,
+      fileName: 'thumbnail_${DateTime.now().millisecondsSinceEpoch}.png',
+      destinationPath: 'answers/${widget.question.id}',
+    );
+
+    if (url.isEmpty) {
+      debugPrint('Thumbnail upload failed');
+      return '';
+    }
+
+    return url;
+  }
+
+  Future<void> _pickVideo(ImageSource source) async {
+    if (localImagePaths.isNotEmpty) {
+      AppConstance().showErrorToast(
+        context,
+        msg: !context.isCurrentLanguageAr()
+            ? 'Please remove images first'
+            : 'يرجى حذف الصور أولاً',
+      );
+      return;
+    }
+
+    try {
+      final ImagePicker picker = ImagePicker();
+      final XFile? video = await picker.pickVideo(source: source);
+
+      if (video != null) {
+        final file = File(video.path);
+        final fileSize = await file.length();
+        final fileSizeInMB = fileSize / (1024 * 1024);
+
+        // Get video duration
+        final info = await VideoCompress.getMediaInfo(video.path);
+        final duration = info.duration ?? 0;
+        final durationInSeconds = duration / 1000;
+        final minutes = (durationInSeconds / 60).floor();
+        final seconds = (durationInSeconds % 60).floor();
+        final durationText =
+            '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+
+        setState(() {
+          videoSizeText = '${fileSizeInMB.toStringAsFixed(2)} MB';
+          videoDurationText = durationText;
+        });
+
+        // Always compress video
+        // Store original video path before compression
+        originalVideoPath = video.path;
+
+        AppConstance().showInfoToast(
+          context,
+          msg: !context.isCurrentLanguageAr()
+              ? 'Compressing video...'
+              : 'جاري ضغط الفيديو...',
+        );
+
+        final compressedPath = await _compressVideo(video.path);
+
+        if (compressedPath == null) {
+          // Compression failed or was cancelled
+          setState(() {
+            localVideoPath = null;
+            originalVideoPath = null;
+            videoThumbnailPath = null;
+            mediaType = 'none';
+          });
+
+          if (isCompressing == false) {
+            // User cancelled - manual cancellation handled in button
+          } else {
+            // Compression failed - show error
+            AppConstance().showErrorToast(
+              context,
+              msg: !context.isCurrentLanguageAr()
+                  ? 'Video compression failed'
+                  : 'فشل ضغط الفيديو',
+            );
+          }
+          return;
+        }
+
+        setState(() {
+          localVideoPath = compressedPath;
+          originalVideoPath = null;
+          mediaType = 'video';
+        });
+
+        // Generate thumbnail
+        await _generateThumbnail();
+      }
+    } catch (e) {
+      AppConstance().showErrorToast(
+        context,
+        msg: !context.isCurrentLanguageAr()
+            ? 'Error picking video'
+            : 'حدث خطأ أثناء اختيار الفيديو',
+      );
+      debugPrint('Error picking video: $e');
+    }
+  }
+
+  Future<String?> _compressVideo(String path) async {
+    try {
+      setState(() {
+        isCompressing = true;
+        compressionProgress = 0.0;
+      });
+
+      // Subscribe to compression progress
+      final subscription = VideoCompress.compressProgress$.subscribe((
+        progress,
+      ) {
+        if (mounted) {
+          setState(() {
+            compressionProgress = progress;
+          });
+        }
+      });
+
+      final info = await VideoCompress.compressVideo(
+        path,
+        quality: VideoQuality.DefaultQuality,
+        deleteOrigin: false,
+      );
+
+      subscription.unsubscribe();
+
+      // Check if compression was cancelled
+      if (!mounted || !isCompressing) {
+        return null;
+      }
+
+      setState(() {
+        isCompressing = false;
+      });
+
+      if (info != null) {
+        final compressedSize = info.filesize ?? 0;
+        final compressedSizeInMB = compressedSize / (1024 * 1024);
+
+        setState(() {
+          videoSizeText = '${compressedSizeInMB.toStringAsFixed(2)} MB';
+        });
+
+        if (compressedSizeInMB > 30) {
+          return null;
+        }
+
+        return info.path;
+      }
+
+      return null;
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          isCompressing = false;
+        });
+      }
+      debugPrint('Error compressing video: $e');
+      return null;
+    }
+  }
+
+  Future<void> _generateThumbnail() async {
+    if (localVideoPath == null) return;
+
+    try {
+      final thumbnail = await VideoThumbnail.thumbnailFile(
+        video: localVideoPath!,
+        thumbnailPath: (await getTemporaryDirectory()).path,
+        imageFormat: ImageFormat.PNG,
+        // maxHeight: 0,
+        quality: 50,
+      );
+
+      if (thumbnail != null) {
+        setState(() {
+          videoThumbnailPath = thumbnail;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error generating thumbnail: $e');
+    }
+  }
+
+  Future<String> _uploadVideo() async {
+    if (localVideoPath == null) return '';
+
+    final url = await UploadImagesToS3Api().uploadFiles(
+      filePath: localVideoPath!,
+      fileName: 'video_${DateTime.now().millisecondsSinceEpoch}.mp4',
+      destinationPath: 'answers/${widget.question.id}',
+    );
+
+    if (url.isEmpty) {
+      throw Exception('Video upload failed');
+    }
+
+    return url;
   }
 
   @override
   void dispose() {
     answerController.dispose();
+    VideoCompress.cancelCompression(); // Fix: Cancel before deleting cache
     super.dispose();
   }
 
@@ -98,6 +335,16 @@ class _AnswerQuestionScreenState extends State<AnswerQuestionScreen> {
     }
 
     if (!_formKey.currentState!.validate()) return;
+
+    if (isCompressing) {
+      AppConstance().showInfoToast(
+        context,
+        msg: !context.isCurrentLanguageAr()
+            ? 'Please wait for video compression to finish'
+            : 'يرجى الانتظار حتى ينتهي ضغط الفيديو',
+      );
+      return;
+    }
 
     final confirmed = await showDialog<bool>(
       context: context,
@@ -116,20 +363,37 @@ class _AnswerQuestionScreenState extends State<AnswerQuestionScreen> {
     setState(() => isSending = true);
 
     try {
-      /// 1️⃣ رفع الصور
-      uploadedImageUrls = await _uploadAnswerImages();
+      /// 1️⃣ رفع الصور أو الفيديو
+      if (mediaType == 'image') {
+        uploadedImageUrls = await _uploadAnswerImages();
+      } else if (mediaType == 'video') {
+        // Upload video AND thumbnail
+        await Future.wait([
+          _uploadVideo().then((url) => uploadedVideoUrl = url),
+          _uploadThumbnail().then((url) => uploadedThumbnailUrl = url),
+        ]);
+      }
 
-      /// 2️⃣ إرسال الجواب
       /// 2️⃣ إرسال الجواب
       final DateTime now = await getNetworkTime() ?? DateTime.now();
 
+      final Map<String, dynamic> updateData = {
+        'answered_at': now.toUtc().toIso8601String(),
+        'answer_text': answerController.text.trim(),
+      };
+
+      if (mediaType == 'image') {
+        updateData['images'] = uploadedImageUrls;
+        updateData['media_type'] = 'image';
+      } else if (mediaType == 'video') {
+        updateData['video_url'] = uploadedVideoUrl;
+        updateData['thumbnail_url'] = uploadedThumbnailUrl; // Added
+        updateData['media_type'] = 'video';
+      }
+
       await Supabase.instance.client
           .from('questions')
-          .update({
-            'answered_at': now.toUtc().toIso8601String(),
-            'answer_text': answerController.text.trim(),
-            'images': uploadedImageUrls,
-          })
+          .update(updateData)
           .eq('id', widget.question.id);
 
       AppConstance().showSuccesToast(
@@ -184,55 +448,6 @@ class _AnswerQuestionScreenState extends State<AnswerQuestionScreen> {
     }
   }
 
-  // Future<void> sendQuestion() async {
-  //   if (!_formKey.currentState!.validate()) return;
-
-  //   final confirmed = await showDialog<bool>(
-  //     context: context,
-  //     builder: (context) => CustomDialog(
-  //       title: 'تنبيه',
-  //       content: 'هل تريد ارسال الجواب؟',
-
-  //       onConfirm: () {},
-  //     ),
-  //   );
-  //   if (confirmed == false) {
-  //     return;
-  //   }
-  //   AppConstance().showLoading(context);
-
-  //   setState(() {
-  //     isSending = true;
-  //   });
-
-  //   try {
-  //     final docRef = FirebaseFirestore.instance
-  //         .collection('questions')
-  //         .doc(widget.question.id);
-
-  //     await docRef.update({
-  //       'answeredAt': Timestamp.fromDate(now),
-  //       'answerText': answerController.text.trim(),
-  //       'images': answerImages,
-  //     });
-
-  //     AppConstance().showSuccesToast(context, msg: 'تم إرسال الجواب بنجاح');
-
-  //     Loader.hide();
-  //     context.backWithValue(true);
-  //     // questionController.clear();
-  //   } catch (e) {
-  //     Loader.hide();
-  //     AppConstance().showErrorToast(context, msg: 'حدث خطأ أثناء الإرسال');
-  //   } finally {
-  //     Loader.hide();
-
-  //     setState(() {
-  //       isSending = false;
-  //     });
-  //   }
-  // }
-
   late QuestionModel question;
 
   @override
@@ -286,166 +501,7 @@ class _AnswerQuestionScreenState extends State<AnswerQuestionScreen> {
                     top: AppConstance.hPadding,
                     bottom: AppConstance.hPaddingBig * 15,
                   ),
-                  children: [
-                    // Text(
-                    // const SizedBox(height: 20),
-                    AnswerQuestionCardDetails(
-                      isInAnswerQuestionScreen: true,
-                      currentProfileUserId: MySharedPreferences.userId,
-
-                      question: question,
-                    ),
-                    const SizedBox(height: 20),
-                    CustomTextField(
-                      onChanged: (s) {
-                        setState(() {
-                          question.answerText = s;
-                        });
-                      },
-                      //  hintStyle: TextStyle(fontSize: 18),
-                      style: TextStyle(fontSize: 20),
-                      // autoFocus: true,
-                      controller: answerController,
-                      textInputAction: TextInputAction.newline,
-                      minLines: 2,
-                      maxLines: 5,
-                      hintText: !context.isCurrentLanguageAr()
-                          ? 'Write your answer here'
-                          : 'إجابتك هنا',
-                      lenght: 350,
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return '';
-                        }
-                        if (value.length > 350) {
-                          return !context.isCurrentLanguageAr()
-                              ? 'Answer must be less than 350 characters'
-                              : 'الإجابة يجب أن تكون أقل من 350 حرف';
-                        }
-                        return null;
-                      },
-                    ),
-                    if (AppPlatform.unknown != platform &&
-                        AppPlatform.webAndroid != platform &&
-                        AppPlatform.webIOS != platform &&
-                        AppPlatform.webDesktop != platform)
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            !context.isCurrentLanguageAr()
-                                ? 'Add images (optional)'
-                                : 'إضافة صور (اختياري)',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          if (localImagePaths.length < maxImages)
-                            IconButton(
-                              onPressed: () async {
-                                if (localImagePaths.length >= maxImages) {
-                                  AppConstance().showErrorToast(
-                                    context,
-                                    msg: !context.isCurrentLanguageAr()
-                                        ? 'You can add up to 4 images'
-                                        : 'يمكنك إضافة 4 صور كحد أقصى',
-                                  );
-                                  return;
-                                }
-                                final source =
-                                    await showModalBottomSheet<ImageSource>(
-                                      useRootNavigator: true,
-                                      routeSettings: const RouteSettings(
-                                        name: 'ImagePickerSheet',
-                                      ),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.only(
-                                          topLeft: Radius.circular(
-                                            AppConstance.radiusBig,
-                                          ),
-                                          topRight: Radius.circular(
-                                            AppConstance.radiusBig,
-                                          ),
-                                        ),
-                                      ),
-                                      context: context,
-                                      builder: (_) => const ImagePickerSheet(),
-                                    );
-
-                                if (source != null) {
-                                  await _pickImage(source);
-                                }
-                              },
-                              style: const ButtonStyle(
-                                backgroundColor: WidgetStatePropertyAll(
-                                  AppColors.primary,
-                                ),
-                              ),
-                              icon: Icon(
-                                Icons.add_a_photo,
-                                color: AppColors.white,
-                              ),
-                            )
-                          else
-                            SizedBox(height: 48),
-                        ],
-                      ),
-                    SizedBox(height: 10),
-                    if (localImagePaths.isNotEmpty)
-                      GridView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: localImagePaths.length,
-                        gridDelegate:
-                            const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 4, // 2 × 2 = 4 صور
-                              crossAxisSpacing: 8,
-                              mainAxisSpacing: 8,
-                            ),
-                        itemBuilder: (context, index) {
-                          return Stack(
-                            children: [
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(12),
-                                child: Image.file(
-                                  File(localImagePaths[index]),
-                                  fit: BoxFit.cover,
-                                  width: double.infinity,
-                                  height: double.infinity,
-                                ),
-                              ),
-                              Positioned(
-                                top: 6,
-                                right: 6,
-                                child: GestureDetector(
-                                  onTap: () {
-                                    setState(() {
-                                      localImagePaths.removeAt(index);
-                                    });
-                                  },
-                                  child: Container(
-                                    padding: const EdgeInsets.all(4),
-                                    decoration: const BoxDecoration(
-                                      color: AppColors.primary,
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: const Icon(
-                                      Icons.close,
-                                      size: 16,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          );
-                        },
-                      ),
-
-                    // const SizedBox(height: 15),
-                    const SizedBox(height: 15),
-                  ],
+                  children: _mediaTypes(context, platform),
                 ),
               ),
             ),
@@ -478,5 +534,401 @@ class _AnswerQuestionScreenState extends State<AnswerQuestionScreen> {
         ],
       ),
     );
+  }
+
+  List<Widget> _mediaTypes(BuildContext context, AppPlatform platform) {
+    return [
+      // Text(
+      // const SizedBox(height: 20),
+      AnswerQuestionCardDetails(
+        isInAnswerQuestionScreen: true,
+        currentProfileUserId: MySharedPreferences.userId,
+
+        question: question,
+      ),
+      const SizedBox(height: 20),
+      CustomTextField(
+        onChanged: (s) {
+          setState(() {
+            question.answerText = s;
+          });
+        },
+        //  hintStyle: TextStyle(fontSize: 18),
+        style: TextStyle(fontSize: 20),
+        // autoFocus: true,
+        controller: answerController,
+        textInputAction: TextInputAction.newline,
+        minLines: 2,
+        maxLines: 5,
+        hintText: !context.isCurrentLanguageAr()
+            ? 'Write your answer here'
+            : 'إجابتك هنا',
+        lenght: 350,
+        validator: (value) {
+          if (value == null || value.trim().isEmpty) {
+            return '';
+          }
+          if (value.length > 350) {
+            return !context.isCurrentLanguageAr()
+                ? 'Answer must be less than 350 characters'
+                : 'الإجابة يجب أن تكون أقل من 350 حرف';
+          }
+          return null;
+        },
+      ),
+      const SizedBox(height: 30),
+      Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10.0),
+        child: Divider(color: AppColors.primary, thickness: 0.3),
+      ),
+      const SizedBox(height: 20),
+
+      if (AppPlatform.unknown != platform &&
+          AppPlatform.webAndroid != platform &&
+          AppPlatform.webIOS != platform &&
+          AppPlatform.webDesktop != platform &&
+          !isCompressing) ...[
+        if (mediaType == 'none')
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 10.0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () async {
+                      final ImageSource? source = await showDialog<ImageSource>(
+                        context: context,
+                        builder: (context) => const ImagePickerSheet(),
+                      );
+                      if (source != null) {
+                        await _pickImage(source);
+                      }
+                    },
+                    child: Column(
+                      children: [
+                        SvgPicture.asset(
+                          AppIcons.addImage,
+                          height: 40,
+                          // color: AppColors.primary,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          !context.isCurrentLanguageAr()
+                              ? 'Add images'
+                              : 'إضافة صور',
+                          style: TextStyle(
+                            color: AppColors.primary,
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  // width: 20,
+                  height: 40,
+                  child: VerticalDivider(
+                    color: AppColors.primary,
+                    thickness: 0.3,
+                  ),
+                ),
+                // Text(
+                //   !context.isCurrentLanguageAr() ? 'OR' : 'أو',
+                //   style: const TextStyle(
+                //     fontSize: 18,
+                //     fontWeight: FontWeight.bold,
+                //     color: AppColors.primary,
+                //   ),
+                // ),
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () async {
+                      final ImageSource? source = await showDialog<ImageSource>(
+                        context: context,
+                        builder: (context) => const ImagePickerSheet(),
+                      );
+                      if (source != null) {
+                        await _pickVideo(source);
+                      }
+                    },
+                    child: Column(
+                      children: [
+                        SvgPicture.asset(
+                          AppIcons.video,
+                          height: 40,
+                          // color: AppColors.primary,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          !context.isCurrentLanguageAr()
+                              ? 'Add video'
+                              : 'إضافة فيديو',
+                          style: TextStyle(
+                            color: AppColors.primary,
+                            // fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        if (mediaType == 'image')
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              // Text(
+              //   !context.isCurrentLanguageAr()
+              //       ? 'Add images (optional)'
+              //       : 'إضافة صور (اختياري)',
+              //   style: const TextStyle(
+              //     fontSize: 16,
+              //     fontWeight: FontWeight.w600,
+              //   ),
+              // ),
+              if (localImagePaths.length < maxImages)
+                IconButton(
+                  onPressed: () async {
+                    if (localImagePaths.length >= maxImages) {
+                      AppConstance().showErrorToast(
+                        context,
+                        msg: !context.isCurrentLanguageAr()
+                            ? 'You can add up to 4 images'
+                            : 'يمكنك إضافة 4 صور كحد أقصى',
+                      );
+                      return;
+                    }
+
+                    final ImageSource? source = await showDialog<ImageSource>(
+                      context: context,
+                      builder: (context) => const ImagePickerSheet(),
+                    );
+                    if (source != null) {
+                      await _pickImage(source);
+                    }
+                  },
+                  style: const ButtonStyle(
+                    backgroundColor: WidgetStatePropertyAll(AppColors.primary),
+                  ),
+                  icon: Icon(Icons.add_a_photo, color: AppColors.white),
+                )
+              else
+                const SizedBox(height: 48),
+            ],
+          ),
+      ],
+      SizedBox(height: 10),
+      if (localImagePaths.isNotEmpty)
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: localImagePaths.length,
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 4, // 2 × 2 = 4 صور
+            crossAxisSpacing: 8,
+            mainAxisSpacing: 8,
+          ),
+          itemBuilder: (context, index) {
+            return Stack(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.file(
+                    File(localImagePaths[index]),
+                    fit: BoxFit.cover,
+                    width: double.infinity,
+                    height: double.infinity,
+                  ),
+                ),
+                Positioned(
+                  top: 6,
+                  right: 6,
+                  child: GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        localImagePaths.removeAt(index);
+                        if (localImagePaths.isEmpty) {
+                          mediaType = 'none';
+                        }
+                      });
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: const BoxDecoration(
+                        color: AppColors.primary,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.close,
+                        size: 16,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
+
+      SizedBox(height: 10),
+
+      // Video preview
+      if (localVideoPath != null)
+        Stack(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: videoThumbnailPath != null
+                  ? Image.file(
+                      File(videoThumbnailPath!),
+                      fit: BoxFit.cover,
+                      width: double.infinity,
+                      height: 400,
+                    )
+                  : Container(
+                      width: double.infinity,
+                      height: 400,
+                      color: Colors.grey[300],
+                      child: const Center(
+                        child: Icon(
+                          Icons.videocam,
+                          size: 60,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ),
+            ),
+            // Play icon overlay
+            Positioned.fill(
+              child: Center(
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.6),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.play_arrow,
+                    size: 26,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+            // Size and Duration Overlay
+            Positioned(
+              top: 8,
+              left: 8,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.6),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    Text(
+                      videoSizeText ?? '',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    if (videoDurationText != null) ...[
+                      const SizedBox(width: 8),
+                      const Icon(Icons.timer, size: 12, color: Colors.white),
+                      const SizedBox(width: 4),
+                      Text(
+                        videoDurationText!,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+            // Delete button
+            Positioned(
+              top: 8,
+              right: 8,
+              child: GestureDetector(
+                onTap: () {
+                  setState(() {
+                    localVideoPath = null;
+                    videoThumbnailPath = null;
+                    mediaType = 'none';
+                  });
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: const BoxDecoration(
+                    color: AppColors.primary,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.close, size: 20, color: Colors.white),
+                ),
+              ),
+            ),
+          ],
+        ),
+
+      // Compression progress
+      if (isCompressing)
+        Column(
+          children: [
+            const SizedBox(height: 10),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: LinearProgressIndicator(
+                    value: compressionProgress / 100,
+                    backgroundColor: Colors.grey[300],
+                    color: AppColors.primary,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                TextButton(
+                  onPressed: () {
+                    VideoCompress.cancelCompression();
+                    setState(() {
+                      isCompressing = false;
+                      localVideoPath = null;
+                      originalVideoPath = null;
+                      videoThumbnailPath = null;
+                      mediaType = 'none';
+                    });
+                  },
+                  child: Text(
+                    !context.isCurrentLanguageAr() ? 'Cancel' : 'إلغاء',
+                    style: const TextStyle(color: AppColors.primary),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 5),
+            Text(
+              !context.isCurrentLanguageAr()
+                  ? 'Compressing: ${compressionProgress.toStringAsFixed(0)}%'
+                  : 'جاري الضغط: ${compressionProgress.toStringAsFixed(0)}%',
+              style: const TextStyle(fontSize: 12, color: Colors.grey),
+            ),
+          ],
+        ),
+
+      // const SizedBox(height: 15),
+      const SizedBox(height: 15),
+    ];
   }
 }

@@ -1,3 +1,4 @@
+import 'package:domandito/shared/style/app_colors.dart';
 import 'package:flutter/material.dart';
 
 class WebFixedSizeWrapper extends StatelessWidget {
@@ -8,23 +9,29 @@ class WebFixedSizeWrapper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // مقاس ثابت للعرض والارتفاع (مثال: iPhone X)
-    const double fixedWidth = 720;
+    const double fixedWidth = 500;
     const double fixedHeight = 1080;
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        return Center(
-          child: ConstrainedBox(
-            constraints: BoxConstraints(
-              maxWidth: fixedWidth,
-              maxHeight: fixedHeight,
-              minWidth: fixedWidth,
-              // minHeight: fixedHeight,
+        return Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.purple, AppColors.primary, AppColors.primary],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
             ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              
-              child: child),
+          ),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxWidth: fixedWidth,
+                maxHeight: fixedHeight,
+                minWidth: fixedWidth,
+                // minHeight: fixedHeight,
+              ),
+              child: child,
+            ),
           ),
         );
       },

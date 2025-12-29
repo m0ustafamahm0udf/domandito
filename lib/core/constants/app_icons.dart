@@ -59,9 +59,9 @@ class AppIcons {
   static const String qr = "${_path}qr.svg";
   static const String edit = "${_path}edit.svg";
   static const String rate = "${_path}rate.svg";
+  static const String video = "${_path}video.svg";
   static const String verified = "${_path}verified.svg";
 
   static const String googleplay = "${_path}google-play.svg";
   static const String appstore = "${_path}app-store.svg";
-
 }

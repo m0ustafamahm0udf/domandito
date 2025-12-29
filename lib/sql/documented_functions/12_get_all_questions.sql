@@ -22,8 +22,10 @@
 -- - جيد جداً، لأنها ترسل فقط الحقول المطلوبة للعرض.
 -- - الـ Sender & Receiver Objects تحتوي فقط على البيانات الأساسية (الاسم، الصورة..).
 
+DROP FUNCTION IF EXISTS public.get_all_questions(text, integer, integer);
+
 CREATE OR REPLACE FUNCTION public.get_all_questions(p_user_id text, p_limit integer, p_offset integer)
- RETURNS TABLE(id text, created_at timestamp with time zone, title text, answer_text text, images text[], is_anonymous boolean, is_pinned boolean, likes_count bigint, answered_at timestamp with time zone, sender json, receiver json, is_liked boolean)
+ RETURNS TABLE(id text, created_at timestamp with time zone, title text, answer_text text, images text[], video_url text, thumbnail_url text, media_type text, is_anonymous boolean, is_pinned boolean, likes_count bigint, answered_at timestamp with time zone, sender json, receiver json, is_liked boolean)
  LANGUAGE plpgsql
 AS $function$
 declare
@@ -53,6 +55,9 @@ begin
     q.title,
     q.answer_text,
     q.images,
+    q.video_url, -- Added
+    q.thumbnail_url, -- Added
+    q.media_type, -- Added
     q.is_anonymous,
     q.is_pinned,
     q.likes_count, 

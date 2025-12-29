@@ -1,5 +1,6 @@
 import 'package:domandito/core/constants/app_constants.dart';
 import 'package:domandito/core/constants/app_icons.dart';
+import 'package:domandito/core/services/get_device_serv.dart';
 import 'package:domandito/core/utils/extentions.dart';
 import 'package:domandito/core/utils/shared_prefrences.dart';
 import 'package:domandito/core/utils/utils.dart';
@@ -10,6 +11,8 @@ import 'package:domandito/shared/style/app_colors.dart';
 import 'package:domandito/shared/widgets/custom_network_image.dart';
 import 'package:domandito/shared/widgets/image_view_screen.dart';
 import 'package:domandito/shared/widgets/report_bottom_sheet.dart';
+import 'package:domandito/shared/widgets/video_player_screen.dart';
+import 'package:domandito/shared/widgets/ios_v_pl.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
@@ -314,11 +317,22 @@ class _QuestionDetailsCardState extends State<QuestionDetailsCard> {
                 ),
 
               if (question.images.isNotEmpty) const SizedBox(height: 5),
-              if (question.images.isNotEmpty)
+              // Show images only if mediaType is 'image' or if there are images and no video
+              if ((question.mediaType == 'image' ||
+                      (question.mediaType == null &&
+                          question.videoUrl == null)) &&
+                  question.images.isNotEmpty)
                 Padding(
                   padding: const EdgeInsets.only(top: 0),
                   child: buildImages(question.images),
                 ),
+
+              // Video display - show if mediaType is 'video' OR if videoUrl exists
+              if ((question.mediaType == 'video' ||
+                      (question.mediaType != 'image' &&
+                          question.videoUrl != null)) &&
+                  question.videoUrl != null)
+                media(context),
 
               const SizedBox(height: 5),
 
@@ -395,6 +409,75 @@ class _QuestionDetailsCardState extends State<QuestionDetailsCard> {
     );
   }
 
+  Column media(BuildContext context) {
+    return Column(
+      children: [
+        const SizedBox(height: 5),
+        GestureDetector(
+          onTap: () {
+            if (PlatformService.isIOSApp) {
+              pushScreen(
+                context,
+                screen: IOSVideoPlayerScreen(videoUrl: question.videoUrl!),
+              );
+            } else {
+              pushScreen(
+                context,
+                screen: CachedVideoPlayerScreen(videoUrl: question.videoUrl!),
+              );
+            }
+          },
+          child: Stack(
+            children: [
+              Container(
+                height: 300,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child:
+                      question.thumbnailUrl != null &&
+                          question.thumbnailUrl!.isNotEmpty
+                      ? CustomNetworkImage(
+                          url: question.thumbnailUrl!,
+                          boxFit: BoxFit.cover,
+                          width: double.infinity,
+                          height: double.infinity,
+                          radius: 0,
+                        )
+                      : Icon(
+                          Icons.videocam,
+                          size: 20,
+                          color: AppColors.primary,
+                        ),
+                ),
+              ),
+              Positioned.fill(
+                child: Center(
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.6),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.play_arrow,
+                      size: 20,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
   onImageTapped(int index, List<String> images) {
     pushScreen(
       context,
@@ -419,10 +502,10 @@ class _QuestionDetailsCardState extends State<QuestionDetailsCard> {
           onImageTapped(0, images);
         },
         child: CustomNetworkImage(
-          radius: 18,
+          radius: 12,
           boxFit: BoxFit.cover,
           url: images[0],
-          height: 220,
+          height: 300,
           width: double.infinity,
         ),
       );

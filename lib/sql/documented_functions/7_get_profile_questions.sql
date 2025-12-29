@@ -15,6 +15,8 @@
 -- النتيجة:
 -- قائمة جاهزة للرسم مباشرة في الـ ListView بدون أي معالجة إضافية.
 
+DROP FUNCTION IF EXISTS public.get_profile_questions(text, text, integer, integer);
+
 CREATE OR REPLACE FUNCTION public.get_profile_questions(
     p_my_id text,       -- مين اللي بيفتح البروفايل (عشان اللايك والبلوك)
     p_target_id text,   -- صاحب البروفايل
@@ -27,6 +29,9 @@ CREATE OR REPLACE FUNCTION public.get_profile_questions(
     title text, 
     answer_text text, 
     images text[], 
+    video_url text,    -- Added
+    thumbnail_url text, -- Added
+    media_type text,   -- Added
     is_anonymous boolean, 
     is_pinned boolean, 
     likes_count bigint, 
@@ -69,6 +74,9 @@ begin
     q.title,
     q.answer_text,
     q.images,
+    q.video_url,  -- Added
+    q.thumbnail_url, -- Added
+    q.media_type, -- Added
     q.is_anonymous,
     q.is_pinned,
     q.likes_count, 

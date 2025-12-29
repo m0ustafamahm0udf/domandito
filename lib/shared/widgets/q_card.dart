@@ -483,16 +483,8 @@ class _QuestionCardState extends State<QuestionCard>
                         ),
                       ],
                     ),
-                  if (!isPinned || !widget.isInProfileScreen) ...[
-                    if (question.images.isNotEmpty) const SizedBox(height: 5),
-                    if (question.images.isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 0),
-                        child: buildImages(question.images),
-                      ),
-
-                    const SizedBox(height: 8),
-                  ],
+                  // Media display (Images/Video)
+                  ...mediaDisplay(context),
 
                   // --- Like Button row ---
                   if (question.answerText != null)
@@ -589,6 +581,117 @@ class _QuestionCardState extends State<QuestionCard>
     );
   }
 
+  List<Widget> mediaDisplay(BuildContext context) {
+    return [
+      // If pinned and in profile screen, show only icon
+      if (isPinned && widget.isInProfileScreen) ...[
+        if ((question.mediaType == 'image' ||
+                (question.mediaType == null && question.videoUrl == null)) &&
+            question.images.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: Row(
+              children: [
+                Icon(Icons.image, size: 16, color: AppColors.primary),
+                // const SizedBox(width: 4),
+                // Text(
+                //   !context.isCurrentLanguageAr() ? 'Image' : 'صورة',
+                //   style: TextStyle(fontSize: 12, color: AppColors.primary),
+                // ),
+              ],
+            ),
+          ),
+        if ((question.mediaType == 'video' ||
+                (question.mediaType != 'image' && question.videoUrl != null)) &&
+            question.videoUrl != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: Row(
+              children: [
+                Icon(Icons.videocam, size: 16, color: AppColors.primary),
+                // const SizedBox(width: 4),
+                // Text(
+                //   !context.isCurrentLanguageAr() ? 'Video' : 'فيديو',
+                //   style: TextStyle(fontSize: 12, color: AppColors.primary),
+                // ),
+              ],
+            ),
+          ),
+      ] else ...[
+        // Normal display (Video/Images)
+        // Show images only if mediaType is 'image' or if there are images and no video
+        if ((question.mediaType == 'image' ||
+                (question.mediaType == null && question.videoUrl == null)) &&
+            question.images.isNotEmpty)
+          const SizedBox(height: 5),
+        if ((question.mediaType == 'image' ||
+                (question.mediaType == null && question.videoUrl == null)) &&
+            question.images.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(top: 0),
+            child: buildImages(question.images),
+          ),
+
+        // Video display - show if mediaType is 'video' OR if videoUrl exists
+        if ((question.mediaType == 'video' ||
+                (question.mediaType != 'image' && question.videoUrl != null)) &&
+            question.videoUrl != null)
+          Column(
+            children: [
+              const SizedBox(height: 5),
+              Stack(
+                children: [
+                  Container(
+                    height: 300,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[300],
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child:
+                          question.thumbnailUrl != null &&
+                              question.thumbnailUrl!.isNotEmpty
+                          ? CustomNetworkImage(
+                              url: question.thumbnailUrl!,
+                              boxFit: BoxFit.cover,
+                              width: double.infinity,
+                              height: double.infinity,
+                              radius: 0,
+                            )
+                          : Icon(
+                              Icons.videocam,
+                              size: 20,
+                              color: AppColors.primary,
+                            ),
+                    ),
+                  ),
+                  Positioned.fill(
+                    child: Center(
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.6),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.play_arrow,
+                          size: 20,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        const SizedBox(height: 8),
+      ],
+    ];
+  }
+
   onImageTapped(int index, List<String> images) {
     if (isProcessing) {
       return;
@@ -640,10 +743,10 @@ class _QuestionCardState extends State<QuestionCard>
           onImageTapped(0, images);
         },
         child: CustomNetworkImage(
-          radius: 18,
+          radius: 12,
           boxFit: BoxFit.cover,
           url: images[0],
-          height: 220,
+          height: 300,
           width: double.infinity,
         ),
       );

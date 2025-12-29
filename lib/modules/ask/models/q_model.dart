@@ -7,6 +7,9 @@ class QuestionModel {
   String? answerText;
   final bool isDeleted;
   final List<String> images;
+  String? videoUrl;
+  String? thumbnailUrl;
+  String? mediaType;
   final bool isAnonymous;
   int likesCount;
   final int commentCount;
@@ -23,6 +26,9 @@ class QuestionModel {
     this.answerText,
     this.isDeleted = false,
     this.images = const [],
+    this.videoUrl,
+    this.thumbnailUrl,
+    this.mediaType,
     this.isAnonymous = false,
     this.likesCount = 0,
     this.commentCount = 0,
@@ -48,6 +54,9 @@ class QuestionModel {
       answerText: json['answer_text'], // snake_case
       isDeleted: json['is_deleted'] ?? false, // snake_case
       images: List<String>.from(json['images'] ?? []),
+      videoUrl: json['video_url'],
+      thumbnailUrl: json['thumbnail_url'],
+      mediaType: json['media_type'],
       isAnonymous: json['is_anonymous'] ?? false, // snake_case
       likesCount: json['likes_count'] ?? 0, // snake_case
       commentCount: json['comments_count'] ?? 0, // snake_case
@@ -70,6 +79,9 @@ class QuestionModel {
       'answer_text': answerText,
       'is_deleted': isDeleted,
       'images': images,
+      'video_url': videoUrl,
+      'thumbnail_url': thumbnailUrl,
+      'media_type': mediaType,
       'is_anonymous': isAnonymous,
       'likes_count': likesCount,
       'comments_count': commentCount,
