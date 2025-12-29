@@ -13,6 +13,7 @@ import 'package:domandito/shared/widgets/logo_widg.dart';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:domandito/shared/helpers/scroll_to_top_helper.dart';
 
 class NewQuestionsScreen extends StatefulWidget {
   const NewQuestionsScreen({super.key});
@@ -32,10 +33,19 @@ class _NewQuestionsScreenState extends State<NewQuestionsScreen> {
   int _offset = 0;
   int limit = 10;
 
+  late ScrollToTopHelper _scrollHelper;
+
   @override
   void initState() {
     super.initState();
+    _scrollHelper = ScrollToTopHelper(onScrollComplete: () {});
     getQuestions();
+  }
+
+  @override
+  void dispose() {
+    _scrollHelper.dispose();
+    super.dispose();
   }
 
   Future<void> getQuestions({bool isLoadMore = false}) async {
@@ -141,6 +151,7 @@ class _NewQuestionsScreenState extends State<NewQuestionsScreen> {
           ),
         ),
       ),
+      floatingActionButton: _scrollHelper.buildButton(),
       body: SafeArea(
         child: isQuestionsLoading
             ? Center(
@@ -159,6 +170,7 @@ class _NewQuestionsScreenState extends State<NewQuestionsScreen> {
                         await getQuestions();
                       },
                       child: ListView.builder(
+                        controller: _scrollHelper.scrollController,
                         physics: const AlwaysScrollableScrollPhysics(),
                         padding: const EdgeInsets.symmetric(
                           horizontal: 16,

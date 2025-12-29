@@ -39,6 +39,7 @@ import 'package:domandito/modules/profile/view/widgets/profile_actions_section.d
 import 'package:domandito/modules/profile/view/widgets/profile_questions_list.dart';
 import 'package:domandito/modules/profile/view/widgets/pinned_questions_section.dart';
 import 'package:domandito/modules/profile/view/edit_profile_screen.dart';
+import 'package:domandito/shared/helpers/scroll_to_top_helper.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String userId;
@@ -78,9 +79,12 @@ class _ProfileScreenState extends State<ProfileScreen>
 
   int totalQuestionsCount = 0;
 
+  late ScrollToTopHelper _scrollHelper;
+
   @override
   void initState() {
     super.initState();
+    _scrollHelper = ScrollToTopHelper(onScrollComplete: () {});
     isMe = widget.userId == MySharedPreferences.userId;
     getAllData();
     if (kIsWeb && !isMe) {
@@ -88,6 +92,12 @@ class _ProfileScreenState extends State<ProfileScreen>
         showDownloadAppDialog(context);
       });
     }
+  }
+
+  @override
+  void dispose() {
+    _scrollHelper.dispose();
+    super.dispose();
   }
 
   Future<void> getAllData() async {
@@ -534,6 +544,7 @@ class _ProfileScreenState extends State<ProfileScreen>
     super.build(context);
     return Scaffold(
       appBar: ProfileAppBar(user: user, isLoading: isLoading, isMe: isMe),
+      floatingActionButton: _scrollHelper.buildButton(),
       body: (isBlocked || amIBlockedByTarget)
           ? Center(
               child: Column(
@@ -610,6 +621,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                 setState(() {});
               },
               child: ListView(
+                controller: _scrollHelper.scrollController,
                 padding: EdgeInsets.only(top: 0, right: 0, left: 0),
                 children: [
                   Padding(

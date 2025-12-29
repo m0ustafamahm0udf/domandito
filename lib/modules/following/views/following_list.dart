@@ -15,6 +15,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
 import 'package:svg_flutter/svg.dart';
+import 'package:domandito/shared/helpers/scroll_to_top_helper.dart';
 
 class FollowingList extends StatefulWidget {
   // final Function(int)? followingCount;
@@ -34,10 +35,19 @@ class _FollowingListState extends State<FollowingList> {
   bool hasMore = true;
   final int pageSize = 10;
 
+  late ScrollToTopHelper _scrollHelper;
+
   @override
   void initState() {
     super.initState();
+    _scrollHelper = ScrollToTopHelper(onScrollComplete: () {});
     fetchFollowing();
+  }
+
+  @override
+  void dispose() {
+    _scrollHelper.dispose();
+    super.dispose();
   }
 
   /// جلب البيانات مع الباجينيشن
@@ -113,6 +123,7 @@ class _FollowingListState extends State<FollowingList> {
             color: AppColors.primary,
             onRefresh: () => fetchFollowing(isRefresh: true),
             child: ListView(
+              controller: _scrollHelper.scrollController,
               physics: const AlwaysScrollableScrollPhysics(),
 
               children: [
@@ -168,6 +179,7 @@ class _FollowingListState extends State<FollowingList> {
 
             onRefresh: () => fetchFollowing(isRefresh: true),
             child: ListView.separated(
+              controller: _scrollHelper.scrollController,
               padding: EdgeInsets.symmetric(
                 horizontal: AppConstance.hPaddingTiny,
                 vertical: 0,

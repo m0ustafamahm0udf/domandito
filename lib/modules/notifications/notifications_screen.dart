@@ -12,6 +12,7 @@ import 'package:domandito/core/constants/app_constants.dart';
 import 'package:domandito/core/utils/utils.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:domandito/core/utils/shared_prefrences.dart';
+import 'package:domandito/shared/helpers/scroll_to_top_helper.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -31,11 +32,20 @@ class _NotificationsScreenState extends State<NotificationsScreen>
   final int limit = 10;
   bool _isMarkingAllAsRead = false;
 
+  late ScrollToTopHelper _scrollHelper;
+
   @override
   void initState() {
     super.initState();
+    _scrollHelper = ScrollToTopHelper(onScrollComplete: () {});
     getNotifications();
     BadgeService.updateBadgeCount();
+  }
+
+  @override
+  void dispose() {
+    _scrollHelper.dispose();
+    super.dispose();
   }
 
   Future<void> getNotifications({bool isLoadMore = false}) async {
@@ -225,6 +235,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                   ),
         ],
       ),
+      floatingActionButton: _scrollHelper.buildButton(),
       body: SafeArea(
         child: isNotificationsLoading
             ? const Center(
@@ -243,6 +254,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                         BadgeService.updateBadgeCount();
                       },
                       child: ListView.builder(
+                        controller: _scrollHelper.scrollController,
                         physics: const AlwaysScrollableScrollPhysics(),
                         padding: EdgeInsets.symmetric(
                           horizontal: 16,

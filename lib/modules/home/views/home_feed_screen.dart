@@ -21,6 +21,7 @@ import 'package:flutter/material.dart';
 import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:svg_flutter/svg_flutter.dart';
+import 'package:domandito/shared/helpers/scroll_to_top_helper.dart';
 
 class HomeFeedScreen extends StatefulWidget {
   const HomeFeedScreen({super.key});
@@ -38,14 +39,24 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
   int _pageOffset = 0;
   final int _pageSize = 10;
 
+  // Scroll to top helper
+  late ScrollToTopHelper _scrollHelper;
+
   @override
   void initState() {
     super.initState();
+    _scrollHelper = ScrollToTopHelper(onScrollComplete: () {});
     if (MySharedPreferences.isLoggedIn) {
       _initFeed();
     } else {
       setState(() => _isLoading = false);
     }
+  }
+
+  @override
+  void dispose() {
+    _scrollHelper.dispose();
+    super.dispose();
   }
 
   Future<void> _initFeed() async {
@@ -117,10 +128,12 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
     log('build');
     return Scaffold(
       appBar: _buildAppBar(context),
+      floatingActionButton: _scrollHelper.buildButton(),
       body: RefreshIndicator.adaptive(
         color: AppColors.primary,
         onRefresh: _refresh,
         child: CustomScrollView(
+          controller: _scrollHelper.scrollController,
           physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
             // 2. Empty State
