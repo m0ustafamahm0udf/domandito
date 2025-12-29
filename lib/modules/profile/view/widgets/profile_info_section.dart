@@ -76,27 +76,28 @@ class ProfileInfoSection extends StatelessWidget {
           ),
           SizedBox(width: 5),
           if (!isMe)
-            GestureDetector(
-              onTap: blockLoading ? null : onToggleBlock,
-              child: blockLoading
-                  ? SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CupertinoActivityIndicator(
-                        color: AppColors.primary,
+            if (!user.isVerified)
+              GestureDetector(
+                onTap: blockLoading ? null : onToggleBlock,
+                child: blockLoading
+                    ? SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CupertinoActivityIndicator(
+                          color: AppColors.primary,
+                        ),
+                      )
+                    : CircleAvatar(
+                        radius: 12,
+                        backgroundColor: isBlocked
+                            ? Colors.red
+                            : Colors.transparent,
+                        child: Icon(
+                          isBlocked ? Icons.block_sharp : Icons.block_outlined,
+                          color: isBlocked ? Colors.white : Colors.red,
+                        ),
                       ),
-                    )
-                  : CircleAvatar(
-                      radius: 12,
-                      backgroundColor: isBlocked
-                          ? Colors.red
-                          : Colors.transparent,
-                      child: Icon(
-                        isBlocked ? Icons.block_sharp : Icons.block_outlined,
-                        color: isBlocked ? Colors.white : Colors.red,
-                      ),
-                    ),
-            ),
+              ),
         ],
       ),
     );
