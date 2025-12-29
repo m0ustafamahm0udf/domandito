@@ -64,323 +64,332 @@ class _QuestionDetailsCardState extends State<QuestionDetailsCard> {
                     : ' (أنت)'
               : ''}"
         : question.sender.name;
-    return Card(
-      color: AppColors.white,
-      elevation: 10,
+    return Hero(
+      tag: 'question_${question.id}',
+      child: Card(
+        color: AppColors.white,
+        elevation: 10,
 
-      shadowColor: Colors.white,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppConstance.hPadding,
-          vertical: AppConstance.vPaddingTiny,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // --- Header ---
-            GestureDetector(
-              onTap: () {
-                final isMe = MySharedPreferences.userId == question.sender.id;
-                final isSameProfile =
-                    widget.isInProfileScreen &&
-                    widget.currentProfileUserId == question.sender.id;
+        shadowColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppConstance.hPadding,
+            vertical: AppConstance.vPaddingTiny,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // --- Header ---
+              GestureDetector(
+                onTap: () {
+                  final isMe = MySharedPreferences.userId == question.sender.id;
+                  final isSameProfile =
+                      widget.isInProfileScreen &&
+                      widget.currentProfileUserId == question.sender.id;
 
-                if (!question.isAnonymous && !isMe && !isSameProfile) {
-                  pushScreen(
-                    context,
-                    screen: ProfileScreen(userId: question.sender.id),
-                  );
-                }
-              },
-              child: Container(
-                color: Colors.transparent,
-                child: Row(
-                  children: [
-                    if (question.isAnonymous)
-                      CircleAvatar(
-                        radius: 15,
-                        backgroundColor: AppColors.primary,
-                        child: SvgPicture.asset(
-                          AppIcons.anonymous,
-                          height: 21,
-                          width: 21,
-                          color: AppColors.white,
-                        ),
-                      )
-                    else
-                      CustomNetworkImage(
-                        url: question.sender.image.toString(),
-                        radius: 999,
-                        height: 30,
-                        width: 30,
-                      ),
-                    const SizedBox(width: 5),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Text(
-                                displayName,
-                                maxLines: 1,
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              SizedBox(width: 1),
-                              if (!question.isAnonymous && widget.isVerified)
-                                SvgPicture.asset(
-                                  AppIcons.verified,
-                                  height: 15,
-                                  width: 15,
-                                  color: AppColors.primary,
-                                ),
-                            ],
+                  if (!question.isAnonymous && !isMe && !isSameProfile) {
+                    pushScreen(
+                      context,
+                      screen: ProfileScreen(userId: question.sender.id),
+                    );
+                  }
+                },
+                child: Container(
+                  color: Colors.transparent,
+                  child: Row(
+                    children: [
+                      if (question.isAnonymous)
+                        CircleAvatar(
+                          radius: 15,
+                          backgroundColor: AppColors.primary,
+                          child: SvgPicture.asset(
+                            AppIcons.anonymous,
+                            height: 21,
+                            width: 21,
+                            color: AppColors.white,
                           ),
-                          Text(
-                            question.isAnonymous
-                                ? "@x"
-                                : "@${question.sender.userName}",
-                            maxLines: 1,
-                            textDirection: TextDirection.ltr,
+                        )
+                      else
+                        CustomNetworkImage(
+                          url: question.sender.image.toString(),
+                          radius: 999,
+                          height: 30,
+                          width: 30,
+                        ),
+                      const SizedBox(width: 5),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Text(
+                                  displayName,
+                                  maxLines: 1,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                SizedBox(width: 1),
+                                if (!question.isAnonymous && widget.isVerified)
+                                  SvgPicture.asset(
+                                    AppIcons.verified,
+                                    height: 15,
+                                    width: 15,
+                                    color: AppColors.primary,
+                                  ),
+                              ],
+                            ),
+                            Text(
+                              question.isAnonymous
+                                  ? "@x"
+                                  : "@${question.sender.userName}",
+                              maxLines: 1,
+                              textDirection: TextDirection.ltr,
 
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.flag),
+                            onPressed: () {
+                              if (!MySharedPreferences.isLoggedIn) {
+                                return;
+                              }
+                              showReportBottomSheet(
+                                context: context,
+                                contentId: question.id,
+                                contentType: ReportContentType.answer,
+                                contentOwnerId: question.receiver.id,
+                              );
+                            },
+                          ),
+
+                          Text(
+                            timeAgo(
+                              question.answeredAt ?? question.createdAt,
+                              context,
+                            ),
                             style: const TextStyle(
-                              fontSize: 12,
                               color: Colors.grey,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
                         ],
                       ),
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.flag),
-                          onPressed: () {
-                            if (!MySharedPreferences.isLoggedIn) {
-                              return;
-                            }
-                            showReportBottomSheet(
-                              context: context,
-                              contentId: question.id,
-                              contentType: ReportContentType.answer,
-                              contentOwnerId: question.receiver.id,
-                            );
-                          },
-                        ),
+                    ],
+                  ),
+                ),
+              ),
 
-                        Text(
-                          timeAgo(
-                            question.answeredAt ?? question.createdAt,
-                            context,
-                          ),
-                          style: const TextStyle(
-                            color: Colors.grey,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                          ),
+              const SizedBox(height: 10),
+              // --- Question title ---
+              if (question.title.isNotEmpty)
+                GestureDetector(
+                  onLongPress: () {
+                    Clipboard.setData(ClipboardData(text: question.title)).then(
+                      (value) {
+                        AppConstance().showInfoToast(
+                          context,
+                          msg: !context.isCurrentLanguageAr()
+                              ? 'Question copied'
+                              : 'تم نسخ السؤال',
+                        );
+                      },
+                    );
+                  },
+                  child: Align(
+                    alignment: isArabic(question.title)
+                        ? Alignment.centerRight
+                        : Alignment.centerLeft,
+                    child: Text(
+                      question.title,
+
+                      textDirection: isArabic(question.title)
+                          ? TextDirection.rtl
+                          : TextDirection.ltr,
+                      textAlign: isArabic(question.title)
+                          ? TextAlign.right
+                          : TextAlign.left,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              const SizedBox(height: 5),
+
+              // --- Answer row ---
+              if (question.answerText != null)
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // CustomNetworkImage(
+                    //   url: widget.receiverImage,
+                    //   radius: 999,
+                    //   height: 20,
+                    //   width: 20,
+                    // ),
+                    // const SizedBox(width: 5),
+                    Expanded(
+                      child: InkWell(
+                        focusColor: Colors.transparent,
+                        hoverColor: Colors.transparent,
+                        overlayColor: WidgetStatePropertyAll(
+                          Colors.transparent,
                         ),
-                      ],
+                        highlightColor: Colors.transparent,
+                        splashColor: Colors.transparent,
+                        onTap: () {
+                          // final text = question.answerText.toString();
+
+                          // if (containsLink(text)) {
+                          //   final url = extractLink(text);
+
+                          //   if (url != null) {
+                          //     LaunchUrlsService().launchBrowesr(
+                          //       uri: url,
+                          //       context: context,
+                          //     );
+                          //     return;
+                          //   }
+                          // }
+                          // if (containsLink(question.answerText.toString())) {
+                          //   LaunchUrlsService().launchBrowesr(
+                          //     uri: question.answerText.toString(),
+                          //     context: context,
+                          //   );
+                          // }
+                        },
+                        onLongPress: () {
+                          Clipboard.setData(
+                            ClipboardData(text: question.answerText.toString()),
+                          ).then((value) {
+                            AppConstance().showInfoToast(
+                              context,
+                              msg: !context.isCurrentLanguageAr()
+                                  ? 'Answer copied'
+                                  : 'تم نسخ الإجابة',
+                            );
+                          });
+                        },
+                        child: linkifyText(
+                          context: context,
+                          text: question.answerText.toString(),
+                          isInProfileScreen: false,
+                        ),
+                        // child: Text(
+                        //   "\"${question.answerText}\"",
+                        //   textAlign: isArabic(question.answerText!)
+                        //       ? TextAlign.right
+                        //       : TextAlign.left,
+                        //   textDirection: isArabic(question.answerText!)
+                        //       ? TextDirection.rtl
+                        //       : TextDirection.ltr,
+                        //   style: TextStyle(
+                        //     fontSize: containsLink(question.answerText.toString())
+                        //         ? 14
+                        //         : 16,
+                        //     decoration: containsLink(question.answerText.toString())
+                        //         ? TextDecoration.underline
+                        //         : null,
+                        //   ),
+                        // ),
+                      ),
                     ),
                   ],
                 ),
-              ),
-            ),
 
-            const SizedBox(height: 10),
-            // --- Question title ---
-            if (question.title.isNotEmpty)
-              GestureDetector(
-                onLongPress: () {
-                  Clipboard.setData(ClipboardData(text: question.title)).then((
-                    value,
-                  ) {
-                    AppConstance().showInfoToast(
-                      context,
-                      msg: !context.isCurrentLanguageAr()
-                          ? 'Question copied'
-                          : 'تم نسخ السؤال',
-                    );
-                  });
-                },
-                child: Align(
-                  alignment: isArabic(question.title)
-                      ? Alignment.centerRight
-                      : Alignment.centerLeft,
-                  child: Text(
-                    question.title,
-
-                    textDirection: isArabic(question.title)
-                        ? TextDirection.rtl
-                        : TextDirection.ltr,
-                    textAlign: isArabic(question.title)
-                        ? TextAlign.right
-                        : TextAlign.left,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+              if (question.images.isNotEmpty) const SizedBox(height: 5),
+              if (question.images.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: 0),
+                  child: buildImages(question.images),
                 ),
-              ),
-            const SizedBox(height: 5),
 
-            // --- Answer row ---
-            if (question.answerText != null)
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // CustomNetworkImage(
-                  //   url: widget.receiverImage,
-                  //   radius: 999,
-                  //   height: 20,
-                  //   width: 20,
-                  // ),
-                  // const SizedBox(width: 5),
-                  Expanded(
-                    child: InkWell(
-                      focusColor: Colors.transparent,
-                      hoverColor: Colors.transparent,
-                      overlayColor: WidgetStatePropertyAll(Colors.transparent),
-                      highlightColor: Colors.transparent,
-                      splashColor: Colors.transparent,
-                      onTap: () {
-                        // final text = question.answerText.toString();
+              const SizedBox(height: 5),
 
-                        // if (containsLink(text)) {
-                        //   final url = extractLink(text);
-
-                        //   if (url != null) {
-                        //     LaunchUrlsService().launchBrowesr(
-                        //       uri: url,
-                        //       context: context,
-                        //     );
-                        //     return;
-                        //   }
-                        // }
-                        // if (containsLink(question.answerText.toString())) {
-                        //   LaunchUrlsService().launchBrowesr(
-                        //     uri: question.answerText.toString(),
-                        //     context: context,
-                        //   );
-                        // }
-                      },
-                      onLongPress: () {
-                        Clipboard.setData(
-                          ClipboardData(text: question.answerText.toString()),
-                        ).then((value) {
-                          AppConstance().showInfoToast(
-                            context,
-                            msg: !context.isCurrentLanguageAr()
-                                ? 'Answer copied'
-                                : 'تم نسخ الإجابة',
-                          );
-                        });
-                      },
-                      child: linkifyText(
-                        context: context,
-                        text: question.answerText.toString(),
-                        isInProfileScreen: false,
-                      ),
-                      // child: Text(
-                      //   "\"${question.answerText}\"",
-                      //   textAlign: isArabic(question.answerText!)
-                      //       ? TextAlign.right
-                      //       : TextAlign.left,
-                      //   textDirection: isArabic(question.answerText!)
-                      //       ? TextDirection.rtl
-                      //       : TextDirection.ltr,
-                      //   style: TextStyle(
-                      //     fontSize: containsLink(question.answerText.toString())
-                      //         ? 14
-                      //         : 16,
-                      //     decoration: containsLink(question.answerText.toString())
-                      //         ? TextDecoration.underline
-                      //         : null,
-                      //   ),
-                      // ),
+              if (question.answerText != null)
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    CustomNetworkImage(
+                      url: widget.receiverImage,
+                      radius: 999,
+                      height: 20,
+                      width: 20,
                     ),
-                  ),
-                ],
-              ),
+                    const SizedBox(width: 5),
+                    if (question.receiver.userName.isNotEmpty)
+                      GestureDetector(
+                        onTap: () {
+                          final isMe =
+                              MySharedPreferences.userId ==
+                              question.receiver.id;
+                          final isSameProfile =
+                              widget.isInProfileScreen &&
+                              widget.currentProfileUserId ==
+                                  question.receiver.id;
 
-            if (question.images.isNotEmpty) const SizedBox(height: 5),
-            if (question.images.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(top: 0),
-                child: buildImages(question.images),
-              ),
+                          if (!isMe && !isSameProfile) {
+                            pushScreen(
+                              context,
+                              screen: ProfileScreen(
+                                userId: question.receiver.id,
+                              ),
+                            );
+                          }
+                        },
+                        child: Text(
+                          "@${question.receiver.userName}",
+                          textDirection: TextDirection.ltr,
 
-            const SizedBox(height: 5),
-
-            if (question.answerText != null)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  CustomNetworkImage(
-                    url: widget.receiverImage,
-                    radius: 999,
-                    height: 20,
-                    width: 20,
-                  ),
-                  const SizedBox(width: 5),
-                  if (question.receiver.userName.isNotEmpty)
-                    GestureDetector(
-                      onTap: () {
-                        final isMe =
-                            MySharedPreferences.userId == question.receiver.id;
-                        final isSameProfile =
-                            widget.isInProfileScreen &&
-                            widget.currentProfileUserId == question.receiver.id;
-
-                        if (!isMe && !isSameProfile) {
-                          pushScreen(
-                            context,
-                            screen: ProfileScreen(userId: question.receiver.id),
-                          );
-                        }
-                      },
-                      child: Text(
-                        "@${question.receiver.userName}",
-                        textDirection: TextDirection.ltr,
-
-                        maxLines: 1,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey,
+                          maxLines: 1,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey,
+                          ),
                         ),
                       ),
-                    ),
-                ],
-              ),
+                  ],
+                ),
 
-            // --- Like Button row ---
-            // if (widget.isInAskedQuestion)
-            // if (widget.isInQuestionScreen)
-            //   Row(
-            //     children: [
-            //       SvgPicture.asset(
-            //         AppIcons.heart,
-            //         color: AppColors.primary,
-            //         height: 22,
-            //       ),
-            //       const SizedBox(width: 4),
-            //       Text(
-            //         likesCount < 1 ? '0' : '$likesCount',
-            //         style: const TextStyle(
-            //           fontSize: 12,
-            //           color: Colors.grey,
-            //         ),
-            //       ),
-            //     ],
-            //   ),
-          ],
+              // --- Like Button row ---
+              // if (widget.isInAskedQuestion)
+              // if (widget.isInQuestionScreen)
+              //   Row(
+              //     children: [
+              //       SvgPicture.asset(
+              //         AppIcons.heart,
+              //         color: AppColors.primary,
+              //         height: 22,
+              //       ),
+              //       const SizedBox(width: 4),
+              //       Text(
+              //         likesCount < 1 ? '0' : '$likesCount',
+              //         style: const TextStyle(
+              //           fontSize: 12,
+              //           color: Colors.grey,
+              //         ),
+              //       ),
+              //     ],
+              //   ),
+            ],
+          ),
         ),
       ),
     );
