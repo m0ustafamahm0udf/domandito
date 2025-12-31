@@ -169,10 +169,14 @@ class _AnswerQuestionCardDetailsState extends State<AnswerQuestionCardDetails> {
                           ),
                         ),
                         Text(
-                          timeAgo(
-                            question.answeredAt ?? question.createdAt,
-                            context,
-                          ),
+                          widget.isInAnswerQuestionScreen
+                              ? context.isCurrentLanguageAr()
+                                    ? 'الآن'
+                                    : 'Now'
+                              : timeAgo(
+                                  question.answeredAt ?? question.createdAt,
+                                  context,
+                                ),
                           style: const TextStyle(
                             color: Colors.grey,
                             fontSize: 10,
