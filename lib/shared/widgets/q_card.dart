@@ -16,6 +16,7 @@ import 'package:flutter/services.dart';
 import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
 import 'package:svg_flutter/svg_flutter.dart';
 import 'package:domandito/shared/services/question_service.dart';
+import 'package:domandito/shared/widgets/time_ago_widget.dart';
 
 class QuestionCard extends StatefulWidget {
   final QuestionModel question;
@@ -217,7 +218,6 @@ class _QuestionCardState extends State<QuestionCard>
               );
               return;
             }
-            setState(() {});
 
             pushScreen(
               context,
@@ -331,11 +331,8 @@ class _QuestionCardState extends State<QuestionCard>
                             crossAxisAlignment: CrossAxisAlignment.end,
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Text(
-                                timeAgo(
-                                  question.answeredAt ?? question.createdAt,
-                                  context,
-                                ),
+                              TimeAgoWidget(
+                                date: question.answeredAt ?? question.createdAt,
                                 style: const TextStyle(
                                   color: Colors.grey,
                                   fontSize: 10,
