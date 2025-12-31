@@ -243,6 +243,9 @@ class _ProfileScreenState extends State<ProfileScreen>
             'answered_at': null,
             'answer_text': null,
             'images': [],
+            'video_url': null,
+            'thumbnail_url': null,
+            'media_type': null,
             // 'is_deleted': true, // The original code didn't set isDeleted=true, it cleared the answer. But the method name is deleteQuestion?
             // Re-reading original code:
             // .update({ 'answeredAt': null, 'answerText': null, 'images': [], });

@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:domandito/core/constants/app_constants.dart';
 import 'package:domandito/core/constants/app_icons.dart';
 import 'package:domandito/core/utils/extentions.dart';
@@ -190,6 +192,7 @@ class _QuestionCardState extends State<QuestionCard>
 
   @override
   Widget build(BuildContext context) {
+    log('build');
     super.build(context);
     final displayName = question.isAnonymous
         ? !context.isCurrentLanguageAr()
