@@ -30,7 +30,8 @@ returns table (
   answered_at timestamptz,
   sender json,
   receiver json,
-  is_liked boolean
+  is_liked boolean,
+  is_edited boolean
 )
 language plpgsql
 as $$
@@ -88,7 +89,8 @@ begin
       select 1 from likes l 
       where l.question_id = q.id 
       and l.user_id = v_user_uuid 
-    ) as is_liked
+    ) as is_liked,
+    q.is_edited -- Added
 
   from questions q
   join follows f on f.following_id = q.receiver_id 

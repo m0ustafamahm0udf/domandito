@@ -58,7 +58,8 @@ class _AnswerQuestionCardDetailsState extends State<AnswerQuestionCardDetails> {
               context,
               screen: AnswerQuestionScreen(question: question),
             ).then((value) {
-              if (value == true) {
+              // value can be true (old behavior) or QuestionModel (new behavior)
+              if (value != null) {
                 if (widget.afterBack != null) {
                   // log('after back');
 
@@ -290,8 +291,11 @@ class _AnswerQuestionCardDetailsState extends State<AnswerQuestionCardDetails> {
                     ],
                   ),
 
-                if (question.images.isNotEmpty) const SizedBox(height: 5),
-                if (question.images.isNotEmpty)
+                if (question.images.isNotEmpty &&
+                    !widget.isInAnswerQuestionScreen)
+                  const SizedBox(height: 5),
+                if (question.images.isNotEmpty &&
+                    !widget.isInAnswerQuestionScreen)
                   Padding(
                     padding: const EdgeInsets.only(top: 0),
                     child: buildImages(question.images),

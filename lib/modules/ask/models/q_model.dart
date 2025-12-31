@@ -16,6 +16,7 @@ class QuestionModel {
   final Receiver receiver;
   bool isLiked;
   bool isPinned;
+  bool isEdited;
 
   QuestionModel({
     required this.id,
@@ -35,6 +36,7 @@ class QuestionModel {
     required this.receiver,
     this.isLiked = false,
     this.isPinned = false,
+    this.isEdited = false,
   });
 
   factory QuestionModel.fromJson(Map<String, dynamic> json) {
@@ -66,6 +68,7 @@ class QuestionModel {
           : Receiver(id: '', image: '', name: '', userName: '', token: ''),
       isPinned: json['is_pinned'] ?? false,
       isLiked: json['is_liked'] ?? false, // Optimization: RPC returns this
+      isEdited: json['is_edited'] ?? false,
     );
   }
 
@@ -87,7 +90,50 @@ class QuestionModel {
       'comments_count': commentCount,
       'receiver_id': receiver.id, // For inserting, we typically send just ID
       'is_pinned': isPinned,
+      'is_edited': isEdited,
     };
+  }
+
+  QuestionModel copyWith({
+    String? id,
+    DateTime? createdAt,
+    DateTime? answeredAt,
+    String? title,
+    Sender? sender,
+    String? answerText,
+    bool? isDeleted,
+    List<String>? images,
+    String? videoUrl,
+    String? thumbnailUrl,
+    String? mediaType,
+    bool? isAnonymous,
+    int? likesCount,
+    int? commentCount,
+    Receiver? receiver,
+    bool? isLiked,
+    bool? isPinned,
+    bool? isEdited,
+  }) {
+    return QuestionModel(
+      id: id ?? this.id,
+      createdAt: createdAt ?? this.createdAt,
+      answeredAt: answeredAt ?? this.answeredAt,
+      title: title ?? this.title,
+      sender: sender ?? this.sender,
+      answerText: answerText ?? this.answerText,
+      isDeleted: isDeleted ?? this.isDeleted,
+      images: images ?? this.images,
+      videoUrl: videoUrl ?? this.videoUrl,
+      thumbnailUrl: thumbnailUrl ?? this.thumbnailUrl,
+      mediaType: mediaType ?? this.mediaType,
+      isAnonymous: isAnonymous ?? this.isAnonymous,
+      likesCount: likesCount ?? this.likesCount,
+      commentCount: commentCount ?? this.commentCount,
+      receiver: receiver ?? this.receiver,
+      isLiked: isLiked ?? this.isLiked,
+      isPinned: isPinned ?? this.isPinned,
+      isEdited: isEdited ?? this.isEdited,
+    );
   }
 }
 

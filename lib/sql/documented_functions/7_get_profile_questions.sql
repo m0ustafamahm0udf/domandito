@@ -38,7 +38,8 @@ CREATE OR REPLACE FUNCTION public.get_profile_questions(
     answered_at timestamp with time zone, 
     sender json, 
     receiver json, -- بنرجعه عشان التطبيق محتاجه (رغم إنه معروف)
-    is_liked boolean
+    is_liked boolean,
+    is_edited boolean
  )
  LANGUAGE plpgsql
  SECURITY DEFINER
@@ -103,7 +104,8 @@ begin
       select 1 from likes l 
       where l.question_id = q.id 
       and l.user_id = v_my_uuid 
-    ) as is_liked
+    ) as is_liked,
+    q.is_edited -- Added
 
   from questions q
   join users s on q.sender_id = s.id

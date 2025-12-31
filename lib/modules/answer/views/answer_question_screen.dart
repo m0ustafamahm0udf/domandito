@@ -32,7 +32,13 @@ import 'package:path_provider/path_provider.dart';
 
 class AnswerQuestionScreen extends StatefulWidget {
   final QuestionModel question;
-  const AnswerQuestionScreen({super.key, required this.question});
+  final String? answerText; // If provided, user is in edit mode
+
+  const AnswerQuestionScreen({
+    super.key,
+    required this.question,
+    this.answerText,
+  });
 
   @override
   State<AnswerQuestionScreen> createState() => _AnswerQuestionScreenState();
@@ -61,6 +67,20 @@ class _AnswerQuestionScreenState extends State<AnswerQuestionScreen> {
   String? videoDurationText;
 
   Future<void> _pickImage(ImageSource source) async {
+    // If in edit mode, prevent changing media
+    // If in edit mode, prevent changing media ONLY IF media already exists
+    if (widget.answerText != null &&
+        (widget.question.images.isNotEmpty ||
+            widget.question.videoUrl != null)) {
+      AppConstance().showErrorToast(
+        context,
+        msg: !context.isCurrentLanguageAr()
+            ? 'Cannot change media when editing an answer'
+            : 'لا يمكن تغيير المرفقات عند تعديل الإجابة',
+      );
+      return;
+    }
+
     if (mediaType == 'video') {
       AppConstance().showErrorToast(
         context,
@@ -130,6 +150,20 @@ class _AnswerQuestionScreenState extends State<AnswerQuestionScreen> {
   }
 
   Future<void> _pickVideo(ImageSource source) async {
+    // If in edit mode, prevent changing media
+    // If in edit mode, prevent changing media ONLY IF media already exists
+    if (widget.answerText != null &&
+        (widget.question.images.isNotEmpty ||
+            widget.question.videoUrl != null)) {
+      AppConstance().showErrorToast(
+        context,
+        msg: !context.isCurrentLanguageAr()
+            ? 'Cannot change media when editing an answer'
+            : 'لا يمكن تغيير المرفقات عند تعديل الإجابة',
+      );
+      return;
+    }
+
     if (localImagePaths.isNotEmpty) {
       AppConstance().showErrorToast(
         context,
@@ -398,13 +432,25 @@ class _AnswerQuestionScreenState extends State<AnswerQuestionScreen> {
 
     try {
       /// 1️⃣ رفع الصور أو الفيديو
-      if (mediaType == 'image') {
+
+      // Determine if we should attempt upload:
+      // - New answer (answerText == null)
+      // - OR Edit mode but adding NEW media (when original was empty)
+      bool shouldUploadImages =
+          mediaType == 'image' && localImagePaths.isNotEmpty;
+      bool shouldUploadVideo =
+          mediaType == 'video' &&
+          (localVideoPath != null || videoThumbnailPath != null);
+
+      if (shouldUploadImages) {
         uploadedImageUrls = await _uploadAnswerImages();
-      } else if (mediaType == 'video') {
+      } else if (shouldUploadVideo) {
         // Upload video AND thumbnail
         await Future.wait([
-          _uploadVideo().then((url) => uploadedVideoUrl = url),
-          _uploadThumbnail().then((url) => uploadedThumbnailUrl = url),
+          if (localVideoPath != null)
+            _uploadVideo().then((url) => uploadedVideoUrl = url),
+          if (videoThumbnailPath != null)
+            _uploadThumbnail().then((url) => uploadedThumbnailUrl = url),
         ]);
       }
 
@@ -412,16 +458,24 @@ class _AnswerQuestionScreenState extends State<AnswerQuestionScreen> {
       final DateTime now = await getNetworkTime() ?? DateTime.now();
 
       final Map<String, dynamic> updateData = {
-        'answered_at': now.toUtc().toIso8601String(),
         'answer_text': answerController.text.trim(),
+        'is_edited': widget.answerText != null, // Set true if editing
       };
 
-      if (mediaType == 'image') {
+      // Only set answered_at if it's a NEW answer
+      if (widget.answerText == null) {
+        updateData['answered_at'] = now.toUtc().toIso8601String();
+      }
+
+      // Handle media fields update
+      if (shouldUploadImages) {
         updateData['images'] = uploadedImageUrls;
         updateData['media_type'] = 'image';
-      } else if (mediaType == 'video') {
-        updateData['video_url'] = uploadedVideoUrl;
-        updateData['thumbnail_url'] = uploadedThumbnailUrl; // Added
+      } else if (shouldUploadVideo) {
+        if (uploadedVideoUrl != null)
+          updateData['video_url'] = uploadedVideoUrl;
+        if (uploadedThumbnailUrl != null)
+          updateData['thumbnail_url'] = uploadedThumbnailUrl;
         updateData['media_type'] = 'video';
       }
 
@@ -468,7 +522,28 @@ class _AnswerQuestionScreenState extends State<AnswerQuestionScreen> {
         ),
       ]);
 
-      context.backWithValue(true);
+      // Update local question model to return it using copyWith (immutable update)
+      final updatedQuestion = question.copyWith(
+        answerText: updateData['answer_text'],
+        isEdited: updateData['is_edited'],
+        answeredAt: updateData.containsKey('answered_at')
+            ? DateTime.parse(updateData['answered_at'])
+            : null, // If not updated, copyWith keeps original
+        images: updateData.containsKey('images')
+            ? List<String>.from(updateData['images'])
+            : null,
+        videoUrl: updateData.containsKey('video_url')
+            ? updateData['video_url']
+            : null,
+        thumbnailUrl: updateData.containsKey('thumbnail_url')
+            ? updateData['thumbnail_url']
+            : null,
+        mediaType: updateData.containsKey('media_type')
+            ? updateData['media_type']
+            : null,
+      );
+
+      context.backWithValue(updatedQuestion);
     } catch (e) {
       AppConstance().showErrorToast(
         context,
@@ -485,6 +560,9 @@ class _AnswerQuestionScreenState extends State<AnswerQuestionScreen> {
   late QuestionModel question;
 
   Future<void> _warmUpVideoCompress() async {
+    if (PlatformService.platform == AppPlatform.androidApp) {
+      return;
+    }
     try {
       // Copy asset to temp file
       final byteData = await rootBundle.load('assets/images/start.MOV');
@@ -511,24 +589,15 @@ class _AnswerQuestionScreenState extends State<AnswerQuestionScreen> {
 
     _warmUpVideoCompress();
 
+    // Pre-fill answer text if in edit mode
+    if (widget.answerText != null) {
+      answerController.text = widget.answerText!;
+      // Note: Media cannot be edited in edit mode
+    }
+
     /// إنشاء الموديل مرة واحدة فقط
-    question = QuestionModel(
-      id: widget.question.id,
-      createdAt: DateTime.now(),
-      title: widget.question.title,
-      sender: widget.question.sender,
-      receiver: Receiver(
-        token: MySharedPreferences.deviceToken,
-        id: MySharedPreferences.userId,
-        image: MySharedPreferences.image,
-        name: MySharedPreferences.userName,
-        userName: MySharedPreferences.userUserName,
-      ),
-      answerText: answerController.text.trim(),
-      isLiked: true,
-      likesCount: 10,
-      isAnonymous: widget.question.isAnonymous,
-    );
+    /// Initialize question from widget.question preserving all data (images, video, etc.)
+    question = widget.question.copyWith(isEdited: widget.answerText != null);
   }
 
   @override
@@ -645,7 +714,44 @@ class _AnswerQuestionScreenState extends State<AnswerQuestionScreen> {
           AppPlatform.webIOS != platform &&
           AppPlatform.webDesktop != platform &&
           !isCompressing) ...[
-        if (mediaType == 'none')
+        // If in edit mode and media exists, show message instead of picker
+        if (widget.answerText != null &&
+            (widget.question.images.isNotEmpty ||
+                widget.question.videoUrl != null))
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.grey[100],
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.grey[300]!),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  widget.question.videoUrl != null
+                      ? Icons.videocam
+                      : Icons.image,
+                  color: AppColors.primary,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  widget.question.videoUrl != null
+                      ? (!context.isCurrentLanguageAr()
+                            ? 'Video selected'
+                            : 'تم اختيار فيديو')
+                      : (!context.isCurrentLanguageAr()
+                            ? 'Images selected'
+                            : 'تم اختيار صور'),
+                  style: TextStyle(
+                    color: Colors.grey[700],
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          )
+        else if (mediaType == 'none')
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 10.0),
             child: Row(

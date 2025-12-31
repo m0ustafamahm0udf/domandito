@@ -246,13 +246,7 @@ class _ProfileScreenState extends State<ProfileScreen>
             'video_url': null,
             'thumbnail_url': null,
             'media_type': null,
-            // 'is_deleted': true, // The original code didn't set isDeleted=true, it cleared the answer. But the method name is deleteQuestion?
-            // Re-reading original code:
-            // .update({ 'answeredAt': null, 'answerText': null, 'images': [], });
-            // This suggests created "unanswering" the question rather than deleting it?
-            // The method is named deleteQuestion but the success message says "Unanswered successfully" / "تم التراجع عن الإجابة".
-            // So it effectively "un-answers" it or "deletes the answer".
-            // I will replicate this logic.
+            'is_edited': false, // Reset edited status
           })
           .eq('id', id);
       // await getQuestionsCount();
