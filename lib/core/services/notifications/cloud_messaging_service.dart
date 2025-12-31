@@ -217,6 +217,15 @@ class CloudMessagingService {
         //     screen: LostPersonDetailsScreen(lostPersonId: data['id']),
         //   );
         //   break;
+        case AppConstance.follow:
+          Future.delayed(Duration(milliseconds: 10000), () {
+            AppConstance().showInfoToast(
+              navigatorKey.currentState!.context,
+              msg: navigatorKey.currentState!.context.isCurrentLanguageAr()
+                  ? 'لا يمكنك مشاهدة الشخص الذي قام بمتابعتك 😜'
+                  : 'You can\'t view the person who followed you 😜',
+            );
+          });
         default:
         // افتح الشاشة الافتراضية
         // navigatorKey.currentState!.context.toAndRemoveAll(LandingScreen());

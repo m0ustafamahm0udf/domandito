@@ -198,12 +198,6 @@ class _QuestionCardState extends State<QuestionCard>
         ? !context.isCurrentLanguageAr()
               ? "Anonymous"
               : "مجهول"
-        : (widget.isInProfileScreen)
-        ? "${question.sender.name}${MySharedPreferences.userId == question.sender.id
-              ? !context.isCurrentLanguageAr()
-                    ? ' (You)'
-                    : ' (أنت)'
-              : ''}"
         : question.sender.name;
 
     return PopScope(
@@ -436,7 +430,7 @@ class _QuestionCardState extends State<QuestionCard>
                               pushScreen(
                                 context,
                                 screen: QuestionScreen(
-                                  isVerified: isVerified,
+                                  isVerified: question.sender.isVerified,
                                   currentProfileUserId:
                                       widget.currentProfileUserId,
                                   onBack: (q) async {},

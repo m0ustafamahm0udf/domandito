@@ -60,12 +60,6 @@ class _QuestionDetailsCardState extends State<QuestionDetailsCard> {
         ? !context.isCurrentLanguageAr()
               ? 'Anonymous'
               : "مجهول"
-        : (MySharedPreferences.userId == question.sender.id)
-        ? "${question.sender.name}${MySharedPreferences.userId == question.sender.id
-              ? !context.isCurrentLanguageAr()
-                    ? ' (You)'
-                    : ' (أنت)'
-              : ''}"
         : question.sender.name;
     return Hero(
       tag: 'question_${question.id}',
