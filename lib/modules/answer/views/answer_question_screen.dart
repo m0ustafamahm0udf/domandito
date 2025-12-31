@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:domandito/core/constants/app_icons.dart';
+import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:domandito/core/constants/app_constants.dart';
 import 'package:domandito/core/constants/app_platforms_serv.dart';
@@ -53,6 +55,7 @@ class _AnswerQuestionScreenState extends State<AnswerQuestionScreen> {
   String? videoThumbnailPath;
   String mediaType = 'none'; // 'none', 'image', 'video'
   bool isCompressing = false;
+  // bool useIndeterminateProgress = false; // Fallback when progress stuck at 0%
   double compressionProgress = 0.0;
   String? videoSizeText;
   String? videoDurationText;
@@ -92,11 +95,11 @@ class _AnswerQuestionScreenState extends State<AnswerQuestionScreen> {
 
   Future<List<String>> _uploadAnswerImages() async {
     List<String> urls = [];
-    for (var i = 0; i < localImagePaths.length; i++) {
-      final path = localImagePaths[i];
+    for (var k = 0; k < localImagePaths.length; k++) {
+      final path = localImagePaths[k];
       final url = await UploadImagesToS3Api().uploadFiles(
         filePath: path,
-        fileName: 'image_${DateTime.now().millisecondsSinceEpoch}_$i.png',
+        fileName: 'image_${DateTime.now().millisecondsSinceEpoch}_$k.png',
         destinationPath: 'answers/${widget.question.id}',
       );
 
@@ -136,6 +139,9 @@ class _AnswerQuestionScreenState extends State<AnswerQuestionScreen> {
       );
       return;
     }
+    localVideoPath = null;
+    videoThumbnailPath = null;
+    mediaType = 'none';
 
     try {
       final ImagePicker picker = ImagePicker();
@@ -160,37 +166,40 @@ class _AnswerQuestionScreenState extends State<AnswerQuestionScreen> {
           videoDurationText = durationText;
         });
 
-        // Always compress video
-        // Store original video path before compression
-        originalVideoPath = video.path;
+        // Generate thumbnail immediately from original video
+        await _generateThumbnail(video.path);
 
+        // Always compress video
         AppConstance().showInfoToast(
           context,
           msg: !context.isCurrentLanguageAr()
               ? 'Compressing video...'
               : 'جاري ضغط الفيديو...',
         );
+        localVideoPath = null;
+        originalVideoPath = null;
 
-        final compressedPath = await _compressVideo(video.path);
+        var compressedPath = await _compressVideo(
+          video.path,
+          originalSizeInMB: fileSizeInMB,
+        );
 
         if (compressedPath == null) {
-          // Compression failed or was cancelled
+          // Compression failed or exceeded limit even after compression
+          // Reset state
           setState(() {
             localVideoPath = null;
             originalVideoPath = null;
-            videoThumbnailPath = null;
-            mediaType = 'none';
           });
 
           if (isCompressing == false) {
-            // User cancelled - manual cancellation handled in button
+            // Manual cancellation, do nothing
           } else {
-            // Compression failed - show error
             AppConstance().showErrorToast(
               context,
               msg: !context.isCurrentLanguageAr()
-                  ? 'Video compression failed'
-                  : 'فشل ضغط الفيديو',
+                  ? 'Video compression failed or file too large'
+                  : 'فشل ضغط الفيديو أو الملف كبير جداً',
             );
           }
           return;
@@ -201,9 +210,6 @@ class _AnswerQuestionScreenState extends State<AnswerQuestionScreen> {
           originalVideoPath = null;
           mediaType = 'video';
         });
-
-        // Generate thumbnail
-        await _generateThumbnail();
       }
     } catch (e) {
       AppConstance().showErrorToast(
@@ -216,20 +222,31 @@ class _AnswerQuestionScreenState extends State<AnswerQuestionScreen> {
     }
   }
 
-  Future<String?> _compressVideo(String path) async {
+  Future<String?> _compressVideo(
+    String path, {
+    required double originalSizeInMB,
+  }) async {
+    // Timer? fallbackTimer;
     try {
+      // Clear any cached video from previous compression attempts
+      await VideoCompress.deleteAllCache();
+
       setState(() {
         isCompressing = true;
         compressionProgress = 0.0;
+        // useIndeterminateProgress = false;
       });
 
-      // Subscribe to compression progress
       final subscription = VideoCompress.compressProgress$.subscribe((
         progress,
       ) {
         if (mounted) {
           setState(() {
             compressionProgress = progress;
+            // If we receive actual progress, disable indeterminate mode
+            if (progress > 0) {
+              // useIndeterminateProgress = false;
+            }
           });
         }
       });
@@ -242,7 +259,6 @@ class _AnswerQuestionScreenState extends State<AnswerQuestionScreen> {
 
       subscription.unsubscribe();
 
-      // Check if compression was cancelled
       if (!mounted || !isCompressing) {
         return null;
       }
@@ -251,15 +267,23 @@ class _AnswerQuestionScreenState extends State<AnswerQuestionScreen> {
         isCompressing = false;
       });
 
-      if (info != null) {
+      if (info != null && info.path != null) {
         final compressedSize = info.filesize ?? 0;
         final compressedSizeInMB = compressedSize / (1024 * 1024);
+
+        // Log compression results for debugging
+        debugPrint(
+          'Original: ${originalSizeInMB.toStringAsFixed(2)} MB -> Compressed: ${compressedSizeInMB.toStringAsFixed(2)} MB',
+        );
 
         setState(() {
           videoSizeText = '${compressedSizeInMB.toStringAsFixed(2)} MB';
         });
 
-        if (compressedSizeInMB > 30) {
+        if (compressedSizeInMB > 50) {
+          debugPrint(
+            'Compressed video still too large: ${compressedSizeInMB.toStringAsFixed(2)} MB',
+          );
           return null;
         }
 
@@ -278,21 +302,28 @@ class _AnswerQuestionScreenState extends State<AnswerQuestionScreen> {
     }
   }
 
-  Future<void> _generateThumbnail() async {
-    if (localVideoPath == null) return;
-
+  Future<void> _generateThumbnail(String videoPath) async {
     try {
       final thumbnail = await VideoThumbnail.thumbnailFile(
-        video: localVideoPath!,
+        video: videoPath,
         thumbnailPath: (await getTemporaryDirectory()).path,
-        imageFormat: ImageFormat.PNG,
-        // maxHeight: 0,
-        quality: 50,
+        imageFormat: ImageFormat.WEBP, // Changed to JPEG for better reliability
+        // quality: 75,
       );
 
       if (thumbnail != null) {
+        // Fix for iOS paths that might be URL encoded (e.g. %20 instead of space)
+        String fixedPath = thumbnail;
+        if (!File(fixedPath).existsSync() && fixedPath.contains('%')) {
+          try {
+            fixedPath = Uri.decodeFull(fixedPath);
+          } catch (e) {
+            debugPrint('Error decoding thumbnail path: $e');
+          }
+        }
+
         setState(() {
-          videoThumbnailPath = thumbnail;
+          videoThumbnailPath = fixedPath;
         });
       }
     } catch (e) {
@@ -320,6 +351,9 @@ class _AnswerQuestionScreenState extends State<AnswerQuestionScreen> {
   void dispose() {
     answerController.dispose();
     VideoCompress.cancelCompression(); // Fix: Cancel before deleting cache
+    localVideoPath = null;
+    videoThumbnailPath = null;
+    mediaType = 'none';
     super.dispose();
   }
 
@@ -450,9 +484,32 @@ class _AnswerQuestionScreenState extends State<AnswerQuestionScreen> {
 
   late QuestionModel question;
 
+  Future<void> _warmUpVideoCompress() async {
+    try {
+      // Copy asset to temp file
+      final byteData = await rootBundle.load('assets/images/start.MOV');
+      final tempDir = await getTemporaryDirectory();
+      final tempFile = File('${tempDir.path}/start.MOV');
+      await tempFile.writeAsBytes(byteData.buffer.asUint8List());
+
+      // Warm up the encoder
+      await VideoCompress.compressVideo(
+        tempFile.path,
+        quality: VideoQuality.LowQuality,
+      );
+
+      // Delete temp file
+      await tempFile.delete();
+    } catch (e) {
+      debugPrint('Warm up failed: $e');
+    }
+  }
+
   @override
   void initState() {
     super.initState();
+
+    _warmUpVideoCompress();
 
     /// إنشاء الموديل مرة واحدة فقط
     question = QuestionModel(
@@ -893,6 +950,7 @@ class _AnswerQuestionScreenState extends State<AnswerQuestionScreen> {
               children: [
                 Expanded(
                   child: LinearProgressIndicator(
+                    // Use null for indeterminate, or actual value for determinate
                     value: compressionProgress / 100,
                     backgroundColor: Colors.grey[300],
                     color: AppColors.primary,
@@ -919,15 +977,14 @@ class _AnswerQuestionScreenState extends State<AnswerQuestionScreen> {
             ),
             const SizedBox(height: 5),
             Text(
-              !context.isCurrentLanguageAr()
+              (!context.isCurrentLanguageAr()
                   ? 'Compressing: ${compressionProgress.toStringAsFixed(0)}%'
-                  : 'جاري الضغط: ${compressionProgress.toStringAsFixed(0)}%',
+                  : 'جاري الضغط: ${compressionProgress.toStringAsFixed(0)}%'),
               style: const TextStyle(fontSize: 12, color: Colors.grey),
             ),
           ],
         ),
 
-      // const SizedBox(height: 15),
       const SizedBox(height: 15),
     ];
   }
