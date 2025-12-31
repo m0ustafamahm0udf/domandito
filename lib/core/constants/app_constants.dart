@@ -5,8 +5,9 @@ import 'package:domandito/core/utils/extentions.dart';
 import 'package:domandito/shared/style/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_overlay_loader/flutter_overlay_loader.dart';
-import 'package:one_context/one_context.dart';
+
 import 'package:svg_flutter/svg_flutter.dart';
+import 'package:domandito/modules/signin/signin_screen.dart';
 
 import 'package:toastification/toastification.dart';
 
@@ -142,7 +143,11 @@ class AppConstance {
               ),
               onPressed: () {
                 // context.toAndRemoveAll(SignInScreen());
-                OneNotification.hardReloadRoot(context);
+                // context.toAndRemoveAll(SignInScreen());
+                Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (context) => const SignInScreen()),
+                  (route) => false,
+                );
               },
             );
           } else {

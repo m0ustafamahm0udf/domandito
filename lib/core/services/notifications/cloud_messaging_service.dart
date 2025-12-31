@@ -218,7 +218,7 @@ class CloudMessagingService {
         //   );
         //   break;
         case AppConstance.follow:
-          Future.delayed(Duration(milliseconds: 10000), () {
+          Future.delayed(Duration(milliseconds: 100), () {
             AppConstance().showInfoToast(
               navigatorKey.currentState!.context,
               msg: navigatorKey.currentState!.context.isCurrentLanguageAr()

@@ -15,6 +15,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get_navigation/get_navigation.dart';
 import 'package:gms_check/gms_check.dart';
+import 'package:toastification/toastification.dart';
 import 'package:one_context/one_context.dart';
 import 'package:domandito/core/services/connectivity/connectivity.dart';
 import 'package:domandito/core/services/notifications/notification_initialize_service.dart';
@@ -133,26 +134,28 @@ class _MyAppState extends State<MyApp> {
         builder: (context, state) {
           return GestureDetector(
             onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-            child: GetMaterialApp(
-              title: 'Domandito',
-              navigatorKey: navigatorKey,
-              scrollBehavior: const CupertinoScrollBehavior(),
-              theme: AppTheme.lightTheme(context: context),
-              debugShowCheckedModeBanner: false,
-              localizationsDelegates: context.localizationDelegates,
-              supportedLocales: context.supportedLocales,
-              locale: context.locale,
-              initialRoute: kIsWeb ? AppRoutes.landing : null,
-              getPages: kIsWeb ? AppPages.routes : null,
-              home: AnnotatedRegion<SystemUiOverlayStyle>(
-                value: const SystemUiOverlayStyle(
-                  statusBarBrightness: Brightness.light,
-                  statusBarColor: Colors.transparent,
-                  systemNavigationBarColor: Colors.transparent,
-                  systemNavigationBarIconBrightness: Brightness.dark,
-                  statusBarIconBrightness: Brightness.dark,
+            child: ToastificationWrapper(
+              child: GetMaterialApp(
+                title: 'Domandito',
+                navigatorKey: navigatorKey,
+                scrollBehavior: const CupertinoScrollBehavior(),
+                theme: AppTheme.lightTheme(context: context),
+                debugShowCheckedModeBanner: false,
+                localizationsDelegates: context.localizationDelegates,
+                supportedLocales: context.supportedLocales,
+                locale: context.locale,
+                initialRoute: kIsWeb ? AppRoutes.landing : null,
+                getPages: kIsWeb ? AppPages.routes : null,
+                home: AnnotatedRegion<SystemUiOverlayStyle>(
+                  value: const SystemUiOverlayStyle(
+                    statusBarBrightness: Brightness.light,
+                    statusBarColor: Colors.transparent,
+                    systemNavigationBarColor: Colors.transparent,
+                    systemNavigationBarIconBrightness: Brightness.dark,
+                    statusBarIconBrightness: Brightness.dark,
+                  ),
+                  child: _toggleScreen(),
                 ),
-                child: _toggleScreen(),
               ),
             ),
           );

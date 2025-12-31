@@ -1,7 +1,7 @@
-import 'package:flutter/cupertino.dart';
-import 'package:one_context/one_context.dart';
+import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:domandito/modules/signin/signin_screen.dart';
 
 class MySharedPreferences {
   static late SharedPreferences _sharedPreferences;
@@ -40,7 +40,7 @@ class MySharedPreferences {
     isVerified = false;
     userUserName = '';
     bio = '';
-    await Supabase.instance.client.auth.signOut();
+    // await Supabase.instance.client.auth.signOut();
     if (currentUserId.isNotEmpty && currentUserId != '0') {
       try {
         await Supabase.instance.client
@@ -51,7 +51,10 @@ class MySharedPreferences {
         debugPrint("Error clearing token from DB: $e");
       }
     }
-    OneNotification.hardReloadRoot(context);
+    Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (context) => const SignInScreen()),
+      (route) => false,
+    );
 
     // Remove token from Supabase
   }
