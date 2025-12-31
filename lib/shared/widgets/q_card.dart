@@ -13,7 +13,6 @@ import 'package:domandito/shared/models/like_model.dart';
 import 'package:domandito/shared/services/like_service.dart';
 import 'package:domandito/shared/style/app_colors.dart';
 import 'package:domandito/shared/widgets/custom_network_image.dart';
-import 'package:domandito/shared/widgets/image_view_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
@@ -56,7 +55,7 @@ class _QuestionCardState extends State<QuestionCard>
   int likesCount = 0;
   bool isProcessing = false;
   late QuestionModel question;
-  bool isVerified = false;
+  // bool isVerified = false;
 
   @override
   void initState() {
@@ -220,7 +219,7 @@ class _QuestionCardState extends State<QuestionCard>
             pushScreen(
               context,
               screen: QuestionScreen(
-                isVerified: isVerified,
+                isVerified: question.sender.isVerified,
 
                 currentProfileUserId: widget.currentProfileUserId,
                 onBack: (q) async {},
@@ -757,39 +756,40 @@ class _QuestionCardState extends State<QuestionCard>
     if (isProcessing) {
       return;
     }
-    if (!widget.isInProfileScreen) {
-      pushScreen(
-        context,
-        screen: ImageViewScreen(
-          images: images,
-          initialIndex: index,
-          // title: '',
-          onBack: (index) {},
-        ),
-      );
-    } else {
-      pushScreen(
-        context,
-        screen: QuestionScreen(
-          isVerified: isVerified,
+    // if (!widget.isInProfileScreen) {
+    //   pushScreen(
+    //     context,
+    //     screen: ImageViewScreen(
+    //       images: images,
+    //       initialIndex: index,
+    //       // title: '',
+    //       onBack: (index) {},
+    //     ),
+    //   );
+    // } else
+    // {
+    pushScreen(
+      context,
+      screen: QuestionScreen(
+        isVerified: question.sender.isVerified,
 
-          currentProfileUserId: widget.currentProfileUserId,
+        currentProfileUserId: widget.currentProfileUserId,
 
-          onBack: (q) async {
-            // setState(() {
-            //   log('back');
+        onBack: (q) async {
+          // setState(() {
+          //   log('back');
 
-            //   question = q;
-            //   isLiked = question.isLiked;
-            //   likesCount = question.likesCount;
-            // });
-            // await checkIfLiked();
-          },
-          question: question,
-          receiverImage: widget.receiverImage,
-        ),
-      );
-    }
+          //   question = q;
+          //   isLiked = question.isLiked;
+          //   likesCount = question.likesCount;
+          // });
+          // await checkIfLiked();
+        },
+        question: question,
+        receiverImage: widget.receiverImage,
+      ),
+    );
+    // }
   }
 
   Widget buildImages(List<String> images) {

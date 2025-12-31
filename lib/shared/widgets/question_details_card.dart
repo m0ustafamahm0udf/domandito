@@ -283,29 +283,35 @@ class _QuestionDetailsCardState extends State<QuestionDetailsCard> {
                             );
                           });
                         },
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            linkifyText(
-                              context: context,
-                              text: question.answerText.toString(),
-                              isInProfileScreen: false,
-                            ),
-                            if (question.isEdited)
-                              Padding(
-                                padding: const EdgeInsets.only(top: 4.0),
-                                child: Text(
-                                  !context.isCurrentLanguageAr()
-                                      ? 'Edited'
-                                      : 'تم تعديله',
-                                  style: const TextStyle(
-                                    fontSize: 10,
-                                    color: Colors.grey,
-                                    fontStyle: FontStyle.italic,
+                        child: Directionality(
+                          textDirection:
+                              isArabic(question.answerText.toString())
+                              ? TextDirection.rtl
+                              : TextDirection.ltr,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              linkifyText(
+                                context: context,
+                                text: question.answerText.toString(),
+                                isInProfileScreen: false,
+                              ),
+                              if (question.isEdited)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 4.0),
+                                  child: Text(
+                                    !context.isCurrentLanguageAr()
+                                        ? 'Edited'
+                                        : 'تم تعديله',
+                                    style: const TextStyle(
+                                      fontSize: 10,
+                                      color: Colors.grey,
+                                      fontStyle: FontStyle.italic,
+                                    ),
                                   ),
                                 ),
-                              ),
-                          ],
+                            ],
+                          ),
                         ),
                         // child: Text(
                         //   "\"${question.answerText}\"",
