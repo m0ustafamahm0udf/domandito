@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:animate_do/animate_do.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:domandito/core/constants/app_constants.dart';
 import 'package:domandito/core/constants/app_icons.dart';
@@ -296,7 +297,7 @@ class _AskQuestionScreenState extends State<AskQuestionScreen> {
                         });
                       },
                       //  hintStyle: TextStyle(fontSize: 18),
-                      style: TextStyle(fontSize: 20),
+                      style: TextStyle(fontSize: 16),
                       controller: questionController,
                       textInputAction: TextInputAction.newline,
                       minLines: 2,
@@ -330,6 +331,7 @@ class _AskQuestionScreenState extends State<AskQuestionScreen> {
                       ),
                       value: isAnonymous,
                       onChanged: (value) {
+                        if (isRandomLoading) return;
                         if (!widget.canAskedAnonymously) {
                           AppConstance().showInfoToast(
                             context,
@@ -378,29 +380,105 @@ class _AskQuestionScreenState extends State<AskQuestionScreen> {
       ),
       resizeToAvoidBottomInset: false,
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.center,
+      floatingActionButton: Row(
         mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          const SizedBox(height: 15),
-
-          BounceButton(
-            radius: 60,
-            height: 55,
-            gradient: LinearGradient(
-              colors: [AppColors.primary, Colors.purple],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
+          Expanded(
+            child: BounceButton(
+              radius: 60,
+              height: 55,
+              gradient: LinearGradient(
+                colors: [AppColors.primary, Colors.purple],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              onPressed: () async {
+                if (isRandomLoading) return;
+                await sendQuestion();
+              },
+              title: !context.isCurrentLanguageAr() ? 'Ask' : 'إسأل',
+              padding: 20,
             ),
-            onPressed: () async {
-              await sendQuestion();
-            },
-            title: !context.isCurrentLanguageAr() ? 'Ask' : 'إسأل',
-            padding: 20,
           ),
+
+          // const SizedBox(width: 5),
+          GestureDetector(
+            onTap: isRandomLoading ? null : fetchRandomQuestion,
+            child: Container(
+              height: 55,
+              width: 55,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  colors: [AppColors.primary, Colors.purple],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+              ),
+              child: isRandomLoading
+                  ? const Padding(
+                      padding: EdgeInsets.all(15.0),
+                      child: CupertinoActivityIndicator(color: Colors.white),
+                    )
+                  : const Icon(Icons.casino, color: Colors.white, size: 28),
+            ),
+          ),
+          const SizedBox(width: 15),
         ],
       ),
     );
+  }
+
+  bool isRandomLoading = false;
+
+  Future<void> fetchRandomQuestion() async {
+    setState(() {
+      isRandomLoading = true;
+    });
+    try {
+      final response = await Supabase.instance.client.rpc(
+        'get_random_question',
+      );
+
+      if (response != null && (response as List).isNotEmpty) {
+        final data = response[0];
+        final text = data['question_text'].toString().trim();
+
+        // Clear current text
+        questionController.clear();
+        setState(() {
+          question.title = '';
+        });
+
+        // Typewriter animation
+        for (int i = 0; i < text.length; i++) {
+          if (!mounted) return;
+          await Future.delayed(const Duration(milliseconds: 25));
+          if (!mounted) return;
+
+          setState(() {
+            questionController.text += text[i];
+            // Move cursor to end
+            questionController.selection = TextSelection.fromPosition(
+              TextPosition(offset: questionController.text.length),
+            );
+            question.title = questionController.text;
+          });
+        }
+      }
+    } catch (e) {
+      log('Error fetching random question: $e');
+      AppConstance().showErrorToast(
+        context,
+        msg: !context.isCurrentLanguageAr()
+            ? 'Failed to get random question'
+            : 'فشل في جلب سؤال عشوائي',
+      );
+    } finally {
+      setState(() {
+        isRandomLoading = false;
+      });
+    }
   }
 }

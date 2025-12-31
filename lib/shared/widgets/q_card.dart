@@ -489,7 +489,7 @@ class _QuestionCardState extends State<QuestionCard>
                               ),
                             ],
                           ),
-                          if (question.isEdited)
+                          if (question.isEdited && !isPinned)
                             Padding(
                               padding: const EdgeInsets.only(top: 4.0),
                               child: Text(
