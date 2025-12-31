@@ -472,10 +472,12 @@ class _AnswerQuestionScreenState extends State<AnswerQuestionScreen> {
         updateData['images'] = uploadedImageUrls;
         updateData['media_type'] = 'image';
       } else if (shouldUploadVideo) {
-        if (uploadedVideoUrl != null)
+        if (uploadedVideoUrl != null) {
           updateData['video_url'] = uploadedVideoUrl;
-        if (uploadedThumbnailUrl != null)
+        }
+        if (uploadedThumbnailUrl != null) {
           updateData['thumbnail_url'] = uploadedThumbnailUrl;
+        }
         updateData['media_type'] = 'video';
       }
 

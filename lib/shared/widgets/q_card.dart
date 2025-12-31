@@ -241,388 +241,399 @@ class _QuestionCardState extends State<QuestionCard>
                 horizontal: AppConstance.hPadding,
                 vertical: AppConstance.vPaddingTiny,
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // --- Header ---
-                  GestureDetector(
-                    onTap: () {
-                      final isMe =
-                          MySharedPreferences.userId == question.sender.id;
-                      final isSameProfile =
-                          widget.isInProfileScreen &&
-                          widget.currentProfileUserId == question.sender.id;
+              child: Container(
+                height: widget.isInProfileScreen && isPinned ? 170 : null,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // --- Header ---
+                    GestureDetector(
+                      onTap: () {
+                        final isMe =
+                            MySharedPreferences.userId == question.sender.id;
+                        final isSameProfile =
+                            widget.isInProfileScreen &&
+                            widget.currentProfileUserId == question.sender.id;
 
-                      if (!question.isAnonymous &&
-                          !isProcessing &&
-                          !isMe &&
-                          !isSameProfile) {
-                        pushScreen(
-                          context,
-                          screen: ProfileScreen(userId: question.sender.id),
-                        );
-                      }
-                    },
-                    child: Container(
-                      color: Colors.transparent,
-                      child: Row(
-                        children: [
-                          if (question.isAnonymous)
-                            CircleAvatar(
-                              radius: 15,
-                              backgroundColor: AppColors.primary,
-                              child: SvgPicture.asset(
-                                AppIcons.anonymous,
-                                height: 21,
-                                width: 21,
-                                color: AppColors.white,
-                              ),
-                            )
-                          else
-                            CustomNetworkImage(
-                              url: question.sender.image.toString(),
-                              radius: 999,
-                              height: 30,
-                              width: 30,
-                            ),
-                          const SizedBox(width: 5),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    Text(
-                                      displayName,
-                                      maxLines: 1,
-                                      style: const TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    SizedBox(width: 1),
-                                    if (!question.isAnonymous &&
-                                        question.sender.isVerified)
-                                      SvgPicture.asset(
-                                        AppIcons.verified,
-                                        height: 15,
-                                        width: 15,
-                                        color: AppColors.primary,
-                                      ),
-                                  ],
+                        if (!question.isAnonymous &&
+                            !isProcessing &&
+                            !isMe &&
+                            !isSameProfile) {
+                          pushScreen(
+                            context,
+                            screen: ProfileScreen(userId: question.sender.id),
+                          );
+                        }
+                      },
+                      child: Container(
+                        color: Colors.transparent,
+                        child: Row(
+                          children: [
+                            if (question.isAnonymous)
+                              CircleAvatar(
+                                radius: 15,
+                                backgroundColor: AppColors.primary,
+                                child: SvgPicture.asset(
+                                  AppIcons.anonymous,
+                                  height: 21,
+                                  width: 21,
+                                  color: AppColors.white,
                                 ),
-                                Text(
-                                  question.isAnonymous
-                                      ? "@x"
-                                      : "@${question.sender.userName}",
-                                  maxLines: 1,
-                                  textDirection: TextDirection.ltr,
+                              )
+                            else
+                              CustomNetworkImage(
+                                url: question.sender.image.toString(),
+                                radius: 999,
+                                height: 30,
+                                width: 30,
+                              ),
+                            const SizedBox(width: 5),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Text(
+                                        displayName,
+                                        maxLines: 1,
+                                        style: const TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      SizedBox(width: 1),
+                                      if (!question.isAnonymous &&
+                                          question.sender.isVerified)
+                                        SvgPicture.asset(
+                                          AppIcons.verified,
+                                          height: 15,
+                                          width: 15,
+                                          color: AppColors.primary,
+                                        ),
+                                    ],
+                                  ),
+                                  Text(
+                                    question.isAnonymous
+                                        ? "@x"
+                                        : "@${question.sender.userName}",
+                                    maxLines: 1,
+                                    textDirection: TextDirection.ltr,
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                TimeAgoWidget(
+                                  date:
+                                      question.answeredAt ?? question.createdAt,
                                   style: const TextStyle(
-                                    fontSize: 12,
                                     color: Colors.grey,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
                                   ),
                                 ),
                               ],
                             ),
+                            if (MySharedPreferences.userId ==
+                                    question.receiver.id &&
+                                widget.isInProfileScreen) ...[
+                              const SizedBox(width: 10),
+                              GestureDetector(
+                                child: SvgPicture.asset(
+                                  AppIcons.pin,
+                                  color: isPinned
+                                      ? AppColors.primary
+                                      : Colors.grey,
+                                  height: 20,
+                                  width: 20,
+                                ),
+                                onTap: () {
+                                  togglePin();
+                                },
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 10),
+                    // --- Question title ---
+                    if (question.title.isNotEmpty)
+                      GestureDetector(
+                        onLongPress: () {
+                          Clipboard.setData(
+                            ClipboardData(text: question.title),
+                          ).then((value) {
+                            AppConstance().showInfoToast(
+                              context,
+                              msg: !context.isCurrentLanguageAr()
+                                  ? 'Question copied'
+                                  : 'تم نسخ السؤال',
+                            );
+                          });
+                        },
+                        child: Align(
+                          alignment: isArabic(question.title)
+                              ? Alignment.centerRight
+                              : Alignment.centerLeft,
+                          child: Text(
+                            question.title,
+                            textDirection: isArabic(question.title)
+                                ? TextDirection.rtl
+                                : TextDirection.ltr,
+                            textAlign: isArabic(question.title)
+                                ? TextAlign.right
+                                : TextAlign.left,
+                            overflow: !widget.isInProfileScreen
+                                ? null
+                                : TextOverflow.ellipsis,
+                            maxLines: !widget.isInProfileScreen ? null : 6,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            mainAxisSize: MainAxisSize.min,
+                        ),
+                      ),
+                    const SizedBox(height: 5),
+
+                    // --- Answer row ---
+                    if (question.answerText != null)
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              TimeAgoWidget(
-                                date: question.answeredAt ?? question.createdAt,
-                                style: const TextStyle(
-                                  color: Colors.grey,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
+                              Expanded(
+                                child: InkWell(
+                                  focusColor: Colors.transparent,
+                                  hoverColor: Colors.transparent,
+                                  overlayColor: WidgetStatePropertyAll(
+                                    Colors.transparent,
+                                  ),
+                                  highlightColor: Colors.transparent,
+                                  splashColor: Colors.transparent,
+                                  onTap: () {
+                                    if (isProcessing) {
+                                      AppConstance().showInfoToast(
+                                        context,
+                                        msg: !context.isCurrentLanguageAr()
+                                            ? 'Please wait'
+                                            : 'يرجى الانتظار',
+                                      );
+                                      return;
+                                    }
+
+                                    pushScreen(
+                                      context,
+                                      screen: QuestionScreen(
+                                        isVerified: question.sender.isVerified,
+                                        currentProfileUserId:
+                                            widget.currentProfileUserId,
+                                        onBack: (q) async {},
+                                        question: question,
+                                        receiverImage: widget.receiverImage,
+                                      ),
+                                    );
+                                  },
+                                  onLongPress: () {
+                                    Clipboard.setData(
+                                      ClipboardData(
+                                        text: question.answerText.toString(),
+                                      ),
+                                    ).then((value) {
+                                      AppConstance().showInfoToast(
+                                        context,
+                                        msg: !context.isCurrentLanguageAr()
+                                            ? 'Answer copied'
+                                            : 'تم نسخ الإجابة',
+                                      );
+                                    });
+                                  },
+                                  child: isPinned && widget.isInProfileScreen
+                                      ? Text(
+                                          question.answerText.toString(),
+                                          textAlign:
+                                              isArabic(
+                                                question.answerText ?? '',
+                                              )
+                                              ? TextAlign.right
+                                              : TextAlign.left,
+                                          textDirection:
+                                              isArabic(
+                                                question.answerText ?? '',
+                                              )
+                                              ? TextDirection.rtl
+                                              : TextDirection.ltr,
+                                          overflow: TextOverflow.ellipsis,
+                                          maxLines: 2,
+                                          style: const TextStyle(fontSize: 16),
+                                        )
+                                      : linkifyText(
+                                          context: context,
+                                          text: question.answerText.toString(),
+                                          isInProfileScreen:
+                                              widget.isInProfileScreen,
+                                        ),
                                 ),
                               ),
                             ],
                           ),
+                          if (question.isEdited)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 4.0),
+                              child: Text(
+                                !context.isCurrentLanguageAr()
+                                    ? 'Edited'
+                                    : 'تم تعديله',
+                                style: const TextStyle(
+                                  fontSize: 10,
+                                  color: Colors.grey,
+                                  fontStyle: FontStyle.italic,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    // Media display (Images/Video)
+                    ...mediaDisplay(context),
+
+                    // Spacer for pinned questions to push bottom row down
+                    if (widget.isInProfileScreen && isPinned) const Spacer(),
+
+                    // --- Like Button row ---
+                    if (question.answerText != null)
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          CustomNetworkImage(
+                            url: widget.receiverImage,
+                            radius: 999,
+                            height: 20,
+                            width: 20,
+                          ),
+                          const SizedBox(width: 5),
+                          if (question.receiver.userName.isNotEmpty)
+                            GestureDetector(
+                              onTap: () {
+                                final isMe =
+                                    MySharedPreferences.userId ==
+                                    question.receiver.id;
+                                final isSameProfile =
+                                    widget.isInProfileScreen &&
+                                    widget.currentProfileUserId ==
+                                        question.receiver.id;
+
+                                if (!isProcessing && !isMe && !isSameProfile) {
+                                  pushScreen(
+                                    context,
+                                    screen: ProfileScreen(
+                                      userId: question.receiver.id,
+                                    ),
+                                  );
+                                }
+                              },
+                              child: Text(
+                                "@${question.receiver.userName}",
+                                maxLines: 1,
+                                textDirection: TextDirection.ltr,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            )
+                          else
+                            Spacer(),
+                          Spacer(),
+
+                          Row(
+                            children: [
+                              Text(
+                                likesCount < 1 ? '0' : formatNumber(likesCount),
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+
+                              GestureDetector(
+                                onTap: toggleLike,
+                                child: isProcessing
+                                    ? Column(
+                                        children: [
+                                          const SizedBox(height: 10.5),
+
+                                          SizedBox(
+                                            width: 22,
+                                            height: 1,
+                                            child: LinearProgressIndicator(),
+                                          ),
+                                          // if (isProcessing)
+                                          const SizedBox(height: 10.5),
+                                        ],
+                                      )
+                                    : SvgPicture.asset(
+                                        AppIcons.heart,
+                                        color: isLiked
+                                            ? AppColors.primary
+                                            : Colors.grey.shade300,
+                                        height: 22,
+                                      ),
+                              ),
+                            ],
+                          ),
+                          // Edit Button for Owner
                           if (MySharedPreferences.userId ==
                                   question.receiver.id &&
                               widget.isInProfileScreen) ...[
                             const SizedBox(width: 10),
                             GestureDetector(
-                              child: SvgPicture.asset(
-                                AppIcons.pin,
-                                color: isPinned
-                                    ? AppColors.primary
-                                    : Colors.grey,
-                                height: 20,
-                                width: 20,
-                              ),
-                              onTap: () {
-                                togglePin();
-                              },
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 10),
-                  // --- Question title ---
-                  if (question.title.isNotEmpty)
-                    GestureDetector(
-                      onLongPress: () {
-                        Clipboard.setData(
-                          ClipboardData(text: question.title),
-                        ).then((value) {
-                          AppConstance().showInfoToast(
-                            context,
-                            msg: !context.isCurrentLanguageAr()
-                                ? 'Question copied'
-                                : 'تم نسخ السؤال',
-                          );
-                        });
-                      },
-                      child: Align(
-                        alignment: isArabic(question.title)
-                            ? Alignment.centerRight
-                            : Alignment.centerLeft,
-                        child: Text(
-                          question.title,
-                          textDirection: isArabic(question.title)
-                              ? TextDirection.rtl
-                              : TextDirection.ltr,
-                          textAlign: isArabic(question.title)
-                              ? TextAlign.right
-                              : TextAlign.left,
-                          overflow: !widget.isInProfileScreen
-                              ? null
-                              : TextOverflow.ellipsis,
-                          maxLines: !widget.isInProfileScreen ? null : 6,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                  const SizedBox(height: 5),
-
-                  // --- Answer row ---
-                  if (question.answerText != null)
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(
-                              child: InkWell(
-                                focusColor: Colors.transparent,
-                                hoverColor: Colors.transparent,
-                                overlayColor: WidgetStatePropertyAll(
-                                  Colors.transparent,
-                                ),
-                                highlightColor: Colors.transparent,
-                                splashColor: Colors.transparent,
-                                onTap: () {
-                                  if (isProcessing) {
-                                    AppConstance().showInfoToast(
-                                      context,
-                                      msg: !context.isCurrentLanguageAr()
-                                          ? 'Please wait'
-                                          : 'يرجى الانتظار',
-                                    );
-                                    return;
-                                  }
-
-                                  pushScreen(
-                                    context,
-                                    screen: QuestionScreen(
-                                      isVerified: question.sender.isVerified,
-                                      currentProfileUserId:
-                                          widget.currentProfileUserId,
-                                      onBack: (q) async {},
-                                      question: question,
-                                      receiverImage: widget.receiverImage,
-                                    ),
-                                  );
-                                },
-                                onLongPress: () {
-                                  Clipboard.setData(
-                                    ClipboardData(
-                                      text: question.answerText.toString(),
-                                    ),
-                                  ).then((value) {
-                                    AppConstance().showInfoToast(
-                                      context,
-                                      msg: !context.isCurrentLanguageAr()
-                                          ? 'Answer copied'
-                                          : 'تم نسخ الإجابة',
-                                    );
-                                  });
-                                },
-                                child: isPinned && widget.isInProfileScreen
-                                    ? Text(
-                                        question.answerText.toString(),
-                                        textAlign:
-                                            isArabic(question.answerText ?? '')
-                                            ? TextAlign.right
-                                            : TextAlign.left,
-                                        textDirection:
-                                            isArabic(question.answerText ?? '')
-                                            ? TextDirection.rtl
-                                            : TextDirection.ltr,
-                                        overflow: TextOverflow.ellipsis,
-                                        maxLines: 2,
-                                        style: const TextStyle(fontSize: 16),
-                                      )
-                                    : linkifyText(
-                                        context: context,
-                                        text: question.answerText.toString(),
-                                        isInProfileScreen:
-                                            widget.isInProfileScreen,
-                                      ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        if (question.isEdited)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 4.0),
-                            child: Text(
-                              !context.isCurrentLanguageAr()
-                                  ? 'Edited'
-                                  : 'تم تعديله',
-                              style: const TextStyle(
-                                fontSize: 10,
-                                color: Colors.grey,
-                                fontStyle: FontStyle.italic,
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                  // Media display (Images/Video)
-                  ...mediaDisplay(context),
-
-                  // --- Like Button row ---
-                  if (question.answerText != null)
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        CustomNetworkImage(
-                          url: widget.receiverImage,
-                          radius: 999,
-                          height: 20,
-                          width: 20,
-                        ),
-                        const SizedBox(width: 5),
-                        if (question.receiver.userName.isNotEmpty)
-                          GestureDetector(
-                            onTap: () {
-                              final isMe =
-                                  MySharedPreferences.userId ==
-                                  question.receiver.id;
-                              final isSameProfile =
-                                  widget.isInProfileScreen &&
-                                  widget.currentProfileUserId ==
-                                      question.receiver.id;
-
-                              if (!isProcessing && !isMe && !isSameProfile) {
-                                pushScreen(
+                              onTap: () async {
+                                // Navigate to Answer Screen with current answer
+                                final updatedQuestion = await pushScreen(
                                   context,
-                                  screen: ProfileScreen(
-                                    userId: question.receiver.id,
+                                  screen: AnswerQuestionScreen(
+                                    question: question,
+                                    answerText:
+                                        question.answerText, // Enable Edit Mode
                                   ),
                                 );
-                              }
-                            },
-                            child: Text(
-                              "@${question.receiver.userName}",
-                              maxLines: 1,
-                              textDirection: TextDirection.ltr,
-                              style: const TextStyle(
-                                fontSize: 12,
+
+                                if (updatedQuestion != null &&
+                                    updatedQuestion is QuestionModel) {
+                                  setState(() {
+                                    question = updatedQuestion;
+                                    // Sync local state variables with the updated model
+                                    likesCount = question.likesCount;
+                                    isLiked = question.isLiked;
+                                    isPinned = question.isPinned;
+                                  });
+                                }
+                              },
+                              child: SvgPicture.asset(
+                                AppIcons.edit,
                                 color: Colors.grey,
+                                height: 20,
                               ),
-                            ),
-                          )
-                        else
-                          Spacer(),
-                        Spacer(),
-
-                        Row(
-                          children: [
-                            Text(
-                              likesCount < 1 ? '0' : formatNumber(likesCount),
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey,
-                              ),
-                            ),
-                            const SizedBox(width: 4),
-
-                            GestureDetector(
-                              onTap: toggleLike,
-                              child: isProcessing
-                                  ? Column(
-                                      children: [
-                                        const SizedBox(height: 10.5),
-
-                                        SizedBox(
-                                          width: 22,
-                                          height: 1,
-                                          child: LinearProgressIndicator(),
-                                        ),
-                                        // if (isProcessing)
-                                        const SizedBox(height: 10.5),
-                                      ],
-                                    )
-                                  : SvgPicture.asset(
-                                      AppIcons.heart,
-                                      color: isLiked
-                                          ? AppColors.primary
-                                          : Colors.grey.shade300,
-                                      height: 22,
-                                    ),
                             ),
                           ],
-                        ),
-                        // Edit Button for Owner
-                        if (MySharedPreferences.userId ==
-                                question.receiver.id &&
-                            widget.isInProfileScreen) ...[
-                          const SizedBox(width: 10),
-                          GestureDetector(
-                            onTap: () async {
-                              // Navigate to Answer Screen with current answer
-                              final updatedQuestion = await pushScreen(
-                                context,
-                                screen: AnswerQuestionScreen(
-                                  question: question,
-                                  answerText:
-                                      question.answerText, // Enable Edit Mode
-                                ),
-                              );
-
-                              if (updatedQuestion != null &&
-                                  updatedQuestion is QuestionModel) {
-                                setState(() {
-                                  question = updatedQuestion;
-                                  // Sync local state variables with the updated model
-                                  likesCount = question.likesCount;
-                                  isLiked = question.isLiked;
-                                  isPinned = question.isPinned;
-                                });
-                              }
-                            },
-                            child: SvgPicture.asset(
-                              AppIcons.edit,
-                              color: Colors.grey,
-                              height: 20,
-                            ),
-                          ),
                         ],
-                      ],
-                    ),
-                ],
+                      ),
+                  ],
+                ),
               ),
             ),
           ),
