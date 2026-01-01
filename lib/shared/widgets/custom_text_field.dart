@@ -1,10 +1,11 @@
 import 'package:domandito/core/constants/app_constants.dart';
+import 'package:domandito/core/utils/utils.dart';
 import 'package:domandito/shared/style/app_colors.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-class CustomTextField extends StatelessWidget {
+class CustomTextField extends StatefulWidget {
   final String? label;
   final bool isEnabled;
   final String? hintText;
@@ -37,6 +38,7 @@ class CustomTextField extends StatelessWidget {
   final List<TextInputFormatter>? inputFormatters;
   final bool autoFocus;
   final TextInputAction? textInputAction;
+
   const CustomTextField({
     super.key,
     this.hintText,
@@ -74,45 +76,93 @@ class CustomTextField extends StatelessWidget {
   });
 
   @override
+  State<CustomTextField> createState() => _CustomTextFieldState();
+}
+
+class _CustomTextFieldState extends State<CustomTextField> {
+  @override
+  void initState() {
+    super.initState();
+    widget.controller?.addListener(_onTextChanged);
+  }
+
+  @override
+  void didUpdateWidget(CustomTextField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.controller != oldWidget.controller) {
+      oldWidget.controller?.removeListener(_onTextChanged);
+      widget.controller?.addListener(_onTextChanged);
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.controller?.removeListener(_onTextChanged);
+    super.dispose();
+  }
+
+  void _onTextChanged() {
+    setState(() {});
+  }
+
+  @override
   Widget build(BuildContext context) {
+    bool isArabicText = isArabic(widget.controller?.text ?? '');
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: padding),
+      padding: EdgeInsets.symmetric(horizontal: widget.padding),
       child: TextFormField(
-        inputFormatters: inputFormatters,
-        autovalidateMode: autoValidateMode,
-        onTap: onTap,
-        onFieldSubmitted: onSubmit,
-        enabled: isEnabled,
-        maxLength: lenght,
-        textInputAction: textInputAction ?? TextInputAction.next,
-        textAlign: textAlign ?? TextAlign.start,
-        maxLines: maxLines,
-        minLines: minLines,
-        readOnly: readOnly,
-        style: style ?? const TextStyle(fontSize: 14, color: AppColors.black),
-        keyboardType: keyboardType,
-        textDirection: textDirection,
-        obscureText: obscureText,
-        validator: validator,
-        controller: controller,
-        onChanged: onChanged,
+        inputFormatters: widget.inputFormatters,
+        autovalidateMode: widget.autoValidateMode,
+        onTap: widget.onTap,
+        onFieldSubmitted: widget.onSubmit,
+        enabled: widget.isEnabled,
+        maxLength: widget.lenght,
+        textInputAction: widget.textInputAction ?? TextInputAction.next,
+        textAlign:
+            widget.textAlign ??
+            (isArabicText ? TextAlign.right : TextAlign.left),
+        textDirection:
+            widget.textDirection ??
+            (isArabicText ? TextDirection.rtl : TextDirection.ltr),
+        maxLines: widget.maxLines,
+        minLines: widget.minLines,
+        readOnly: widget.readOnly,
+        style:
+            widget.style ??
+            const TextStyle(fontSize: 14, color: AppColors.black),
+        keyboardType: widget.keyboardType,
+        obscureText: widget.obscureText,
+        validator: widget.validator,
+        controller: widget.controller,
+        onChanged: widget.onChanged,
         obscuringCharacter: '●',
-        autofocus: autoFocus,
+        autofocus: widget.autoFocus,
         keyboardAppearance: Brightness.light,
         decoration: InputDecoration(
           filled: true,
-          fillColor: fillColor,
-          label: label == null ? null : Text(label!),
-          hintText: hintText,
-          hintStyle: hintStyle ?? TextStyle(fontSize: 14, color: AppColors.greya8),
-          labelStyle: labelStyle ?? TextStyle(color: AppColors.greya8, fontSize: 14),
-          prefixIcon: prefixIcon,
-          suffixIcon: suffixIcon,
-          contentPadding: EdgeInsets.symmetric(horizontal: 15, vertical: AppConstance.textFieldH),
+          fillColor: widget.fillColor,
+          label: widget.label == null ? null : Text(widget.label!),
+          hintText: widget.hintText,
+          hintStyle:
+              widget.hintStyle ??
+              TextStyle(fontSize: 14, color: AppColors.greya8),
+          labelStyle:
+              widget.labelStyle ??
+              TextStyle(color: AppColors.greya8, fontSize: 14),
+          prefixIcon: widget.prefixIcon,
+          suffixIcon: widget.suffixIcon,
+          contentPadding: EdgeInsets.symmetric(
+            horizontal: 15,
+            vertical: AppConstance.textFieldH,
+          ),
           suffixIconConstraints: BoxConstraints(
             maxHeight: 50,
-            minWidth: minSuffixWidth == null ? 70 : minSuffixWidth!,
-            maxWidth: maxSuffixWidth == null ? 70 : maxSuffixWidth!,
+            minWidth: widget.minSuffixWidth == null
+                ? 70
+                : widget.minSuffixWidth!,
+            maxWidth: widget.maxSuffixWidth == null
+                ? 70
+                : widget.maxSuffixWidth!,
           ),
           prefixIconConstraints: BoxConstraints(
             maxHeight: 50,
@@ -120,23 +170,23 @@ class CustomTextField extends StatelessWidget {
             maxWidth: AppConstance.hPaddingBig * 2.5,
           ),
           enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(border ?? 18),
+            borderRadius: BorderRadius.circular(widget.border ?? 18),
             borderSide: const BorderSide(color: AppColors.greyfa, width: 1),
           ),
           disabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(border ?? 18),
+            borderRadius: BorderRadius.circular(widget.border ?? 18),
             borderSide: BorderSide(color: AppColors.greyfa, width: 0),
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(border ?? 18),
+            borderRadius: BorderRadius.circular(widget.border ?? 18),
             borderSide: BorderSide(color: AppColors.greyfa, width: 0),
           ),
           errorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(border ?? 18),
+            borderRadius: BorderRadius.circular(widget.border ?? 18),
             borderSide: const BorderSide(color: AppColors.error3c),
           ),
           focusedErrorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(border ?? 18),
+            borderRadius: BorderRadius.circular(widget.border ?? 18),
             borderSide: const BorderSide(color: AppColors.error3c),
           ),
           errorStyle: const TextStyle(fontSize: 12, color: AppColors.error3c),
