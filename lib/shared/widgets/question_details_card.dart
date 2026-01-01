@@ -288,53 +288,28 @@ class _QuestionDetailsCardState extends State<QuestionDetailsCard> {
                               isArabic(question.answerText.toString())
                               ? TextDirection.rtl
                               : TextDirection.ltr,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              linkifyText(
-                                context: context,
-                                text: question.answerText.toString(),
-                                isInProfileScreen: false,
-                              ),
-                              if (question.isEdited)
-                                Padding(
-                                  padding: const EdgeInsets.only(top: 4.0),
-                                  child: Text(
-                                    !context.isCurrentLanguageAr()
-                                        ? 'Edited'
-                                        : 'تم تعديله',
-                                    style: const TextStyle(
-                                      fontSize: 10,
-                                      color: Colors.grey,
-                                      fontStyle: FontStyle.italic,
-                                    ),
-                                  ),
-                                ),
-                            ],
+                          child: linkifyText(
+                            context: context,
+                            text: question.answerText.toString(),
+                            isInProfileScreen: false,
                           ),
                         ),
-                        // child: Text(
-                        //   "\"${question.answerText}\"",
-                        //   textAlign: isArabic(question.answerText!)
-                        //       ? TextAlign.right
-                        //       : TextAlign.left,
-                        //   textDirection: isArabic(question.answerText!)
-                        //       ? TextDirection.rtl
-                        //       : TextDirection.ltr,
-                        //   style: TextStyle(
-                        //     fontSize: containsLink(question.answerText.toString())
-                        //         ? 14
-                        //         : 16,
-                        //     decoration: containsLink(question.answerText.toString())
-                        //         ? TextDecoration.underline
-                        //         : null,
-                        //   ),
-                        // ),
                       ),
                     ),
                   ],
                 ),
-
+              if (question.isEdited)
+                Padding(
+                  padding: const EdgeInsets.only(top: 4.0),
+                  child: Text(
+                    !context.isCurrentLanguageAr() ? 'Edited' : 'تم تعديله',
+                    style: const TextStyle(
+                      fontSize: 10,
+                      color: Colors.grey,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                ),
               if (question.images.isNotEmpty) const SizedBox(height: 5),
               // Show images only if mediaType is 'image' or if there are images and no video
               if ((question.mediaType == 'image' ||
