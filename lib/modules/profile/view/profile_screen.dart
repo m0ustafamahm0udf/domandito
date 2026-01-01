@@ -824,8 +824,8 @@ class _ProfileScreenState extends State<ProfileScreen>
                             AppConstance().showInfoToast(
                               context,
                               msg: !context.isCurrentLanguageAr()
-                                  ? 'You can only pin up to 3 questions'
-                                  : 'يمكنك تثبيت 3 أسئلة فقط',
+                                  ? 'You can only pin up to 3 questions 😜'
+                                  : 'يمكنك تثبيت 3 أسئلة فقط 😜',
                             );
                             return false;
                           }

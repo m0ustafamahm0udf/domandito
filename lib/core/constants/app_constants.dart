@@ -98,6 +98,8 @@ class AppConstance {
     required String msg,
     int duration = 3,
   }) {
+    toastification.dismissAll();
+
     toastification.show(
       closeOnClick: true,
 
@@ -132,6 +134,8 @@ class AppConstance {
     int duration = 3,
     bool isLogin = false,
   }) {
+    toastification.dismissAll();
+
     toastification.show(
       closeButton: ToastCloseButton(
         buttonBuilder: (context, onClose) {
@@ -187,6 +191,8 @@ class AppConstance {
     required String msg,
     int duration = 3,
   }) {
+    toastification.dismissAll();
+
     toastification.show(
       closeOnClick: true,
 

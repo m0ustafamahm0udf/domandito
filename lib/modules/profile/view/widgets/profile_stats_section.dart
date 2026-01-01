@@ -1,3 +1,4 @@
+import 'package:domandito/core/constants/app_constants.dart';
 import 'package:domandito/core/utils/extentions.dart';
 import 'package:domandito/core/utils/utils.dart';
 import 'package:domandito/modules/signin/models/user_model.dart';
@@ -26,21 +27,32 @@ class ProfileStatsSection extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          Column(
-            children: [
-              Text(
-                formatNumber(user.followersCount),
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                  fontFamily: 'Dancing_Script',
-                ),
+          GestureDetector(
+            onTap: () => AppConstance().showInfoToast(
+              context,
+              msg: context.isCurrentLanguageAr()
+                  ? 'لا يمكنك مشاهدة المتابعين الخاصة بك 😜'
+                  : 'You can\'t view your followers 😜',
+            ),
+            child: Container(
+              color: Colors.transparent,
+              child: Column(
+                children: [
+                  Text(
+                    formatNumber(user.followersCount),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      fontFamily: 'Dancing_Script',
+                    ),
+                  ),
+                  Text(
+                    !context.isCurrentLanguageAr() ? 'Followers' : 'المتابعين',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
+                ],
               ),
-              Text(
-                !context.isCurrentLanguageAr() ? 'Followers' : 'المتابعين',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-              ),
-            ],
+            ),
           ),
           SizedBox(
             height: 20,
@@ -84,23 +96,31 @@ class ProfileStatsSection extends StatelessWidget {
               thickness: 1,
             ),
           ),
-          Container(
-            color: Colors.transparent,
-            child: Column(
-              children: [
-                Text(
-                  formatNumber(questionsCount),
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                    fontFamily: 'Dancing_Script',
+          GestureDetector(
+            onTap: () => AppConstance().showInfoToast(
+              context,
+              msg: context.isCurrentLanguageAr()
+                  ? 'انت بالفعل في صفحة الإجابات 🤦🏻'
+                  : 'You are already in the answers page 🤦🏻',
+            ),
+            child: Container(
+              color: Colors.transparent,
+              child: Column(
+                children: [
+                  Text(
+                    formatNumber(questionsCount),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      fontFamily: 'Dancing_Script',
+                    ),
                   ),
-                ),
-                Text(
-                  !context.isCurrentLanguageAr() ? 'Answers' : 'إجابات',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                ),
-              ],
+                  Text(
+                    !context.isCurrentLanguageAr() ? 'Answers' : 'إجابات',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
+                ],
+              ),
             ),
           ),
         ],

@@ -1,5 +1,6 @@
 import 'package:domandito/core/constants/app_constants.dart';
 import 'package:domandito/core/constants/app_icons.dart';
+import 'package:domandito/core/utils/extentions.dart';
 import 'package:domandito/core/utils/utils.dart';
 import 'package:domandito/modules/answer/views/answer_question_screen.dart';
 import 'package:domandito/modules/ask/models/q_model.dart';
@@ -100,6 +101,12 @@ class _NotificationCardState extends State<NotificationCard>
     } else {
       // For notifications without entityId like follow, just mark as read immediately if that's the desired behavior,
       // or if there is no navigation involved.
+      AppConstance().showInfoToast(
+        context,
+        msg: context.isCurrentLanguageAr()
+            ? 'لا يمكنك مشاهدة الشخص الذي قام بمتابعتك 😜'
+            : 'You can\'t view the person who followed you 😜',
+      );
       shouldUpdateReadStatus = true;
     }
 
