@@ -2,6 +2,7 @@ import 'package:domandito/core/constants/app_constants.dart';
 import 'package:domandito/core/utils/extentions.dart';
 import 'package:domandito/core/utils/shared_prefrences.dart';
 import 'package:domandito/modules/ask/models/q_model.dart';
+
 import 'package:domandito/modules/question/views/like_list.dart';
 import 'package:domandito/shared/models/report_model.dart';
 import 'package:domandito/shared/widgets/logo_widg.dart';
@@ -34,6 +35,16 @@ class _QuestionScreenState extends State<QuestionScreen> {
   void initState() {
     // TODO: implement initState
     super.initState();
+    // 3. Privacy / Screenshot Check
+    // Target is the Question Receiver (Answerer / Profile Owner)
+    // We notify the person who posted the answer.
+    // Privacy handled globally now
+    // PrivacyServiceV6().enableSecureMode(
+    //   context: context,
+    //   targetUserId: widget.question.receiver.id,
+    //   targetUserToken: widget.question.receiver.token,
+    // );
+
     if (widget.question.answerText == null ||
         widget.question.answerText!.isEmpty) {
       Future.delayed(const Duration(milliseconds: 0), () {
@@ -46,6 +57,12 @@ class _QuestionScreenState extends State<QuestionScreen> {
         context.back();
       });
     }
+  }
+
+  @override
+  void dispose() {
+    // PrivacyServiceV6().disableSecureMode();
+    super.dispose();
   }
 
   @override

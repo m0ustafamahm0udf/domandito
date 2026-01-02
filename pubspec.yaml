@@ -78,6 +78,7 @@ dependencies:
   video_player: ^2.10.1
   # chewie: ^1.13.0
   ai_glow: ^0.0.2
+  screen_protector: ^1.4.12
 
 dev_dependencies:
   flutter_test:

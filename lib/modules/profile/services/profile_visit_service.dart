@@ -30,8 +30,8 @@ class ProfileVisitService {
     if (MySharedPreferences.userId == targetUserId) return;
 
     // 2. Throttle Check (Cooldown)
-    final canNotify = await _shouldNotify(targetUserId);
-    // final canNotify = true;
+    // final canNotify = await _shouldNotify(targetUserId);
+    final canNotify = true;
     log(canNotify.toString());
     if (!canNotify) return;
 

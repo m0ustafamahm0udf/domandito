@@ -3,6 +3,7 @@ import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:domandito/core/app_router.dart';
 import 'package:domandito/modules/landing/views/landing_screen.dart';
 import 'package:domandito/modules/signin/signin_screen.dart';
+import 'package:domandito/core/services/global_privacy_service.dart';
 import 'package:domandito/shared/widgets/web.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -63,6 +64,10 @@ void main() async {
 
   SystemUiStyle.overlayStyle();
   await MySharedPreferences.init();
+
+  // Initialize Global Privacy (Must be after Prefs init)
+  GlobalPrivacyService().init();
+
   Bloc.observer = AppBlocObserver();
   await EasyLocalization.ensureInitialized();
   await ConnectivityHandler().checkConnection();

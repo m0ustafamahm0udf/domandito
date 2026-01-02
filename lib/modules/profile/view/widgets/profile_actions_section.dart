@@ -36,36 +36,37 @@ class ProfileActionsSection extends StatelessWidget {
     return Row(
       children: [
         Expanded(
-          child: BounceButton(
-            gradient: LinearGradient(
-              colors: [AppColors.primary, Colors.purple],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            icon: SvgPicture.asset(
-              AppIcons.anonymous,
-              height: 25,
-              color: AppColors.white,
-            ),
-            radius: 60,
-            height: 55,
-            onPressed: () {
-              if (!MySharedPreferences.isLoggedIn) {
-                // Should show toast, handled by parent usually but keeping logic here requires context
-                // Passed callback instead
+          child: PulseGlow(
+            glowColor: AppColors.primary,
+            child: BounceButton(
+              gradient: LinearGradient(
+                colors: [AppColors.primary, Colors.purple],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              icon: SvgPicture.asset(
+                AppIcons.anonymous,
+                height: 25,
+                color: AppColors.white,
+              ),
+              radius: 60,
+              height: 55,
+              onPressed: () {
+                if (!MySharedPreferences.isLoggedIn) {
+                  onAsk();
+                  return;
+                }
                 onAsk();
-                return;
-              }
-              onAsk();
-            },
-            title: isMe
-                ? !context.isCurrentLanguageAr()
-                      ? 'Ask yourself'
-                      : 'إسأل نفسك'
-                : !context.isCurrentLanguageAr()
-                ? 'Ask'
-                : 'إسأل',
-            textSize: 18,
+              },
+              title: isMe
+                  ? !context.isCurrentLanguageAr()
+                        ? 'Ask yourself'
+                        : 'إسأل نفسك'
+                  : !context.isCurrentLanguageAr()
+                  ? 'Ask'
+                  : 'إسأل',
+              textSize: 18,
+            ),
           ),
         ),
         if (!isMe) SizedBox(width: 10),
@@ -116,6 +117,64 @@ class ProfileActionsSection extends StatelessWidget {
             ),
           ),
       ],
+    );
+  }
+}
+
+class PulseGlow extends StatefulWidget {
+  final Widget child;
+  final Color glowColor;
+  const PulseGlow({super.key, required this.child, required this.glowColor});
+
+  @override
+  State<PulseGlow> createState() => _PulseGlowState();
+}
+
+class _PulseGlowState extends State<PulseGlow>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 1),
+    )..repeat(reverse: true);
+
+    _animation = Tween<double>(
+      begin: 2.0,
+      end: 10.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _animation,
+      builder: (context, child) {
+        return Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(60),
+            boxShadow: [
+              BoxShadow(
+                color: widget.glowColor.withOpacity(0.6),
+                blurRadius: _animation.value,
+                spreadRadius: _animation.value / 3,
+              ),
+            ],
+          ),
+          child: widget.child,
+        );
+      },
+      child: widget.child,
     );
   }
 }

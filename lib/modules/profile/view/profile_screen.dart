@@ -1,3 +1,4 @@
+import 'package:domandito/core/services/global_privacy_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:domandito/core/constants/app_constants.dart';
@@ -113,6 +114,7 @@ class _ProfileScreenState extends State<ProfileScreen>
   @override
   void dispose() {
     _scrollHelper.dispose();
+    // PrivacyService().disableSecureMode();
     super.dispose();
   }
 
@@ -150,12 +152,21 @@ class _ProfileScreenState extends State<ProfileScreen>
           MySharedPreferences.email = user!.email;
           MySharedPreferences.image = user!.image;
           MySharedPreferences.isVerified = user!.isVerified;
+          GlobalPrivacyService().evaluatePrivacyParameters();
         } else {
           ProfileVisitService.recordVisit(
             targetUserId: user!.id,
             targetUserToken: user!.token,
             context: context,
           );
+
+          // Enable Privacy / Screenshot Protection
+          // Privacy handled globally now
+          // PrivacyServiceV6().enableSecureMode(
+          //   context: context,
+          //   targetUserId: user!.id,
+          //   targetUserToken: user!.token,
+          // );
         }
 
         // 2. Stats

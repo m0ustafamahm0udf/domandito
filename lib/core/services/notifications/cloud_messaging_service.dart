@@ -130,6 +130,9 @@ class CloudMessagingService {
                     );
                   }
                   break;
+                case AppConstance.screenshot:
+                  // Just close dialog, no navigation
+                  break;
                 default:
                 // افتح الشاشة الافتراضية
                 // navigatorKey.currentState!.context.toAndRemoveAll(
@@ -262,6 +265,9 @@ class CloudMessagingService {
               screen: ProfileScreen(userId: data['id']),
             );
           }
+        case AppConstance.screenshot:
+          // Just open app, don't navigate to profile
+          break;
         default:
         // افتح الشاشة الافتراضية
         // navigatorKey.currentState!.context.toAndRemoveAll(LandingScreen());

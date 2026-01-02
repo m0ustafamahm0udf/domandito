@@ -74,6 +74,7 @@ class AppConstance {
   static const String answer = "answer";
   static const String url = "url";
   static const String profileVisit = "profile_visit";
+  static const String screenshot = "screenshot";
 
   // static const String CART_ITEM_BOX = 'CART_ITEM_BOX';
 

@@ -4,6 +4,7 @@ import 'dart:developer';
 
 import 'package:domandito/modules/signin/create_account_screen.dart';
 import 'package:domandito/modules/signin/models/user_model.dart';
+import 'package:domandito/core/services/global_privacy_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:domandito/core/constants/app_constants.dart';
@@ -111,6 +112,9 @@ class AddUserToSupabase {
         MySharedPreferences.deviceToken = newUser.token;
         MySharedPreferences.image = data['image'] ?? newUser.image;
         MySharedPreferences.isVerified = data['is_verified'] ?? false;
+
+        // Refresh Privacy Settings based on Verification Status
+        GlobalPrivacyService().evaluatePrivacyParameters();
 
         context.toAndRemoveAll(LandingScreen());
       }

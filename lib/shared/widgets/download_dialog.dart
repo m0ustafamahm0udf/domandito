@@ -14,7 +14,7 @@ void showDownloadAppDialog(BuildContext context) {
     barrierDismissible: true,
     builder: (context) {
       return PopScope(
-        canPop: MySharedPreferences.isLoggedIn,
+        canPop: false,
         child: Dialog(
           // backgroundColor: AppColors.primary, // أو أي لون مناسب
           shape: RoundedRectangleBorder(
