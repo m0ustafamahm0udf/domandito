@@ -1,5 +1,6 @@
 import 'package:domandito/core/constants/app_constants.dart';
 import 'package:domandito/core/utils/extentions.dart';
+import 'package:domandito/core/utils/shared_prefrences.dart';
 import 'package:domandito/core/utils/utils.dart';
 import 'package:domandito/modules/signin/models/user_model.dart';
 import 'package:domandito/shared/style/app_colors.dart';
@@ -31,8 +32,8 @@ class ProfileStatsSection extends StatelessWidget {
             onTap: () => AppConstance().showInfoToast(
               context,
               msg: context.isCurrentLanguageAr()
-                  ? 'لا يمكنك مشاهدة المتابعين الخاصة بك 😜'
-                  : 'You can\'t view your followers 😜',
+                  ? 'لا يمكنك مشاهدة المتابعين 😜'
+                  : 'You can\'t view the followers 😜',
             ),
             child: Container(
               color: Colors.transparent,
@@ -63,7 +64,18 @@ class ProfileStatsSection extends StatelessWidget {
             ),
           ),
           GestureDetector(
-            onTap: onFollowingTap,
+            onTap: () {
+              if (MySharedPreferences.isLoggedIn && isMe) {
+                onFollowingTap();
+              } else {
+                AppConstance().showInfoToast(
+                  context,
+                  msg: context.isCurrentLanguageAr()
+                      ? 'لا يمكنك مشاهدة المتابَعين 😜'
+                      : 'You can\'t view the following 😜',
+                );
+              }
+            },
             child: Container(
               color: Colors.transparent,
               child: Column(

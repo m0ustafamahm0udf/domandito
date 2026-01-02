@@ -10,6 +10,7 @@ import 'package:domandito/firebase_options.dart';
 import 'package:domandito/main.dart';
 import 'package:domandito/modules/answer/views/answer_question_screen.dart';
 import 'package:domandito/modules/question/views/question_screen.dart';
+import 'package:domandito/modules/profile/view/profile_screen.dart';
 import 'package:domandito/shared/widgets/custom_dialog.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -110,6 +111,25 @@ class CloudMessagingService {
                         ? 'لا يمكنك مشاهدة الشخص الذي قام بمتابعتك 😜'
                         : 'You can\'t view the person who followed you 😜',
                   );
+                  break;
+                case AppConstance.profileVisit:
+                  if (message.data['id'] == 'HIDDEN') {
+                    AppConstance().showInfoToast(
+                      navigatorKey.currentState!.context,
+                      msg:
+                          navigatorKey.currentState!.context
+                              .isCurrentLanguageAr()
+                          ? 'لا يمكنك معرفة من هو المستخدم 😜'
+                          : 'You cannot identify the user 😜',
+                    );
+                  } else if (message.data['id'] != null &&
+                      message.data['id'].toString().isNotEmpty) {
+                    pushScreen(
+                      navigatorKey.currentState!.context,
+                      screen: ProfileScreen(userId: message.data['id']),
+                    );
+                  }
+                  break;
                 default:
                 // افتح الشاشة الافتراضية
                 // navigatorKey.currentState!.context.toAndRemoveAll(
@@ -226,6 +246,22 @@ class CloudMessagingService {
                   : 'You can\'t view the person who followed you 😜',
             );
           });
+        case AppConstance.profileVisit:
+          if (data['id'] == 'HIDDEN') {
+            Future.delayed(Duration(milliseconds: 100), () {
+              AppConstance().showInfoToast(
+                navigatorKey.currentState!.context,
+                msg: navigatorKey.currentState!.context.isCurrentLanguageAr()
+                    ? 'لا يمكنك معرفة من هو المستخدم 😜'
+                    : 'You cannot identify the verified user 😜',
+              );
+            });
+          } else if (data['id'] != null && data['id'].toString().isNotEmpty) {
+            pushScreen(
+              navigatorKey.currentState!.context,
+              screen: ProfileScreen(userId: data['id']),
+            );
+          }
         default:
         // افتح الشاشة الافتراضية
         // navigatorKey.currentState!.context.toAndRemoveAll(LandingScreen());

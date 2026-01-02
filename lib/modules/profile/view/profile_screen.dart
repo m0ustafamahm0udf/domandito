@@ -40,6 +40,7 @@ import 'package:domandito/modules/profile/view/widgets/profile_questions_list.da
 import 'package:domandito/modules/profile/view/widgets/pinned_questions_section.dart';
 import 'package:domandito/modules/profile/view/edit_profile_screen.dart';
 import 'package:domandito/shared/helpers/scroll_to_top_helper.dart';
+import 'package:domandito/modules/profile/services/profile_visit_service.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String userId;
@@ -87,11 +88,26 @@ class _ProfileScreenState extends State<ProfileScreen>
     _scrollHelper = ScrollToTopHelper(onScrollComplete: () {});
     isMe = widget.userId == MySharedPreferences.userId;
     getAllData();
-    if (kIsWeb && !isMe) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
+    _checkAccess();
+  }
+
+  void _checkAccess() {
+    if (isMe) return;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Don't show checks for myself
+
+      // 1. Web Check
+      if (kIsWeb) {
         showDownloadAppDialog(context);
-      });
-    }
+        return;
+      }
+
+      // 2. Login Check
+      if (!MySharedPreferences.isLoggedIn) {
+        showMustLoginDialog(context);
+      }
+    });
   }
 
   @override
@@ -134,6 +150,12 @@ class _ProfileScreenState extends State<ProfileScreen>
           MySharedPreferences.email = user!.email;
           MySharedPreferences.image = user!.image;
           MySharedPreferences.isVerified = user!.isVerified;
+        } else {
+          ProfileVisitService.recordVisit(
+            targetUserId: user!.id,
+            targetUserToken: user!.token,
+            context: context,
+          );
         }
 
         // 2. Stats

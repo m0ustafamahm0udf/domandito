@@ -73,6 +73,7 @@ class AppConstance {
   static const String follow = "follow";
   static const String answer = "answer";
   static const String url = "url";
+  static const String profileVisit = "profile_visit";
 
   // static const String CART_ITEM_BOX = 'CART_ITEM_BOX';
 
@@ -142,7 +143,7 @@ class AppConstance {
           if (isLogin) {
             return TextButton(
               child: Text(
-                !context.isCurrentLanguageAr() ? 'Log in' : 'تسجيل الدخول',
+                !context.isCurrentLanguageAr() ? 'Login' : 'تسجيل الدخول',
                 style: TextStyle(color: AppColors.primary, fontSize: 10),
               ),
               onPressed: () {
