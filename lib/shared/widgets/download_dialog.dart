@@ -98,7 +98,7 @@ void showMustLoginDialog(BuildContext context) {
     barrierDismissible: true,
     builder: (context) {
       return PopScope(
-        canPop: true,
+        canPop: false,
         child: Dialog(
           // backgroundColor: AppColors.primary, // أو أي لون مناسب
           shape: RoundedRectangleBorder(

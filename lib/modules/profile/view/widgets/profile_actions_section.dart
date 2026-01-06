@@ -50,7 +50,7 @@ class ProfileActionsSection extends StatelessWidget {
                 color: AppColors.white,
               ),
               radius: 60,
-              height: 55,
+              height: 50,
               onPressed: () {
                 if (!MySharedPreferences.isLoggedIn) {
                   onAsk();
@@ -87,7 +87,7 @@ class ProfileActionsSection extends StatelessWidget {
                 color: isFollowing ? AppColors.white : AppColors.primary,
               ),
               radius: 60,
-              height: 55,
+              height: 50,
               onPressed: () {
                 if (!followLoading) {
                   onToggleFollow();

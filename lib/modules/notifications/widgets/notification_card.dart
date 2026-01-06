@@ -10,6 +10,7 @@ import 'package:domandito/modules/question/views/question_screen.dart';
 import 'package:domandito/shared/style/app_colors.dart';
 import 'package:domandito/shared/widgets/custom_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_overlay_loader/flutter_overlay_loader.dart';
 import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:svg_flutter/svg_flutter.dart';
@@ -49,6 +50,7 @@ class _NotificationCardState extends State<NotificationCard>
     if (widget.notificationsData.entityId != null) {
       // Fetch question details if needed to navigate
       try {
+        AppConstance().showLoading(context);
         final response = await Supabase.instance.client
             .from('questions')
             .select('*, sender:sender_id(*), receiver:receiver_id(*)')
@@ -59,6 +61,7 @@ class _NotificationCardState extends State<NotificationCard>
           final question = QuestionModel.fromJson(response);
 
           if (widget.notificationsData.type == AppConstance.answer) {
+            Loader.hide();
             // Go to Question Screen (which shows the answer)
             await pushScreen(
               context,
@@ -72,6 +75,8 @@ class _NotificationCardState extends State<NotificationCard>
             );
             shouldUpdateReadStatus = true;
           } else if (widget.notificationsData.type == AppConstance.question) {
+            Loader.hide();
+
             // Go to Answer Screen
             final result = await pushScreen(
               context,
@@ -82,6 +87,8 @@ class _NotificationCardState extends State<NotificationCard>
               widget.onRemove?.call();
             }
           } else if (widget.notificationsData.type == AppConstance.like) {
+            Loader.hide();
+
             await pushScreen(
               context,
               screen: QuestionScreen(
@@ -96,9 +103,13 @@ class _NotificationCardState extends State<NotificationCard>
           }
         }
       } catch (e) {
+        Loader.hide();
+
         // Handle error or show toast
       }
     } else {
+      Loader.hide();
+
       // For notifications without entityId like follow, just mark as read immediately if that's the desired behavior,
       // or if there is no navigation involved.
       AppConstance().showInfoToast(
@@ -112,6 +123,8 @@ class _NotificationCardState extends State<NotificationCard>
 
     // Mark as read after return if not already read
     if (shouldUpdateReadStatus && !_isRead) {
+      Loader.hide();
+
       if (mounted) {
         setState(() {
           _isRead = true;
@@ -129,6 +142,52 @@ class _NotificationCardState extends State<NotificationCard>
   @override
   Widget build(BuildContext context) {
     super.build(context);
+
+    // Dynamic Title & Body Logic
+    // We want to show the current Name of the sender if they changed it,
+    // instead of the stale Title stored in the Notification.
+
+    String displayTitle = widget.notificationsData.title ?? 'Domandito';
+    final originalBody = widget.notificationsData.body ?? '';
+    // Default body translation
+    String displayBody = getTranslatedContent(originalBody, context);
+
+    if (widget.notificationsData.sender != null) {
+      final senderName = widget.notificationsData.sender!.name;
+      final type = widget.notificationsData.type;
+
+      // 1. Update Title:
+      // If the stored title is NOT a system/anonymous title,
+      // we assume it is the User's Name (e.g. for Answer, Like, Follow, Question).
+      // We overwrite it with the current senderName from the user profile.
+      const systemTitles = [
+        'Domandito',
+        'زائر جديد',
+        'Anonymous',
+        'مجهول',
+        'Unknown',
+      ];
+      if (!systemTitles.contains(widget.notificationsData.title)) {
+        displayTitle = senderName;
+      }
+
+      // 2. Update Body (specifically for profile visits where name is inside the body):
+      if (type == AppConstance.profileVisit) {
+        // Respect verification status (Hidden vs Visible)
+        final isVerified = widget.notificationsData.sender!.isVerified;
+
+        if (isVerified) {
+          displayBody = !context.isCurrentLanguageAr()
+              ? 'Someone viewed your profile'
+              : 'شخص ما شاهد ملفك الشخصي';
+        } else {
+          displayBody = !context.isCurrentLanguageAr()
+              ? '$senderName viewed your profile'
+              : 'قام $senderName بمشاهدة ملفك الشخصي';
+        }
+      }
+    }
+
     return GestureDetector(
       onTap: () => _handleTap(context),
       child: Card(
@@ -197,7 +256,7 @@ class _NotificationCardState extends State<NotificationCard>
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                widget.notificationsData.title ?? 'Domandito',
+                                displayTitle,
                                 style: const TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.bold,
@@ -206,10 +265,7 @@ class _NotificationCardState extends State<NotificationCard>
                               const SizedBox(height: 5),
                               if (widget.notificationsData.body != null)
                                 Text(
-                                  getTranslatedContent(
-                                    widget.notificationsData.body!,
-                                    context,
-                                  ),
+                                  displayBody,
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
                                   style: const TextStyle(
@@ -222,6 +278,7 @@ class _NotificationCardState extends State<NotificationCard>
                           ),
                         ),
                       ),
+                      const SizedBox(width: 10),
                       Text(
                         timeAgo(widget.notificationsData.createdAt, context),
 
