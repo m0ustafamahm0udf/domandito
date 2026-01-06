@@ -53,7 +53,7 @@ class _AnswerQuestionCardDetailsState extends State<AnswerQuestionCardDetails> {
       tag: '${question.id}answer',
       child: GestureDetector(
         onTap: () {
-          if (question.answerText == null) {
+          if (question.answerText == null && !widget.isInAnswerQuestionScreen) {
             pushScreen(
               context,
               screen: AnswerQuestionScreen(question: question),
