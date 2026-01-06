@@ -107,8 +107,8 @@ class ProfileVisitService {
 
       if (lastVisitMillis != null) {
         final diff = now - lastVisitMillis;
-        // 2 hours cooldown
-        if (diff < 2 * 60 * 60 * 1000) {
+        // 1 hours cooldown
+        if (diff < 1 * 60 * 60 * 1000) {
           return false;
         }
       }
