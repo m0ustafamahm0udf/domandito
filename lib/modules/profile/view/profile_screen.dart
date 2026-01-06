@@ -651,6 +651,9 @@ class _ProfileScreenState extends State<ProfileScreen>
                 setState(() {});
               },
               child: ListView(
+                physics: const BouncingScrollPhysics(
+                  parent: AlwaysScrollableScrollPhysics(),
+                ),
                 controller: _scrollHelper.scrollController,
                 padding: EdgeInsets.only(top: 0, right: 0, left: 0),
                 children: [

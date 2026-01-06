@@ -1,5 +1,3 @@
-import 'package:domandito/core/constants/app_platforms_serv.dart';
-import 'package:domandito/core/services/get_device_serv.dart';
 import 'package:domandito/core/utils/extentions.dart';
 import 'package:domandito/modules/signin/models/user_model.dart';
 import 'package:domandito/shared/style/app_colors.dart';
@@ -24,7 +22,7 @@ class ProfileImageSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final platform = PlatformService.platform;
+    // final platform = PlatformService.platform;
 
     return Stack(
       alignment: Alignment.center,
@@ -69,30 +67,30 @@ class ProfileImageSection extends StatelessWidget {
             ),
           ),
         ),
-        if (isMe)
-          if (AppPlatform.webAndroid != platform &&
-              AppPlatform.webIOS != platform &&
-              AppPlatform.webDesktop != platform)
-            Positioned(
-              top: 10,
-              left: context.w * 0.28,
-              child: Container(
-                // padding: const EdgeInsets.all(0.0),
-                decoration: BoxDecoration(
-                  color: AppColors.white,
-                  shape: BoxShape.circle,
-                ),
-                child: IconButton(
-                  onPressed: onEditProfile,
-                  style: ButtonStyle(
-                    backgroundColor: MaterialStatePropertyAll(
-                      AppColors.primary,
-                    ),
-                  ),
-                  icon: Icon(Icons.edit, color: AppColors.white),
-                ),
-              ),
-            ),
+        // if (isMe)
+        //   if (AppPlatform.webAndroid != platform &&
+        //       AppPlatform.webIOS != platform &&
+        //       AppPlatform.webDesktop != platform)
+        //     Positioned(
+        //       top: 10,
+        //       left: context.w * 0.28,
+        //       child: Container(
+        //         // padding: const EdgeInsets.all(0.0),
+        //         decoration: BoxDecoration(
+        //           color: AppColors.white,
+        //           shape: BoxShape.circle,
+        //         ),
+        //         child: IconButton(
+        //           onPressed: onEditProfile,
+        //           style: ButtonStyle(
+        //             backgroundColor: MaterialStatePropertyAll(
+        //               AppColors.primary,
+        //             ),
+        //           ),
+        //           icon: Icon(Icons.edit, color: AppColors.white),
+        //         ),
+        //       ),
+        //     ),
       ],
     );
   }

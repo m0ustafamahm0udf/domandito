@@ -10,6 +10,7 @@ import 'package:domandito/core/utils/extentions.dart';
 import 'package:domandito/core/utils/shared_prefrences.dart';
 import 'package:domandito/modules/privacy/privacy.dart';
 import 'package:domandito/modules/admin/views/admin_screen.dart';
+import 'package:domandito/modules/profile/view/edit_profile_screen.dart';
 import 'package:domandito/modules/terms/teerms.dart';
 import 'package:domandito/shared/style/app_colors.dart';
 import 'package:domandito/shared/widgets/custom_network_image.dart';
@@ -33,7 +34,7 @@ class AccountScreen extends StatefulWidget {
 
 class _AccountScreenState extends State<AccountScreen> {
   List<String> profileTiles = [
-    // 'تعديل الحساب',
+    'تعديل الحساب',
     'الشروط والاحكام',
     'سياسة الخصوصية',
     'مشاركة التطبيق',
@@ -44,7 +45,7 @@ class _AccountScreenState extends State<AccountScreen> {
   ];
 
   List<String> profileTilesEnglish = [
-    // 'Edit Profile',
+    'Edit Profile',
     'Terms and Conditions',
     'Privacy Policy',
     'Share App',
@@ -55,7 +56,7 @@ class _AccountScreenState extends State<AccountScreen> {
   ];
 
   List<String> icons = [
-    // AppIcons.profile,
+    AppIcons.profile,
     AppIcons.terms,
     AppIcons.privacy,
     AppIcons.share,
@@ -399,22 +400,26 @@ class _AccountScreenState extends State<AccountScreen> {
 
   getOnTap({required int index}) async {
     switch (index) {
-      // case 0:
-      //   pushScreenWithoutNavBar(context, EditProfileScreen()).then((value) {
-      //     setState(() {});
-      //   });
-
-      //   break;
-
       case 0:
+        pushScreen(context, screen: const EditProfileScreen()).then((value) {
+          if (value == true) {
+            // Refresh profile after coming back from edit
+
+            setState(() {});
+          }
+        });
+
+        break;
+
+      case 1:
         pushScreenWithoutNavBar(context, TermsScreen());
 
         break;
-      case 1:
+      case 2:
         pushScreenWithoutNavBar(context, PrivacyPolicyScreen());
 
         break;
-      case 2:
+      case 3:
         if (playStoreUrl.isNotEmpty && appStoreUrl.isNotEmpty) {
           final platform = PlatformService.platform;
           if (!kIsWeb) {
@@ -432,7 +437,7 @@ class _AccountScreenState extends State<AccountScreen> {
           }
         }
         break;
-      case 3:
+      case 4:
         await LaunchUrlsService().launchBrowesr(
           uri: facebook,
           context: context,
@@ -445,7 +450,7 @@ class _AccountScreenState extends State<AccountScreen> {
       //     context: context,
       //   );
       // break;
-      case 4:
+      case 5:
         final rest = await showDialog<bool>(
           context: context,
           builder: (context) => CustomDialog(
@@ -462,7 +467,7 @@ class _AccountScreenState extends State<AccountScreen> {
           MySharedPreferences.clearProfile(context: context);
         }
         break;
-      case 5:
+      case 6:
         // context.to(const AboutCpvApp());
         final rest = await showDialog<bool>(
           context: context,
