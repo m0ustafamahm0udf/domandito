@@ -95,14 +95,20 @@ class ProfileVisitService {
   static Future<bool> _shouldNotify(String targetUserId) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final key = 'last_visit_timestamp_$targetUserId';
+      // Use a key unique to BOTH the visitor and the target
+      // This ensures that:
+      // 1. Visits to User A don't affect visits to User B (already true before, but explicit is good)
+      // 2. If Use X logs out and User Y logs in, User Y's visits are tracked separately
+      final myUserId = MySharedPreferences.userId;
+      final key = 'last_visit_timestamp_${myUserId}_$targetUserId';
+
       final lastVisitMillis = prefs.getInt(key);
       final now = DateTime.now().millisecondsSinceEpoch;
 
       if (lastVisitMillis != null) {
         final diff = now - lastVisitMillis;
-        // 1 hours cooldown = 1 * 60 * 60 * 1000 milliseconds
-        if (diff < 1 * 60 * 60 * 1000) {
+        // 2 hours cooldown
+        if (diff < 2 * 60 * 60 * 1000) {
           return false;
         }
       }
@@ -110,8 +116,7 @@ class ProfileVisitService {
       await prefs.setInt(key, now);
       return true;
     } catch (e) {
-      // If error (e.g. SharedPreferences failure), allow notification to be safe/visible
-      // or block to be safe against spam? Let's allow it but log error.
+      // If error (e.g. SharedPreferences failure), allow notification to be safe
       debugPrint("Error in _shouldNotify: $e");
       return true;
     }
