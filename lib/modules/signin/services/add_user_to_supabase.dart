@@ -1,7 +1,5 @@
 // ignore_for_file: use_build_context_synchronously
 
-import 'dart:developer';
-
 import 'package:domandito/modules/signin/create_account_screen.dart';
 import 'package:domandito/modules/signin/models/user_model.dart';
 import 'package:domandito/core/services/global_privacy_service.dart';
@@ -100,7 +98,7 @@ class AddUserToSupabase {
         await _supabase.from('users').update(updatedData).eq('id', userId);
 
         final data = existingUser; // In Supabase response is the data already
-        log('data: $data');
+        // log('data: $data');
         // حفظ البيانات SharedPreferences
         MySharedPreferences.isLoggedIn = true;
         MySharedPreferences.userName = data['name'] ?? '';
@@ -119,7 +117,7 @@ class AddUserToSupabase {
         context.toAndRemoveAll(LandingScreen());
       }
     } catch (e) {
-      log('Error adding new user: $e');
+      // log('Error adding new user: $e');
       AppConstance().showErrorToast(
         context,
         msg: !context.isCurrentLanguageAr()
@@ -133,7 +131,7 @@ class AddUserToSupabase {
     try {
       await _supabase.from('users').insert(userData);
     } catch (e) {
-      log('Error saving user: $e');
+      // log('Error saving user: $e');
       throw e;
     }
   }

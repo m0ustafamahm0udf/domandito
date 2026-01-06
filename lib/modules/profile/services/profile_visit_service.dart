@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:domandito/core/constants/app_constants.dart';
 import 'package:domandito/core/services/notifications/send_message_notification.dart';
 import 'package:domandito/core/utils/extentions.dart';
@@ -32,7 +30,7 @@ class ProfileVisitService {
     // 2. Throttle Check (Cooldown)
     final canNotify = await _shouldNotify(targetUserId);
     // final canNotify = true;
-    log(canNotify.toString());
+    // log(canNotify.toString());
     if (!canNotify) return;
 
     final isVisitorLoggedIn = MySharedPreferences.isLoggedIn;

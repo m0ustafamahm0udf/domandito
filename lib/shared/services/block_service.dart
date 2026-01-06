@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:domandito/core/utils/extentions.dart';
 
 import 'package:domandito/shared/models/bloced_user.dart';
@@ -85,7 +83,7 @@ class BlockService {
       debugPrint("Block Service Error: $e");
 
       if (context.mounted) {
-        log("Block Service Error: $e");
+        // log("Block Service Error: $e");
         AppConstance().showInfoToast(
           context,
           msg: !context.isCurrentLanguageAr()

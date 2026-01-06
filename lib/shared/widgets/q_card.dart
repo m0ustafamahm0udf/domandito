@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:domandito/core/constants/app_constants.dart';
 import 'package:domandito/core/constants/app_icons.dart';
 import 'package:domandito/core/utils/extentions.dart';
@@ -192,7 +190,7 @@ class _QuestionCardState extends State<QuestionCard>
 
   @override
   Widget build(BuildContext context) {
-    log('build');
+    // log('build');
     super.build(context);
     final displayName = question.isAnonymous
         ? !context.isCurrentLanguageAr()
@@ -240,7 +238,7 @@ class _QuestionCardState extends State<QuestionCard>
                 horizontal: AppConstance.hPadding,
                 vertical: AppConstance.vPaddingTiny,
               ),
-              child: Container(
+              child: SizedBox(
                 height: widget.isInProfileScreen && isPinned ? 170 : null,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -631,6 +629,7 @@ class _QuestionCardState extends State<QuestionCard>
                           ],
                         ],
                       ),
+                    if (isPinned) const SizedBox(height: 5),
                   ],
                 ),
               ),

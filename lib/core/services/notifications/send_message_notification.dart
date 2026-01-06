@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:developer';
 
 import 'package:domandito/core/utils/shared_prefrences.dart';
 import 'package:http/http.dart' as http;
@@ -48,7 +47,7 @@ class SendMessageNotificationWithHTTPv1 {
     required String id,
   }) async {
     try {
-      log('toToken $toToken');
+      // log('toToken $toToken');
       final accessToken = await _getAccessToken();
       if (accessToken == null) {
         // log('Failed to retrieve access token');
@@ -94,12 +93,12 @@ class SendMessageNotificationWithHTTPv1 {
       );
 
       if (response.statusCode == 200) {
-        log("Notification sent successfully: ${response.body}");
+        // log("Notification sent successfully: ${response.body}");
       } else {
-        log("Failed to send notification: ${response.body}");
+        // log("Failed to send notification: ${response.body}");
       }
     } catch (e) {
-      log("Error sending notification: $e");
+      // log("Error sending notification: $e");
     }
   }
 
@@ -112,7 +111,7 @@ class SendMessageNotificationWithHTTPv1 {
     required String type,
   }) async {
     // if (kIsWeb) return;
-    if(MySharedPreferences.deviceToken == toToken) return;
+    if (MySharedPreferences.deviceToken == toToken) return;
     try {
       final accessToken = await _getAccessToken();
       if (accessToken == null) {

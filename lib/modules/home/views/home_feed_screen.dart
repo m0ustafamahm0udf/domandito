@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:domandito/core/constants/app_constants.dart';
 import 'package:domandito/core/constants/app_icons.dart';
 import 'package:domandito/core/services/launch_urls.dart';
@@ -125,7 +123,7 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
 
   @override
   Widget build(BuildContext context) {
-    log('build');
+    // log('build');
     return Scaffold(
       appBar: _buildAppBar(context),
       floatingActionButton: _scrollHelper.buildButton(),

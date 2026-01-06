@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'dart:developer';
+
 import 'package:domandito/core/utils/extentions.dart';
 import 'package:domandito/modules/search/users_list.dart';
 import 'package:domandito/shared/widgets/custom_text_field.dart';
@@ -23,7 +23,7 @@ class _SearchUsersScreenState extends State<SearchUsersScreen> {
   }
 
   void _onSearchChanged(String val) {
-    log('val: $val');
+    // log('val: $val');
     valll = val;
     setState(() {});
     if (_debounce?.isActive ?? false) _debounce!.cancel();

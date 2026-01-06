@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:domandito/core/constants/app_constants.dart';
 
 import 'package:domandito/core/utils/extentions.dart';
@@ -43,13 +41,13 @@ class GSignin {
         );
         user = userCredential.user;
         if (user != null) {
-          log(user.photoURL.toString() + ' AAAAAAA');
+          // log(user.photoURL.toString() + ' AAAAAAA');
         }
 
         if (context.mounted) {
           // Check Huawei and get token
 
-          log(user?.photoURL ?? '');
+          // log(user?.photoURL ?? '');
           DateTime now = await getNetworkTime() ?? DateTime.now();
 
           UserModel userModel = UserModel(
@@ -75,7 +73,7 @@ class GSignin {
             isVerified: false,
             bio: '',
           );
-          log(user.email!.split('@')[0] + ' BBBBBBBBB');
+          // log(user.email!.split('@')[0] + ' BBBBBBBBB');
           await AddUserToSupabase().addNewUser(userModel, context, false);
         }
       } else {
@@ -98,7 +96,7 @@ class GSignin {
         );
         user = userCredential.user;
         if (user != null) {
-          log(user.photoURL.toString() + ' BBBBBBBBB');
+          // log(user.photoURL.toString() + ' BBBBBBBBB');
         }
 
         if (context.mounted) {
@@ -108,7 +106,7 @@ class GSignin {
             context: context,
           );
           final platform = PlatformService.platform;
-          log(token + 'ASAASASASASASAS');
+          // log(token + 'ASAASASASASASAS');
           DateTime now = await getNetworkTime() ?? DateTime.now();
 
           UserModel userModel = UserModel(

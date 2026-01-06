@@ -1,8 +1,6 @@
-// import 'dart:developer';
+//
 
 // ignore_for_file: use_build_context_synchronously
-
-import 'dart:developer';
 
 import 'package:app_links/app_links.dart';
 import 'package:domandito/core/utils/shared_prefrences.dart';
@@ -125,7 +123,7 @@ class DeepLinkHelper {
     required Uri uri,
     required BuildContext context,
   }) async {
-    log('Deep link handled: $uri');
+    // log('Deep link handled: $uri');
 
     /// 1️⃣ استخرج المسار الحقيقي
     String path = uri.path;

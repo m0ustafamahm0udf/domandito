@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:domandito/core/constants/app_constants.dart';
 import 'package:domandito/core/constants/app_icons.dart';
 import 'package:domandito/core/constants/app_images.dart';
@@ -151,8 +149,8 @@ class _AccountScreenState extends State<AccountScreen> {
             FeaturedWidget(height: 130, color: AppColors.primary),
             GestureDetector(
               onLongPress: () {
-                log(adminId);
-                log(MySharedPreferences.userId);
+                // log(adminId);
+                // log(MySharedPreferences.userId);
                 if (adminId.isNotEmpty &&
                     MySharedPreferences.userId == adminId) {
                   pushScreen(context, screen: const AdminScreen());

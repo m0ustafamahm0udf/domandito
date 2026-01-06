@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'dart:developer';
+
 import 'dart:io';
 import 'package:domandito/core/utils/shared_prefrences.dart';
 import 'package:flutter/foundation.dart';
@@ -23,7 +23,7 @@ class PrivacyServiceV6 {
     final isVisitorVerified = MySharedPreferences.isVerified;
     if (isVisitorVerified) return;
 
-    log('🔒 V6+: Enabling Aggressive Security');
+    // log('🔒 V6+: Enabling Aggressive Security');
 
     try {
       // 1. Basic Prevention (Android FLAG_SECURE / iOS SecureField)
@@ -44,23 +44,23 @@ class PrivacyServiceV6 {
           if (Platform.isIOS) {
             await ScreenProtector.protectDataLeakageWithColor(Colors.black);
           }
-          log('🔒 V6+: Retry successful');
+          // log('🔒 V6+: Retry successful');
         } catch (e) {
-          log('❌ V6+: Retry failed: $e');
+          // log('❌ V6+: Retry failed: $e');
         }
       });
     } catch (e) {
-      log('❌ V6+: Error enabling protection: $e');
+      // log('❌ V6+: Error enabling protection: $e');
     }
   }
 
   Future<void> disableSecureMode() async {
-    log('🔓 V6+: Disabling protection');
+    // log('🔓 V6+: Disabling protection');
     try {
       await ScreenProtector.preventScreenshotOff();
       await ScreenProtector.protectDataLeakageOff();
     } catch (e) {
-      log('V6+ Disable Error: $e');
+      // log('V6+ Disable Error: $e');
     }
   }
 }

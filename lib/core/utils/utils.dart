@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'dart:developer';
+
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:domandito/core/constants/app_constants.dart';
@@ -68,12 +68,12 @@ Future<DateTime?> getNetworkTime() async {
 
       // لو عايزه local
       final localDateTime = dateTimeUtc.toLocal();
-      log('$localDateTime dateHeader');
+      // log('$localDateTime dateHeader');
 
       return localDateTime;
     }
   } catch (e) {
-    log(e.toString());
+    // log(e.toString());
   }
   return null;
 }

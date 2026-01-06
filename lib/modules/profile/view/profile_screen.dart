@@ -831,7 +831,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                     const SizedBox()
                   else
                     Padding(
-                      padding: EdgeInsets.only(top: 0, right: 16, left: 16),
+                      padding: EdgeInsets.only(top: 4, right: 16, left: 16),
                       child: ProfileQuestionsList(
                         questions: unpinnedQuestions,
                         user: user!,

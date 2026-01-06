@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter_app_badger/flutter_app_badger.dart';
 import 'package:domandito/modules/notifications/repositories/notifications_repository.dart';
 
@@ -9,7 +7,7 @@ class BadgeService {
     if (isSupported) {
       try {
         final count = await NotificationsRepository().getUnreadCount();
-        log(count.toString());
+        // log(count.toString());
         if (count > 0) {
           FlutterAppBadger.updateBadgeCount(count);
         } else {

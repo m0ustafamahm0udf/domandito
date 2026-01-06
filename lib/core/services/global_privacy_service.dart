@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'dart:developer';
+
 import 'dart:io';
 import 'package:domandito/core/utils/shared_prefrences.dart';
 import 'package:flutter/foundation.dart';
@@ -23,14 +23,14 @@ class GlobalPrivacyService with WidgetsBindingObserver {
     if (kIsWeb) return;
     WidgetsBinding.instance.addObserver(this);
     evaluatePrivacyParameters(); // Initial check
-    log('🛡️ GlobalPrivacyService Initialized');
+    // log('🛡️ GlobalPrivacyService Initialized');
   }
 
   /// Called when app lifecycle state changes
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      log('🛡️ App Resumed: Re-evaluating privacy');
+      // log('🛡️ App Resumed: Re-evaluating privacy');
       evaluatePrivacyParameters();
     }
   }
@@ -40,10 +40,10 @@ class GlobalPrivacyService with WidgetsBindingObserver {
     final isVerified = MySharedPreferences.isVerified;
 
     if (isVerified) {
-      log('🛡️ User is Verified: Disabling Protection ✅');
+      // log('🛡️ User is Verified: Disabling Protection ✅');/
       _disableProtection();
     } else {
-      log('🛡️ User NOT Verified: Enabling Protection 🔒');
+      // log('🛡️ User NOT Verified: Enabling Protection 🔒');
       _enableProtection();
     }
   }
@@ -76,7 +76,7 @@ class GlobalPrivacyService with WidgetsBindingObserver {
         } catch (_) {}
       });
     } catch (e) {
-      log('❌ Privacy Enable Error: $e');
+      // log('❌ Privacy Enable Error: $e');
     }
   }
 
@@ -87,9 +87,9 @@ class GlobalPrivacyService with WidgetsBindingObserver {
       _isProtectionActive = false;
       await ScreenProtector.preventScreenshotOff();
       await ScreenProtector.protectDataLeakageOff();
-      log('🔓 Protection Disabled');
+      // log('🔓 Protection Disabled');
     } catch (e) {
-      log('❌ Privacy Disable Error: $e');
+      // log('❌ Privacy Disable Error: $e');
     }
   }
 

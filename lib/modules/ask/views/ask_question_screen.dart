@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:animate_do/animate_do.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -92,7 +90,7 @@ class _AskQuestionScreenState extends State<AskQuestionScreen> {
     try {
       final String questionId = const Uuid().v4();
       DateTime now = await getNetworkTime() ?? DateTime.now();
-      log(now.toString() + 'now');
+      // log(now.toString() + 'now');
       final question = QuestionModel(
         id: questionId,
         createdAt: now.toUtc(),
@@ -137,31 +135,30 @@ class _AskQuestionScreenState extends State<AskQuestionScreen> {
             : 'تم إرسال السؤال بنجاح',
       );
 
-      log('Attempting to send notifications...');
+      // log('Attempting to send notifications...');
       try {
         // Send persistent notification and push notification in parallel
         // Send push notification only
-        await SendMessageNotificationWithHTTPv1()
-            .send2(
-              type: AppConstance.question,
-              urll: '',
-              toToken: widget.recipientToken,
-              message: AppConstance.questioned,
-              title: isAnonymous
-                  ? (!context.isCurrentLanguageAr() ? 'Anonymous' : 'مجهول')
-                  : MySharedPreferences.userName,
-              id: questionId,
-            )
-            .then((_) => log('Push notification sent successfully'));
-        log('All notifications sent.');
-      } catch (e, stack) {
-        log(
-          'Error sending notifications: $e\n$stack',
-          error: e,
-          stackTrace: stack,
+        await SendMessageNotificationWithHTTPv1().send2(
+          type: AppConstance.question,
+          urll: '',
+          toToken: widget.recipientToken,
+          message: AppConstance.questioned,
+          title: isAnonymous
+              ? (!context.isCurrentLanguageAr() ? 'Anonymous' : 'مجهول')
+              : MySharedPreferences.userName,
+          id: questionId,
         );
+        // .then((_) => log('Push notification sent successfully'));
+        // log('All notifications sent.');
+      } catch (e, _) {
+        // log(
+        //   'Error sending notifications: $e\n$stack',
+        //   error: e,
+        //   stackTrace: stack,
+        // );
       }
-      log(questionId + 'questionId');
+      // log(questionId + 'questionId');
 
       Loader.hide();
 
@@ -468,7 +465,7 @@ class _AskQuestionScreenState extends State<AskQuestionScreen> {
         }
       }
     } catch (e) {
-      log('Error fetching random question: $e');
+      // log('Error fetching random question: $e');
       AppConstance().showErrorToast(
         context,
         msg: !context.isCurrentLanguageAr()

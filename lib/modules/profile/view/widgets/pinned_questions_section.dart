@@ -54,8 +54,8 @@ class PinnedQuestionsSection extends StatelessWidget {
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.only(
               left: 16,
-              bottom: 10,
-              top: 10,
+              bottom: 4,
+              top: 8,
               right: 16,
             ),
             itemCount: pinnedQuestions.length,

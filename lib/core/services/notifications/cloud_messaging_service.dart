@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:domandito/core/constants/app_constants.dart';
 import 'package:domandito/core/services/launch_urls.dart';
 
@@ -57,7 +55,7 @@ class CloudMessagingService {
                   );
                   break;
                 case AppConstance.question:
-                  log(message.data['id'] + 'id');
+                  // log(message.data['id'] + 'id');
 
                   Future.delayed(Duration(milliseconds: 100), () async {
                     try {
@@ -192,7 +190,7 @@ class CloudMessagingService {
           );
           break;
         case AppConstance.question:
-          log(data['id'] + 'id');
+          // log(data['id'] + 'id');
           Future.delayed(Duration(milliseconds: 100), () async {
             try {
               final res = await getQuestionData(questionId: data['id']);
