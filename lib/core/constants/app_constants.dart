@@ -72,7 +72,7 @@ class AppConstance {
   }
 
   static const double textFieldH = 18;
-  static const String appVersion = "1.0.6+31";
+  static const String appVersion = "1.0.6+36";
   static const String question = "question";
   static const String like = "like";
   static const String follow = "follow";
@@ -86,19 +86,10 @@ class AppConstance {
 
   // For uploading images
   // For uploading images
-  static const String accessKey = String.fromEnvironment('DO_SPACES_KEY');
-  static const String secretKey = String.fromEnvironment(
-    'DO_SPACES_SECRET',
-    // defaultValue: 'jE7BgwyXs6KAaBpOTwEX1toE6gnKvzptPRxA0Z92WoA',
-  );
-  static const String region = String.fromEnvironment(
-    'DO_SPACES_REGION',
-    // defaultValue: 'ams3',
-  );
-  static const String bucketName = String.fromEnvironment(
-    'DO_SPACES_BUCKET',
-    // defaultValue: 'domandito',
-  );
+  static const String accessKey = 'DO00LTAVLD67VPDZPH68';
+  static const String secretKey = 'jE7BgwyXs6KAaBpOTwEX1toE6gnKvzptPRxA0Z92WoA';
+  static const String region = 'ams3';
+  static const String bucketName = 'domandito';
   // Endpoint and other derived values typically depend on region/bucket, but if endpoint structure is constant:
   static const String endpoint =
       'https://$bucketName.$region.digitaloceanspaces.com/';
