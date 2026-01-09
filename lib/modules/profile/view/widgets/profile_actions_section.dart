@@ -65,7 +65,7 @@ class ProfileActionsSection extends StatelessWidget {
                   : !context.isCurrentLanguageAr()
                   ? 'Domandito!'
                   : 'إسأل',
-              textSize: 18,
+              textSize: 16,
             ),
           ),
         ),
@@ -102,7 +102,7 @@ class ProfileActionsSection extends StatelessWidget {
                   : !context.isCurrentLanguageAr()
                   ? 'Follow'
                   : "متابعة",
-              textSize: 18,
+              textSize: 16,
               child: followLoading
                   ? const Center(
                       child: SizedBox(

@@ -173,7 +173,7 @@ class _LandingScreenState extends State<LandingScreen> {
             // margin: EdgeInsets.only(top: 20),
             screenTransitionAnimation: ScreenTransitionAnimation(
               curve: Curves.easeInOut,
-              duration: Duration(milliseconds: 500),
+              duration: Duration(milliseconds: 300),
             ),
             navBarBuilder: (navBarConfig) => Style12BottomNavBar(
               height: 70,

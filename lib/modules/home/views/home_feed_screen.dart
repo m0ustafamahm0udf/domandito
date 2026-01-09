@@ -46,11 +46,7 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
   void initState() {
     super.initState();
     _scrollHelper = ScrollToTopHelper(onScrollComplete: () {});
-    if (MySharedPreferences.isLoggedIn) {
-      _initFeed();
-    } else {
-      setState(() => _isLoading = false);
-    }
+    _initFeed();
   }
 
   @override
@@ -71,17 +67,22 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
     if (mounted) setState(() => _isMoreLoading = true);
 
     try {
-      // 3. Fetch Questions using RPC (Server-side optimization)
-      final response = await Supabase.instance.client.rpc(
-        'get_home_feed',
-        params: {
-          'p_user_id': MySharedPreferences.userId,
-          'p_limit': _pageSize,
-          'p_offset': _pageOffset,
-        },
-      );
+      List<dynamic> data = [];
 
-      List<dynamic> data = response as List<dynamic>;
+      // 3. Fetch Questions using RPC (Server-side optimization)
+      if (MySharedPreferences.isLoggedIn && !_isSuggestedMode) {
+        final response = await Supabase.instance.client.rpc(
+          'get_home_feed',
+          params: {
+            'p_user_id': MySharedPreferences.userId,
+            'p_limit': _pageSize,
+            'p_offset': _pageOffset,
+          },
+        );
+        data = response as List<dynamic>;
+      } else if (!MySharedPreferences.isLoggedIn) {
+        _isSuggestedMode = true;
+      }
 
       // We are in suggest mode if:
       // 1. We already decided we are in suggested mode (pagination)
@@ -248,7 +249,7 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
                     SliverToBoxAdapter(child: _buildDownloadAppSection()),
 
                   // Bottom Padding
-                  const SliverToBoxAdapter(child: SizedBox(height: 20)),
+                  // const SliverToBoxAdapter(child: SizedBox(height: 20)),
                 ],
               ),
             ),
