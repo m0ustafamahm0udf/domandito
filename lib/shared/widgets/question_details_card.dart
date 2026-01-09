@@ -17,6 +17,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
 import 'package:svg_flutter/svg_flutter.dart';
+import 'package:flutter_overlay_loader/flutter_overlay_loader.dart';
 
 class QuestionDetailsCard extends StatefulWidget {
   final QuestionModel question;
@@ -292,6 +293,27 @@ class _QuestionDetailsCardState extends State<QuestionDetailsCard> {
                             context: context,
                             text: question.answerText.toString(),
                             isInProfileScreen: false,
+                            onMentionTap: (username) async {
+                              AppConstance().showLoading(context);
+                              final user =
+                                  await getProfileByUserNameForDeepLink(
+                                    userUserName: username,
+                                  );
+                              Loader.hide();
+                              if (user != null) {
+                                pushScreen(
+                                  context,
+                                  screen: ProfileScreen(userId: user.id),
+                                );
+                              } else {
+                                AppConstance().showErrorToast(
+                                  context,
+                                  msg: !context.isCurrentLanguageAr()
+                                      ? 'User not found'
+                                      : 'المستخدم غير موجود',
+                                );
+                              }
+                            },
                           ),
                         ),
                       ),

@@ -4,6 +4,7 @@ import 'package:domandito/modules/signin/models/user_model.dart';
 import 'package:domandito/shared/widgets/custom_dialog.dart';
 import 'package:domandito/shared/widgets/q_card.dart';
 import 'package:flutter/material.dart';
+import 'package:domandito/shared/style/app_colors.dart';
 
 class ProfileQuestionsList extends StatelessWidget {
   final List<QuestionModel> questions;
@@ -32,8 +33,10 @@ class ProfileQuestionsList extends StatelessWidget {
       itemCount: questions.length,
       itemBuilder: (context, index) {
         final q = questions[index];
+        Widget card;
+
         if (isMe) {
-          return Dismissible(
+          card = Dismissible(
             key: ValueKey(q.id),
             direction: DismissDirection.startToEnd,
             background: Container(
@@ -81,11 +84,7 @@ class ProfileQuestionsList extends StatelessWidget {
               if (res == true) {
                 onDeleteQuestion(q.id);
               }
-              return false; // We handle removal in parent manually via setState usually, or allow dismiss if parent updates list
-              // In parent logic: await deleteQuestion(q.id); setState(() { questions.removeAt(index); });
-              // So returning true here might remove it from UI before parent updates?
-              // The original code returned 'res' which is true/false.
-              // We should return true if we want Dismissible to remove it, but parent state sync is important.
+              return false;
             },
             child: QuestionCard(
               receiverToken: user.token,
@@ -96,15 +95,31 @@ class ProfileQuestionsList extends StatelessWidget {
               canPin: canPin,
             ),
           );
+        } else {
+          card = QuestionCard(
+            receiverToken: user.token,
+            currentProfileUserId: user.id,
+            question: q,
+            receiverImage: user.image,
+            onPinToggle: (isPinned) => onPinToggle?.call(isPinned, q.id),
+            canPin: canPin,
+          );
         }
-        return QuestionCard(
-          receiverToken: user.token,
-          currentProfileUserId: user.id,
-          question: q,
-          receiverImage: user.image,
-          onPinToggle: (isPinned) => onPinToggle?.call(isPinned, q.id),
-          canPin: canPin,
-        );
+
+        if (q.isPinned) {
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              card,
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: const Divider(thickness: 0.1, color: AppColors.primary),
+              ),
+            ],
+          );
+        }
+
+        return card;
       },
     );
   }

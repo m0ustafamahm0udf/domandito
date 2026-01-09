@@ -1,4 +1,5 @@
 import 'package:domandito/core/services/global_privacy_service.dart';
+import 'package:domandito/modules/profile/services/profile_visit_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:domandito/core/constants/app_constants.dart';
@@ -38,10 +39,9 @@ import 'package:domandito/modules/profile/view/widgets/profile_info_section.dart
 import 'package:domandito/modules/profile/view/widgets/profile_stats_section.dart';
 import 'package:domandito/modules/profile/view/widgets/profile_actions_section.dart';
 import 'package:domandito/modules/profile/view/widgets/profile_questions_list.dart';
-import 'package:domandito/modules/profile/view/widgets/pinned_questions_section.dart';
 import 'package:domandito/modules/profile/view/edit_profile_screen.dart';
 import 'package:domandito/shared/helpers/scroll_to_top_helper.dart';
-import 'package:domandito/modules/profile/services/profile_visit_service.dart';
+import 'package:domandito/shared/services/question_service.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String userId;
@@ -244,9 +244,17 @@ class _ProfileScreenState extends State<ProfileScreen>
         if (!exists) questions.add(q);
       }
 
-      // No need for manual sorting (RPC handles pinned first)
-      pinnedQuestions = questions.where((q) => q.isPinned).toList();
-      unpinnedQuestions = questions.where((q) => !q.isPinned).toList();
+      // Sort: Pinned first, then Newest
+      questions.sort((a, b) {
+        if (a.isPinned && !b.isPinned) return -1;
+        if (!a.isPinned && b.isPinned) return 1;
+        final aTime = a.answeredAt ?? a.createdAt;
+        final bTime = b.answeredAt ?? b.createdAt;
+        return bTime.compareTo(aTime);
+      });
+
+      // pinnedQuestions = questions.where((q) => q.isPinned).toList();
+      // unpinnedQuestions = questions.where((q) => !q.isPinned).toList();
 
       // No need for separate LikeService call (RPC handles is_liked)
 
@@ -802,41 +810,64 @@ class _ProfileScreenState extends State<ProfileScreen>
                         ],
                       ),
                     ),
-                  PinnedQuestionsSection(
-                    pinnedQuestions: pinnedQuestions,
-                    currentProfileUserId: widget.userId,
-                    receiverImage: user?.image ?? '',
-                    receiverToken: user?.token ?? '',
-                    isMe: isMe,
-                    onPinToggle: (isPinned, id) {
-                      setState(() {
-                        if (!isPinned) {
-                          // Move from pinned to unpinned
-                          final index = pinnedQuestions.indexWhere(
-                            (e) => e.id == id,
-                          );
-                          if (index != -1) {
-                            final q = pinnedQuestions.removeAt(index);
-                            q.isPinned = false;
-                            unpinnedQuestions.insert(0, q);
-                            // Sort unpinned by date (answeredAt or createdAt descending)
-                            unpinnedQuestions.sort((a, b) {
-                              final aTime = a.answeredAt ?? a.createdAt;
-                              final bTime = b.answeredAt ?? b.createdAt;
-                              return bTime.compareTo(aTime);
-                            });
-                          }
-                        }
-                      });
-                    },
+                  Padding(
+                    padding: EdgeInsets.only(top: 0, right: 16, left: 16),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.push_pin,
+                          color: AppColors.primary,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          context.isCurrentLanguageAr()
+                              ? 'الأسئلة المثبتة'
+                              : 'Pinned Question',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
+                  // PinnedQuestionsSection(
+                  //   pinnedQuestions: pinnedQuestions,
+                  //   currentProfileUserId: widget.userId,
+                  //   receiverImage: user?.image ?? '',
+                  //   receiverToken: user?.token ?? '',
+                  //   isMe: isMe,
+                  //   onPinToggle: (isPinned, id) {
+                  //     setState(() {
+                  //       if (!isPinned) {
+                  //         // Move from pinned to unpinned
+                  //         final index = pinnedQuestions.indexWhere(
+                  //           (e) => e.id == id,
+                  //         );
+                  //         if (index != -1) {
+                  //           final q = pinnedQuestions.removeAt(index);
+                  //           q.isPinned = false;
+                  //           unpinnedQuestions.insert(0, q);
+                  //           // Sort unpinned by date (answeredAt or createdAt descending)
+                  //           unpinnedQuestions.sort((a, b) {
+                  //             final aTime = a.answeredAt ?? a.createdAt;
+                  //             final bTime = b.answeredAt ?? b.createdAt;
+                  //             return bTime.compareTo(aTime);
+                  //           });
+                  //         }
+                  //       }
+                  //     });
+                  //   },
+                  // ),
                   if (questions.isEmpty)
                     const SizedBox()
                   else
                     Padding(
                       padding: EdgeInsets.only(top: 4, right: 16, left: 16),
                       child: ProfileQuestionsList(
-                        questions: unpinnedQuestions,
+                        questions: questions,
                         user: user!,
                         isMe: isMe,
                         onDeleteQuestion: (id) async {
@@ -846,41 +877,54 @@ class _ProfileScreenState extends State<ProfileScreen>
                               questions.removeWhere(
                                 (element) => element.id == id,
                               );
-                              pinnedQuestions.removeWhere(
-                                (element) => element.id == id,
-                              );
-                              unpinnedQuestions.removeWhere(
-                                (element) => element.id == id,
-                              );
+                              // pinnedQuestions.removeWhere(
+                              //   (element) => element.id == id,
+                              // );
+                              // unpinnedQuestions.removeWhere(
+                              //   (element) => element.id == id,
+                              // );
                             });
                           }
                         },
                         canPin: () {
-                          if (pinnedQuestions.length >= 3) {
-                            AppConstance().showInfoToast(
-                              context,
-                              msg: !context.isCurrentLanguageAr()
-                                  ? 'You can only pin up to 3 questions 😜'
-                                  : 'يمكنك تثبيت 3 أسئلة فقط 😜',
-                            );
-                            return false;
-                          }
                           return true;
                         },
-                        onPinToggle: (isPinned, id) {
-                          setState(() {
-                            if (isPinned) {
-                              // Move from unpinned to pinned
-                              final index = unpinnedQuestions.indexWhere(
-                                (e) => e.id == id,
-                              );
-                              if (index != -1) {
-                                final q = unpinnedQuestions.removeAt(index);
-                                q.isPinned = true;
-                                pinnedQuestions.insert(0, q);
+                        onPinToggle: (isPinned, id) async {
+                          if (isPinned) {
+                            // Unpin all others
+                            for (var q in questions) {
+                              if (q.id != id && q.isPinned) {
+                                // Calls API to unpin others
+                                await QuestionService().togglePin(q.id, false);
+                                q.isPinned = false;
                               }
                             }
+                            // State updation for the pinned one is handled by QuestionCard?
+                            // Only if we setState here to reflect in list immediately if needed.
+                            final index = questions.indexWhere(
+                              (e) => e.id == id,
+                            );
+                            if (index != -1) {
+                              questions[index].isPinned = true;
+                            }
+                          } else {
+                            final index = questions.indexWhere(
+                              (e) => e.id == id,
+                            );
+                            if (index != -1) {
+                              questions[index].isPinned = false;
+                            }
+                          }
+
+                          // Re-sort
+                          questions.sort((a, b) {
+                            if (a.isPinned && !b.isPinned) return -1;
+                            if (!a.isPinned && b.isPinned) return 1;
+                            final aTime = a.answeredAt ?? a.createdAt;
+                            final bTime = b.answeredAt ?? b.createdAt;
+                            return bTime.compareTo(aTime);
                           });
+                          setState(() {});
                         },
                       ),
                     ),

@@ -47,6 +47,7 @@ class _AskQuestionScreenState extends State<AskQuestionScreen> {
   final TextEditingController questionController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool isSending = false;
+  bool _forceExit = false;
 
   @override
   void dispose() {
@@ -216,213 +217,248 @@ class _AskQuestionScreenState extends State<AskQuestionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(widget.recipientName),
-            if (widget.isVerified)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4),
-                child: SvgPicture.asset(
-                  AppIcons.verified,
-                  height: 18,
-                  width: 18,
-                  color: AppColors.primary,
-                ),
-              ),
-          ],
-        ),
-        leading: IconButton.filled(
-          onPressed: () => context.back(),
-          icon: Icon(Icons.arrow_back),
-        ),
-      ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            // CustomAppbar(
-            //   isBack: true,
-            //   preTitle: 'سؤال لـ',
-            //   // title: 'سؤال',
-            //   isColored: true,
-            //   title: widget.recipientName,
-            //   // actions: Transform.translate(
-            //   //   offset: const Offset(5, -5),
-            //   //   child: CustomNetworkImage(
-            //   //     url: widget.recipientImage,
-            //   //     radius: 999,
-            //   //     height: 35,
-            //   //     width: 35,
-            //   //   ),
-            //   // ),
-            // ),
-            Expanded(
-              child: Form(
-                key: _formKey,
-                child: ListView(
-                  padding: EdgeInsets.only(
-                    right: AppConstance.vPadding,
-                    left: AppConstance.vPadding,
-                    top: AppConstance.hPadding,
-                    bottom: AppConstance.hPaddingBig * 15,
+    return PopScope(
+      canPop: questionController.text.isEmpty || _forceExit,
+      onPopInvoked: (didPop) async {
+        if (didPop) return;
+        final confirmed = await showExitDialog();
+        if (confirmed) {
+          setState(() {
+            _forceExit = true;
+          });
+          if (context.mounted) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              Navigator.of(context).pop();
+            });
+          }
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(widget.recipientName),
+              if (widget.isVerified)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: SvgPicture.asset(
+                    AppIcons.verified,
+                    height: 18,
+                    width: 18,
+                    color: AppColors.primary,
                   ),
-                  children: [
-                    // Text(
-                    // const SizedBox(height: 20),
-                    FadeIn(
-                      key: Key(question.sender.image.toString()),
-                      child: AskQuestionDetailsCard(
-                        currentProfileUserId: MySharedPreferences.userId,
-
-                        displayName: '',
-                        isVerified: widget.isVerified,
-                        // isInAskQuestionScreen: true,
-                        // // isInQuestionScreen: true,
-                        // isInProfileScreen: false,
-                        question: question,
-                        receiverImage: widget.recipientImage,
-                      ),
+                ),
+            ],
+          ),
+          leading: IconButton.filled(
+            onPressed: () async {
+              if (questionController.text.isEmpty) {
+                context.back();
+                return;
+              }
+              final confirmed = await showExitDialog();
+              if (confirmed) {
+                setState(() {
+                  _forceExit = true;
+                });
+                if (context.mounted) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    Navigator.of(context).pop();
+                  });
+                }
+              }
+            },
+            icon: Icon(Icons.arrow_back),
+          ),
+        ),
+        body: SafeArea(
+          child: Column(
+            children: [
+              // CustomAppbar(
+              //   isBack: true,
+              //   preTitle: 'سؤال لـ',
+              //   // title: 'سؤال',
+              //   isColored: true,
+              //   title: widget.recipientName,
+              //   // actions: Transform.translate(
+              //   //   offset: const Offset(5, -5),
+              //   //   child: CustomNetworkImage(
+              //   //     url: widget.recipientImage,
+              //   //     radius: 999,
+              //   //     height: 35,
+              //   //     width: 35,
+              //   //   ),
+              //   // ),
+              // ),
+              Expanded(
+                child: Form(
+                  key: _formKey,
+                  child: ListView(
+                    padding: EdgeInsets.only(
+                      right: AppConstance.vPadding,
+                      left: AppConstance.vPadding,
+                      top: AppConstance.hPadding,
+                      bottom: AppConstance.hPaddingBig * 15,
                     ),
-                    const SizedBox(height: 20),
-                    CustomTextField(
-                      // autoFocus: true,
-                      onChanged: (s) {
-                        setState(() {
-                          question.title = s;
-                        });
-                      },
-                      //  hintStyle: TextStyle(fontSize: 18),
-                      style: TextStyle(fontSize: 16),
-                      controller: questionController,
-                      textInputAction: TextInputAction.newline,
-                      minLines: 2,
-                      maxLines: 5,
-                      hintText: !context.isCurrentLanguageAr()
-                          ? 'Ask a question'
-                          : 'سؤالك هنا',
-                      lenght: 350,
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return '';
-                        }
-                        if (value.length > 350) {
-                          return !context.isCurrentLanguageAr()
-                              ? 'Question must be less than 350 characters'
-                              : 'السؤال يجب أن يكون أقل من 350 حرف';
-                        }
-                        if (containsBannedWords(value)) {
-                          return !context.isCurrentLanguageAr()
-                              ? 'Your question contains prohibited words'
-                              : 'السؤال يحتوي على كلمات ممنوعة';
-                        }
-                        return null;
-                      },
-                    ),
+                    children: [
+                      // Text(
+                      // const SizedBox(height: 20),
+                      FadeIn(
+                        key: Key(question.sender.image.toString()),
+                        child: AskQuestionDetailsCard(
+                          currentProfileUserId: MySharedPreferences.userId,
 
-                    // const SizedBox(height: 15),
-                    SwitchListTile(
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                      ),
-                      value: isAnonymous,
-                      onChanged: (value) {
-                        if (isRandomLoading) return;
-                        if (!widget.canAskedAnonymously) {
-                          AppConstance().showInfoToast(
-                            context,
-                            msg: !context.isCurrentLanguageAr()
-                                ? '"${widget.recipientName}" prevens asking anonymously'
-                                : '"${widget.recipientName}" لا يسمح بهذه الخاصية',
-                          );
-                          return;
-                        }
-                        setState(() {
-                          isAnonymous = value;
-
-                          /// تحديث sender في الكارد
-                          question.sender = Sender(
-                            token: MySharedPreferences.deviceToken,
-                            id: MySharedPreferences.userId,
-                            name: value
-                                ? !context.isCurrentLanguageAr()
-                                      ? 'Anonymous'
-                                      : 'مجهول'
-                                : MySharedPreferences.userName,
-                            userName: value
-                                ? 'x'
-                                : MySharedPreferences.userUserName,
-                            image: value
-                                ? 'https://takeawayapp.ams3.digitaloceanspaces.com/play_store_512.png'
-                                : MySharedPreferences.image,
-                          );
-                        });
-                      },
-                      title: Text(
-                        !context.isCurrentLanguageAr() ? 'Anonymous' : 'مجهول',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
+                          displayName: '',
+                          isVerified: widget.isVerified,
+                          // isInAskQuestionScreen: true,
+                          // // isInQuestionScreen: true,
+                          // isInProfileScreen: false,
+                          question: question,
+                          receiverImage: widget.recipientImage,
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 15),
-                  ],
+                      const SizedBox(height: 20),
+                      CustomTextField(
+                        // autoFocus: true,
+                        onChanged: (s) {
+                          setState(() {
+                            question.title = s;
+                          });
+                        },
+                        //  hintStyle: TextStyle(fontSize: 18),
+                        style: TextStyle(fontSize: 16),
+                        controller: questionController,
+                        textInputAction: TextInputAction.newline,
+                        minLines: 2,
+                        maxLines: 5,
+                        hintText: !context.isCurrentLanguageAr()
+                            ? 'Ask a question'
+                            : 'سؤالك هنا',
+                        lenght: 350,
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return '';
+                          }
+                          if (value.length > 350) {
+                            return !context.isCurrentLanguageAr()
+                                ? 'Question must be less than 350 characters'
+                                : 'السؤال يجب أن يكون أقل من 350 حرف';
+                          }
+                          if (containsBannedWords(value)) {
+                            return !context.isCurrentLanguageAr()
+                                ? 'Your question contains prohibited words'
+                                : 'السؤال يحتوي على كلمات ممنوعة';
+                          }
+                          return null;
+                        },
+                      ),
+
+                      // const SizedBox(height: 15),
+                      SwitchListTile(
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                        ),
+                        value: isAnonymous,
+                        onChanged: (value) {
+                          if (isRandomLoading) return;
+                          if (!widget.canAskedAnonymously) {
+                            AppConstance().showInfoToast(
+                              context,
+                              msg: !context.isCurrentLanguageAr()
+                                  ? '"${widget.recipientName}" prevens asking anonymously'
+                                  : '"${widget.recipientName}" لا يسمح بهذه الخاصية',
+                            );
+                            return;
+                          }
+                          setState(() {
+                            isAnonymous = value;
+
+                            /// تحديث sender في الكارد
+                            question.sender = Sender(
+                              token: MySharedPreferences.deviceToken,
+                              id: MySharedPreferences.userId,
+                              name: value
+                                  ? !context.isCurrentLanguageAr()
+                                        ? 'Anonymous'
+                                        : 'مجهول'
+                                  : MySharedPreferences.userName,
+                              userName: value
+                                  ? 'x'
+                                  : MySharedPreferences.userUserName,
+                              image: value
+                                  ? 'https://takeawayapp.ams3.digitaloceanspaces.com/play_store_512.png'
+                                  : MySharedPreferences.image,
+                            );
+                          });
+                        },
+                        title: Text(
+                          !context.isCurrentLanguageAr()
+                              ? 'Anonymous'
+                              : 'مجهول',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 15),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
-        ),
-      ),
-      resizeToAvoidBottomInset: false,
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Expanded(
-            child: BounceButton(
-              radius: 60,
-              height: 55,
-              gradient: LinearGradient(
-                colors: [AppColors.primary, Colors.purple],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              onPressed: () async {
-                if (isRandomLoading) return;
-                await sendQuestion();
-              },
-              title: !context.isCurrentLanguageAr() ? 'Ask' : 'إسأل',
-              padding: 20,
-            ),
+            ],
           ),
-
-          // const SizedBox(width: 5),
-          GestureDetector(
-            onTap: isRandomLoading ? null : fetchRandomQuestion,
-            child: Container(
-              height: 55,
-              width: 55,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
+        ),
+        resizeToAvoidBottomInset: false,
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+        floatingActionButton: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Expanded(
+              child: BounceButton(
+                radius: 60,
+                height: 55,
                 gradient: LinearGradient(
                   colors: [AppColors.primary, Colors.purple],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
+                onPressed: () async {
+                  if (isRandomLoading) return;
+                  await sendQuestion();
+                },
+                title: !context.isCurrentLanguageAr() ? 'Ask' : 'إسأل',
+                padding: 20,
               ),
-              child: isRandomLoading
-                  ? const Padding(
-                      padding: EdgeInsets.all(15.0),
-                      child: CupertinoActivityIndicator(color: Colors.white),
-                    )
-                  : const Icon(Icons.casino, color: Colors.white, size: 28),
             ),
-          ),
-          const SizedBox(width: 15),
-        ],
+
+            // const SizedBox(width: 5),
+            GestureDetector(
+              onTap: isRandomLoading ? null : fetchRandomQuestion,
+              child: Container(
+                height: 55,
+                width: 55,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(
+                    colors: [AppColors.primary, Colors.purple],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                ),
+                child: isRandomLoading
+                    ? const Padding(
+                        padding: EdgeInsets.all(15.0),
+                        child: CupertinoActivityIndicator(color: Colors.white),
+                      )
+                    : const Icon(Icons.casino, color: Colors.white, size: 28),
+              ),
+            ),
+            const SizedBox(width: 15),
+          ],
+        ),
       ),
     );
   }
@@ -477,5 +513,20 @@ class _AskQuestionScreenState extends State<AskQuestionScreen> {
         isRandomLoading = false;
       });
     }
+  }
+
+  Future<bool> showExitDialog() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => CustomDialog(
+        title: !context.isCurrentLanguageAr() ? 'Confirmation' : 'تنبيه',
+        content: !context.isCurrentLanguageAr()
+            ? 'Are you sure you want to exit?'
+            : 'هل تريد الخروج؟',
+
+        onConfirm: () {},
+      ),
+    );
+    return confirmed ?? false;
   }
 }

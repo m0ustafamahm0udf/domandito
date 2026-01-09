@@ -12,11 +12,13 @@ import 'package:domandito/shared/services/like_service.dart';
 import 'package:domandito/shared/style/app_colors.dart';
 import 'package:domandito/shared/widgets/custom_network_image.dart';
 import 'package:flutter/material.dart';
+
 import 'package:flutter/services.dart';
 import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
 import 'package:svg_flutter/svg_flutter.dart';
 import 'package:domandito/shared/services/question_service.dart';
 import 'package:domandito/shared/widgets/time_ago_widget.dart';
+import 'package:flutter_overlay_loader/flutter_overlay_loader.dart';
 
 class QuestionCard extends StatefulWidget {
   final QuestionModel question;
@@ -239,7 +241,7 @@ class _QuestionCardState extends State<QuestionCard>
                 vertical: AppConstance.vPaddingTiny,
               ),
               child: SizedBox(
-                height: widget.isInProfileScreen && isPinned ? 170 : null,
+                // height: widget.isInProfileScreen && isPinned ? 170 : null,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -339,9 +341,10 @@ class _QuestionCardState extends State<QuestionCard>
                                 ),
                               ],
                             ),
-                            if (MySharedPreferences.userId ==
-                                    question.receiver.id &&
-                                widget.isInProfileScreen) ...[
+                            if (widget.isInProfileScreen &&
+                                (isPinned ||
+                                    MySharedPreferences.userId ==
+                                        question.receiver.id)) ...[
                               const SizedBox(width: 10),
                               GestureDetector(
                                 child: SvgPicture.asset(
@@ -353,7 +356,10 @@ class _QuestionCardState extends State<QuestionCard>
                                   width: 20,
                                 ),
                                 onTap: () {
-                                  togglePin();
+                                  if (MySharedPreferences.userId ==
+                                      question.receiver.id) {
+                                    togglePin();
+                                  }
                                 },
                               ),
                             ],
@@ -457,36 +463,62 @@ class _QuestionCardState extends State<QuestionCard>
                                       );
                                     });
                                   },
-                                  child: isPinned && widget.isInProfileScreen
-                                      ? Text(
-                                          question.answerText.toString(),
-                                          textAlign:
-                                              isArabic(
-                                                question.answerText ?? '',
-                                              )
-                                              ? TextAlign.right
-                                              : TextAlign.left,
-                                          textDirection:
-                                              isArabic(
-                                                question.answerText ?? '',
-                                              )
-                                              ? TextDirection.rtl
-                                              : TextDirection.ltr,
-                                          overflow: TextOverflow.ellipsis,
-                                          maxLines: 2,
-                                          style: const TextStyle(fontSize: 16),
-                                        )
-                                      : linkifyText(
-                                          context: context,
-                                          text: question.answerText.toString(),
-                                          isInProfileScreen:
-                                              widget.isInProfileScreen,
-                                        ),
+                                  child:
+                                      // isPinned && widget.isInProfileScreen
+                                      //     ? Text(
+                                      //         question.answerText.toString(),
+                                      //         textAlign:
+                                      //             isArabic(
+                                      //               question.answerText ?? '',
+                                      //             )
+                                      //             ? TextAlign.right
+                                      //             : TextAlign.left,
+                                      //         textDirection:
+                                      //             isArabic(
+                                      //               question.answerText ?? '',
+                                      //             )
+                                      //             ? TextDirection.rtl
+                                      //             : TextDirection.ltr,
+                                      //         overflow: TextOverflow.ellipsis,
+                                      //         maxLines: 2,
+                                      //         style: const TextStyle(fontSize: 16),
+                                      //       )
+                                      //     :
+                                      linkifyText(
+                                        context: context,
+                                        text: question.answerText.toString(),
+                                        isInProfileScreen:
+                                            widget.isInProfileScreen,
+                                        onMentionTap: (username) async {
+                                          AppConstance().showLoading(context);
+                                          final user =
+                                              await getProfileByUserNameForDeepLink(
+                                                userUserName: username,
+                                              );
+                                          Loader.hide();
+                                          if (user != null) {
+                                            pushScreen(
+                                              context,
+                                              screen: ProfileScreen(
+                                                userId: user.id,
+                                              ),
+                                            );
+                                          } else {
+                                            AppConstance().showErrorToast(
+                                              context,
+                                              msg:
+                                                  !context.isCurrentLanguageAr()
+                                                  ? 'User not found'
+                                                  : 'المستخدم غير موجود',
+                                            );
+                                          }
+                                        },
+                                      ),
                                 ),
                               ),
                             ],
                           ),
-                          if (question.isEdited && !isPinned)
+                          if (question.isEdited)
                             Padding(
                               padding: const EdgeInsets.only(top: 4.0),
                               child: Text(
@@ -506,7 +538,7 @@ class _QuestionCardState extends State<QuestionCard>
                     ...mediaDisplay(context),
 
                     // Spacer for pinned questions to push bottom row down
-                    if (widget.isInProfileScreen && isPinned) const Spacer(),
+                    // if (widget.isInProfileScreen && isPinned) const Spacer(),
 
                     // --- Like Button row ---
                     if (question.answerText != null)
@@ -629,7 +661,7 @@ class _QuestionCardState extends State<QuestionCard>
                           ],
                         ],
                       ),
-                    if (isPinned) const SizedBox(height: 5),
+                    // if (isPinned) const SizedBox(height: 5),
                   ],
                 ),
               ),
@@ -643,40 +675,41 @@ class _QuestionCardState extends State<QuestionCard>
   List<Widget> mediaDisplay(BuildContext context) {
     return [
       // If pinned and in profile screen, show only icon
-      if (isPinned && widget.isInProfileScreen) ...[
-        if ((question.mediaType == 'image' ||
-                (question.mediaType == null && question.videoUrl == null)) &&
-            question.images.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.only(top: 8),
-            child: Row(
-              children: [
-                Icon(Icons.image, size: 16, color: AppColors.primary),
-                // const SizedBox(width: 4),
-                // Text(
-                //   !context.isCurrentLanguageAr() ? 'Image' : 'صورة',
-                //   style: TextStyle(fontSize: 12, color: AppColors.primary),
-                // ),
-              ],
-            ),
-          ),
-        if ((question.mediaType == 'video' ||
-                (question.mediaType != 'image' && question.videoUrl != null)) &&
-            question.videoUrl != null)
-          Padding(
-            padding: const EdgeInsets.only(top: 8),
-            child: Row(
-              children: [
-                Icon(Icons.videocam, size: 16, color: AppColors.primary),
-                // const SizedBox(width: 4),
-                // Text(
-                //   !context.isCurrentLanguageAr() ? 'Video' : 'فيديو',
-                //   style: TextStyle(fontSize: 12, color: AppColors.primary),
-                // ),
-              ],
-            ),
-          ),
-      ] else ...[
+      // if (isPinned && widget.isInProfileScreen) ...[
+      //   if ((question.mediaType == 'image' ||
+      //           (question.mediaType == null && question.videoUrl == null)) &&
+      //       question.images.isNotEmpty)
+      //     Padding(
+      //       padding: const EdgeInsets.only(top: 8),
+      //       child: Row(
+      //         children: [
+      //           Icon(Icons.image, size: 16, color: AppColors.primary),
+      //           // const SizedBox(width: 4),
+      //           // Text(
+      //           //   !context.isCurrentLanguageAr() ? 'Image' : 'صورة',
+      //           //   style: TextStyle(fontSize: 12, color: AppColors.primary),
+      //           // ),
+      //         ],
+      //       ),
+      //     ),
+      //   if ((question.mediaType == 'video' ||
+      //           (question.mediaType != 'image' && question.videoUrl != null)) &&
+      //       question.videoUrl != null)
+      //     Padding(
+      //       padding: const EdgeInsets.only(top: 8),
+      //       child: Row(
+      //         children: [
+      //           Icon(Icons.videocam, size: 16, color: AppColors.primary),
+      //           // const SizedBox(width: 4),
+      //           // Text(
+      //           //   !context.isCurrentLanguageAr() ? 'Video' : 'فيديو',
+      //           //   style: TextStyle(fontSize: 12, color: AppColors.primary),
+      //           // ),
+      //         ],
+      //       ),
+      //     ),
+      // ] else
+      ...[
         // Normal display (Video/Images)
         // Show images only if mediaType is 'image' or if there are images and no video
         if ((question.mediaType == 'image' ||

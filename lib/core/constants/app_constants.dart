@@ -49,6 +49,7 @@ class AppConstance {
   static const String liked = 'New like on your answer';
   static const String questioned = 'You have a new question 🌚';
   static const String followed = 'You have a new follower';
+  static const String mentioned = 'You were mentioned in an answer';
 
   String answeredQNotification({required BuildContext context}) {
     return !context.isCurrentLanguageAr() ? asnwered : 'تم الإجابة على سؤالك';
@@ -66,8 +67,12 @@ class AppConstance {
     return !context.isCurrentLanguageAr() ? followed : 'متابعة جديدة';
   }
 
+  String mentionedNotification({required BuildContext context}) {
+    return !context.isCurrentLanguageAr() ? mentioned : 'تم ذكرك في إجابة';
+  }
+
   static const double textFieldH = 18;
-  static const String appVersion = "1.0.4+26";
+  static const String appVersion = "1.0.5+30";
   static const String question = "question";
   static const String like = "like";
   static const String follow = "follow";
@@ -75,6 +80,7 @@ class AppConstance {
   static const String url = "url";
   static const String profileVisit = "profile_visit";
   static const String screenshot = "screenshot";
+  static const String mention = "mention";
 
   // static const String CART_ITEM_BOX = 'CART_ITEM_BOX';
 

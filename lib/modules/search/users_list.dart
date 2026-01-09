@@ -48,17 +48,9 @@ class _SearchUsersListState extends State<SearchUsersList> {
   Future<void> fetchUsers({bool isRefresh = false}) async {
     final queryText = widget.searchQuery.trim();
 
-    // فاضي
-    if (queryText.isEmpty) {
-      users.clear();
-      _offset = 0;
-      hasMore = false;
-      setState(() {});
-      return;
-    }
-
-    // @ بس
-    if (queryText.startsWith('@') && queryText.length == 1) {
+    // Require at least 3 characters for name search, or 2 for username search (@a)
+    final minLength = queryText.startsWith('@') ? 2 : 3;
+    if (queryText.length < minLength) {
       users.clear();
       _offset = 0;
       hasMore = false;

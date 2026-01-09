@@ -10,7 +10,6 @@ import 'package:domandito/modules/question/views/question_screen.dart';
 import 'package:domandito/shared/style/app_colors.dart';
 import 'package:domandito/shared/widgets/custom_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_overlay_loader/flutter_overlay_loader.dart';
 import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:svg_flutter/svg_flutter.dart';
@@ -50,7 +49,7 @@ class _NotificationCardState extends State<NotificationCard>
     if (widget.notificationsData.entityId != null) {
       // Fetch question details if needed to navigate
       try {
-        AppConstance().showLoading(context);
+        // AppConstance().showLoading(context);
         final response = await Supabase.instance.client
             .from('questions')
             .select('*, sender:sender_id(*), receiver:receiver_id(*)')
@@ -61,7 +60,7 @@ class _NotificationCardState extends State<NotificationCard>
           final question = QuestionModel.fromJson(response);
 
           if (widget.notificationsData.type == AppConstance.answer) {
-            Loader.hide();
+            // Loader.hide();
             // Go to Question Screen (which shows the answer)
             await pushScreen(
               context,
@@ -75,7 +74,7 @@ class _NotificationCardState extends State<NotificationCard>
             );
             shouldUpdateReadStatus = true;
           } else if (widget.notificationsData.type == AppConstance.question) {
-            Loader.hide();
+            // Loader.hide();
 
             // Go to Answer Screen
             final result = await pushScreen(
@@ -86,8 +85,10 @@ class _NotificationCardState extends State<NotificationCard>
             if (result == true) {
               widget.onRemove?.call();
             }
-          } else if (widget.notificationsData.type == AppConstance.like) {
-            Loader.hide();
+            shouldUpdateReadStatus = true;
+          } else if (widget.notificationsData.type == AppConstance.like ||
+              widget.notificationsData.type == AppConstance.mention) {
+            // Loader.hide();
 
             await pushScreen(
               context,
@@ -103,12 +104,12 @@ class _NotificationCardState extends State<NotificationCard>
           }
         }
       } catch (e) {
-        Loader.hide();
+        // Loader.hide();
 
         // Handle error or show toast
       }
     } else {
-      Loader.hide();
+      // Loader.hide();
 
       // For notifications without entityId like follow, just mark as read immediately if that's the desired behavior,
       // or if there is no navigation involved.
@@ -123,7 +124,7 @@ class _NotificationCardState extends State<NotificationCard>
 
     // Mark as read after return if not already read
     if (shouldUpdateReadStatus && !_isRead) {
-      Loader.hide();
+      // Loader.hide();
 
       if (mounted) {
         setState(() {

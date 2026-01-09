@@ -6,6 +6,7 @@ import 'package:domandito/core/constants/app_constants.dart';
 import 'package:domandito/core/services/launch_urls.dart';
 import 'package:domandito/core/utils/extentions.dart';
 import 'package:domandito/core/utils/shared_prefrences.dart';
+import 'package:domandito/shared/style/app_colors.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:domandito/modules/ask/models/q_model.dart';
@@ -47,6 +48,8 @@ String getTranslatedContent(String content, BuildContext context) {
       return AppConstance().questionedNotification(context: context);
     case AppConstance.followed:
       return AppConstance().followedNotification(context: context);
+    case AppConstance.mention:
+      return AppConstance().mentionedNotification(context: context);
     default:
       return content;
   }
@@ -583,13 +586,16 @@ String formatNumber(int number) {
   return '${result}M';
 }
 
-final _urlRegex = RegExp(r'(https?:\/\/[^\s]+)', caseSensitive: false);
+final _urlAndMentionRegex = RegExp(
+  r'((?:https?:\/\/[^\s]+)|(?:@[a-zA-Z0-9_.]+))',
+  caseSensitive: false,
+);
 bool containsLink(String text) {
-  return _urlRegex.hasMatch(text);
+  return _urlAndMentionRegex.hasMatch(text);
 }
 
 String? extractLink(String text) {
-  final match = _urlRegex.firstMatch(text);
+  final match = _urlAndMentionRegex.firstMatch(text);
   return match?.group(0);
 }
 
@@ -597,8 +603,9 @@ Widget linkifyText({
   required BuildContext context,
   required String text,
   required bool isInProfileScreen,
+  void Function(String)? onMentionTap,
 }) {
-  final matches = _urlRegex.allMatches(text);
+  final matches = _urlAndMentionRegex.allMatches(text);
 
   if (matches.isEmpty) {
     return Text(
@@ -607,8 +614,8 @@ Widget linkifyText({
       textDirection: isArabic(text)
           ? ui.TextDirection.rtl
           : ui.TextDirection.ltr,
-      overflow: !isInProfileScreen ? null : TextOverflow.ellipsis,
-      maxLines: !isInProfileScreen ? null : 2,
+      // overflow: !isInProfileScreen ? null : TextOverflow.ellipsis,
+      // maxLines: !isInProfileScreen ? null : 2,
       style: const TextStyle(fontSize: 16),
     );
   }
@@ -626,24 +633,52 @@ Widget linkifyText({
       );
     }
 
-    final url = match.group(0)!;
+    final matchText = match.group(0)!;
 
-    spans.add(
-      TextSpan(
-        text: url,
-        style: TextStyle(
-          fontSize: 14,
-          // color: Colors.indigo,
-          // fontWeight: FontWeight.bold,
-          // fontFamily: 'Ruwudu',
-          decoration: TextDecoration.underline,
+    if (matchText.startsWith('@')) {
+      // Handle Mention
+      spans.add(
+        TextSpan(
+          text: matchText,
+          style: TextStyle(
+            fontSize: 16,
+            color: AppColors.primary, // Or AppColors.primary
+            fontWeight: FontWeight.bold,
+            fontFamily: 'Rubik',
+          ),
+          recognizer: TapGestureRecognizer()
+            ..onTap = () {
+              if (onMentionTap != null) {
+                // Remove the @ and call handler
+                onMentionTap(matchText.substring(1));
+              }
+            },
         ),
-        recognizer: TapGestureRecognizer()
-          ..onTap = () {
-            LaunchUrlsService().launchBrowesr(uri: url, context: context);
-          },
-      ),
-    );
+      );
+    } else {
+      // Handle URL
+      spans.add(
+        TextSpan(
+          text: matchText,
+          style: TextStyle(
+            fontSize: 14,
+            fontFamily: 'Rubik',
+
+            // color: Colors.indigo,
+            // fontWeight: FontWeight.bold,
+            // fontFamily: 'Ruwudu',
+            decoration: TextDecoration.underline,
+          ),
+          recognizer: TapGestureRecognizer()
+            ..onTap = () {
+              LaunchUrlsService().launchBrowesr(
+                uri: matchText,
+                context: context,
+              );
+            },
+        ),
+      );
+    }
 
     lastIndex = match.end;
   }
@@ -652,7 +687,7 @@ Widget linkifyText({
     spans.add(
       TextSpan(
         text: text.substring(lastIndex),
-        style: const TextStyle(fontSize: 16),
+        style: const TextStyle(fontSize: 16, fontFamily: 'Rubik'),
       ),
     );
   }
@@ -660,10 +695,10 @@ Widget linkifyText({
   return RichText(
     textAlign: isArabic(text) ? TextAlign.right : TextAlign.left,
     textDirection: isArabic(text) ? ui.TextDirection.rtl : ui.TextDirection.ltr,
-    overflow: !isInProfileScreen ? TextOverflow.visible : TextOverflow.ellipsis,
-    maxLines: !isInProfileScreen ? null : 3,
+    // overflow: !isInProfileScreen ? TextOverflow.visible : TextOverflow.ellipsis,
+    // maxLines: !isInProfileScreen ? null : 3,
     text: TextSpan(
-      style: const TextStyle(color: Colors.black),
+      style: const TextStyle(color: Colors.black, fontFamily: 'Rubik'),
       children: spans,
     ),
   );

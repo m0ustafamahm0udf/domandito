@@ -5,6 +5,7 @@ import 'package:domandito/core/constants/app_icons.dart';
 import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:domandito/core/constants/app_constants.dart';
+import 'package:domandito/modules/signin/models/user_model.dart';
 import 'package:domandito/core/constants/app_platforms_serv.dart';
 import 'package:domandito/core/services/file_picker_service.dart';
 import 'package:domandito/core/services/get_device_serv.dart';
@@ -17,6 +18,7 @@ import 'package:domandito/modules/notifications/repositories/notifications_repos
 import 'package:domandito/shared/apis/upload_images_services.dart';
 import 'package:domandito/shared/style/app_colors.dart';
 import 'package:domandito/shared/widgets/answer_question_card_details.dart';
+import 'package:domandito/shared/widgets/custom_network_image.dart';
 import 'package:domandito/shared/widgets/custom_bounce_button.dart';
 import 'package:domandito/shared/widgets/custom_dialog.dart';
 import 'package:domandito/shared/widgets/custom_text_field.dart';
@@ -65,6 +67,22 @@ class _AnswerQuestionScreenState extends State<AnswerQuestionScreen> {
   double compressionProgress = 0.0;
   String? videoSizeText;
   String? videoDurationText;
+  bool _forceExit = false;
+
+  Future<bool> showExitDialog() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => CustomDialog(
+        title: !context.isCurrentLanguageAr() ? 'Confirmation' : 'تنبيه',
+        content: !context.isCurrentLanguageAr()
+            ? 'Are you sure you want to exit?'
+            : 'هل تريد الخروج؟',
+
+        onConfirm: () {},
+      ),
+    );
+    return confirmed ?? false;
+  }
 
   Future<void> _pickImage(ImageSource source) async {
     // If in edit mode, prevent changing media
@@ -381,8 +399,196 @@ class _AnswerQuestionScreenState extends State<AnswerQuestionScreen> {
     return url;
   }
 
+  Future<void> _sendMentionNotifications() async {
+    final text = answerController.text;
+    final regex = RegExp(r'@([a-zA-Z0-9_.]+)');
+    final matches = regex.allMatches(text);
+
+    final usernames = matches.map((m) => m.group(1)!).toSet().toList();
+
+    if (usernames.isEmpty) return;
+
+    // Fetch users info (id, token) for these usernames ONLY if I follow them
+    final response = await Supabase.instance.client
+        .from('follows')
+        .select('users:following_id!inner(id, token, username)')
+        .eq('follower_id', MySharedPreferences.userId)
+        .inFilter('users.username', usernames);
+
+    final data = List<Map<String, dynamic>>.from(response);
+
+    for (var item in data) {
+      final user = item['users'];
+      final userId = user['id'];
+      final token = user['token'];
+
+      // Don't notify self
+      if (userId == MySharedPreferences.userId) continue;
+
+      // Send persistent notification
+      await NotificationsRepository().sendNotification(
+        senderId: MySharedPreferences.userId,
+        receiverId: userId,
+        type: AppConstance.mention,
+        entityId: widget.question.id,
+        title: MySharedPreferences.userName,
+        body: AppConstance.mentioned,
+      );
+
+      // Send push notification
+      await SendMessageNotificationWithHTTPv1().send2(
+        type: AppConstance.mention,
+        urll: '',
+        toToken: token,
+        message: AppConstance.mentioned,
+        title: MySharedPreferences.userName,
+        id: widget.question.id,
+      );
+    }
+  }
+
+  OverlayEntry? _overlayEntry;
+  final LayerLink _layerLink = LayerLink();
+
+  void _onTextChanged(String text) {
+    setState(() {
+      question.answerText = text;
+    });
+
+    final selection = answerController.selection;
+    // Check if valid selection for autocomplete
+    if (selection.baseOffset < 0) return;
+
+    final textUpToCursor = text.substring(0, selection.baseOffset);
+
+    // Regex to find the last @word sequence
+    // We want to capture '@' and subsequent characters until cursor
+    final match = RegExp(r'@([a-zA-Z0-9_.]*)$').firstMatch(textUpToCursor);
+
+    if (match != null) {
+      final query = match.group(1)!;
+      // User requested "first two letters", so >= 2
+      if (query.length >= 2) {
+        _fetchAndShowMentions(query);
+      } else {
+        _removeOverlay();
+      }
+    } else {
+      _removeOverlay();
+    }
+  }
+
+  Future<void> _fetchAndShowMentions(String query) async {
+    // Avoid error if widget unmounted
+    if (!mounted) return;
+
+    // Search only in users that I follow
+    final response = await Supabase.instance.client
+        .from('follows')
+        .select('users:following_id!inner(id, name, username, image)')
+        .eq('follower_id', MySharedPreferences.userId)
+        .ilike('users.username', '$query%')
+        .limit(5);
+
+    if (!mounted) {
+      _removeOverlay();
+      return;
+    }
+
+    final List<dynamic> data = response as List<dynamic>;
+    // Map the nested 'users' object to UserModel
+    final users = data.map((e) => UserModel.fromMap(e['users'])).toList();
+
+    if (users.isNotEmpty) {
+      _showOverlay(users);
+    } else {
+      _removeOverlay();
+    }
+  }
+
+  void _showOverlay(List<UserModel> users) {
+    _removeOverlay();
+    // Assuming screen width - padding roughly.
+    // Ideally we measure the renderBox of the TextField but using global width is safer for now.
+    final width =
+        MediaQuery.of(context).size.width - (AppConstance.hPadding * 2);
+
+    _overlayEntry = OverlayEntry(
+      builder: (context) => Positioned(
+        width: width,
+        child: CompositedTransformFollower(
+          link: _layerLink,
+          showWhenUnlinked: false,
+          offset: const Offset(0.0, 60.0), // Show below field
+          child: Material(
+            elevation: 8,
+            borderRadius: BorderRadius.circular(8),
+            color: Colors.white,
+            child: ListView.builder(
+              padding: EdgeInsets.zero,
+              shrinkWrap: true,
+              itemCount: users.length,
+              itemBuilder: (context, index) {
+                final user = users[index];
+                return ListTile(
+                  leading: CustomNetworkImage(
+                    url: user.image.toString(),
+                    width: 30,
+                    height: 30,
+                    radius: 15,
+                  ),
+                  title: Text(
+                    user.name,
+                    style: const TextStyle(color: Colors.black),
+                  ),
+                  subtitle: Text(
+                    '@${user.userName}',
+                    style: const TextStyle(color: Colors.grey),
+                  ),
+                  onTap: () => _insertMention(user),
+                );
+              },
+            ),
+          ),
+        ),
+      ),
+    );
+
+    Overlay.of(context).insert(_overlayEntry!);
+  }
+
+  void _removeOverlay() {
+    _overlayEntry?.remove();
+    _overlayEntry = null;
+  }
+
+  void _insertMention(UserModel user) {
+    final text = answerController.text;
+    final selection = answerController.selection;
+    final textUpToCursor = text.substring(0, selection.baseOffset);
+
+    // Find last @
+    final lastAtIndex = textUpToCursor.lastIndexOf('@');
+    if (lastAtIndex != -1) {
+      final before = text.substring(0, lastAtIndex);
+      final after = text.substring(selection.baseOffset);
+
+      final newText = '$before@${user.userName} $after';
+      answerController.text = newText;
+      answerController.selection = TextSelection.collapsed(
+        offset: lastAtIndex + user.userName.length + 2, // +2 for @ and space
+      );
+      // Trigger update
+      setState(() {
+        question.answerText = newText;
+      });
+    }
+    _removeOverlay();
+  }
+
   @override
   void dispose() {
+    _removeOverlay();
     answerController.dispose();
     VideoCompress.cancelCompression(); // Fix: Cancel before deleting cache
     localVideoPath = null;
@@ -457,8 +663,50 @@ class _AnswerQuestionScreenState extends State<AnswerQuestionScreen> {
       /// 2️⃣ إرسال الجواب
       final DateTime now = await getNetworkTime() ?? DateTime.now();
 
+      // -- Process Mentions: Invalidate mentions of non-followed users --
+      String processedText = answerController.text.trim();
+      final regex = RegExp(r'@([a-zA-Z0-9_.]+)');
+      final matches = regex.allMatches(processedText).toList();
+
+      if (matches.isNotEmpty) {
+        final usernames = matches.map((m) => m.group(1)!).toSet().toList();
+        if (usernames.isNotEmpty) {
+          final response = await Supabase.instance.client
+              .from('follows')
+              .select('users:following_id!inner(username)')
+              .eq('follower_id', MySharedPreferences.userId)
+              .inFilter('users.username', usernames);
+
+          final data = List<Map<String, dynamic>>.from(response);
+          final validUsernames = data
+              .map((e) => e['users']['username'] as String)
+              .toSet();
+
+          // Replace invalid mentions with broken format (inserting ZWS or just keeping text but breaking regex)
+          // We iterate backwards to safely modify string
+          for (int i = matches.length - 1; i >= 0; i--) {
+            final m = matches[i];
+            final username = m.group(1)!;
+            if (!validUsernames.contains(username)) {
+              // User IS NOT followed. Break the mention.
+              // We insert a Zero-Width Space (\u200B) after '@'
+              final start = m.start;
+              final end = m.end;
+              // Original text: @username
+              // New text: @\u200Busername
+              processedText = processedText.replaceRange(
+                start,
+                end,
+                '@\u200B$username',
+              );
+            }
+          }
+        }
+      }
+      // -- End Process Mentions --
+
       final Map<String, dynamic> updateData = {
-        'answer_text': answerController.text.trim(),
+        'answer_text': processedText,
         'is_edited': widget.answerText != null, // Set true if editing
       };
 
@@ -522,6 +770,7 @@ class _AnswerQuestionScreenState extends State<AnswerQuestionScreen> {
           title: MySharedPreferences.userName,
           id: widget.question.id,
         ),
+        _sendMentionNotifications(),
       ]);
 
       // Update local question model to return it using copyWith (immutable update)
@@ -561,35 +810,9 @@ class _AnswerQuestionScreenState extends State<AnswerQuestionScreen> {
 
   late QuestionModel question;
 
-  Future<void> _warmUpVideoCompress() async {
-    if (PlatformService.platform == AppPlatform.androidApp) {
-      return;
-    }
-    try {
-      // Copy asset to temp file
-      final byteData = await rootBundle.load('assets/images/start.MOV');
-      final tempDir = await getTemporaryDirectory();
-      final tempFile = File('${tempDir.path}/start.MOV');
-      await tempFile.writeAsBytes(byteData.buffer.asUint8List());
-
-      // Warm up the encoder
-      await VideoCompress.compressVideo(
-        tempFile.path,
-        quality: VideoQuality.LowQuality,
-      );
-
-      // Delete temp file
-      await tempFile.delete();
-    } catch (e) {
-      debugPrint('Warm up failed: $e');
-    }
-  }
-
   @override
   void initState() {
     super.initState();
-
-    _warmUpVideoCompress();
 
     // Pre-fill answer text if in edit mode
     if (widget.answerText != null) {
@@ -606,60 +829,99 @@ class _AnswerQuestionScreenState extends State<AnswerQuestionScreen> {
   Widget build(BuildContext context) {
     final platform = PlatformService.platform;
 
-    return Scaffold(
-      appBar: AppBar(
-        // title:  Text(widget.recipientName),
-        leading: IconButton.filled(
-          onPressed: () => context.back(),
-          icon: Icon(Icons.arrow_back),
+    return PopScope(
+      canPop:
+          (answerController.text.isEmpty &&
+              localImagePaths.isEmpty &&
+              localVideoPath == null) ||
+          _forceExit,
+      onPopInvoked: (didPop) async {
+        if (didPop) return;
+        final confirmed = await showExitDialog();
+        if (confirmed) {
+          setState(() {
+            _forceExit = true;
+          });
+          if (context.mounted) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              Navigator.of(context).pop();
+            });
+          }
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          // title:  Text(widget.recipientName),
+          leading: IconButton.filled(
+            onPressed: () async {
+              if (answerController.text.isEmpty &&
+                  localImagePaths.isEmpty &&
+                  localVideoPath == null) {
+                context.back();
+                return;
+              }
+              final confirmed = await showExitDialog();
+              if (confirmed) {
+                setState(() {
+                  _forceExit = true;
+                });
+                if (context.mounted) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    Navigator.of(context).pop();
+                  });
+                }
+              }
+            },
+            icon: Icon(Icons.arrow_back),
+          ),
         ),
-      ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            // CustomAppbar(isBack: true, isColored: true),
-            Expanded(
-              child: Form(
-                key: _formKey,
-                child: ListView(
-                  shrinkWrap: true,
-                  padding: EdgeInsets.only(
-                    right: AppConstance.vPadding,
-                    left: AppConstance.vPadding,
-                    top: AppConstance.hPadding,
-                    bottom: AppConstance.hPaddingBig * 15,
+        body: SafeArea(
+          child: Column(
+            children: [
+              // CustomAppbar(isBack: true, isColored: true),
+              Expanded(
+                child: Form(
+                  key: _formKey,
+                  child: ListView(
+                    shrinkWrap: true,
+                    padding: EdgeInsets.only(
+                      right: AppConstance.vPadding,
+                      left: AppConstance.vPadding,
+                      top: AppConstance.hPadding,
+                      bottom: AppConstance.hPaddingBig * 15,
+                    ),
+                    children: _mediaTypes(context, platform),
                   ),
-                  children: _mediaTypes(context, platform),
                 ),
               ),
+            ],
+          ),
+        ),
+        resizeToAvoidBottomInset: false,
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+        floatingActionButton: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const SizedBox(height: 15),
+
+            BounceButton(
+              radius: 60,
+              height: 55,
+              gradient: LinearGradient(
+                colors: [AppColors.primary, Colors.purple],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              onPressed: () async {
+                await sendQuestion();
+              },
+              title: !context.isCurrentLanguageAr() ? 'Answer' : 'جاوب',
+              padding: 20,
             ),
           ],
         ),
-      ),
-      resizeToAvoidBottomInset: false,
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const SizedBox(height: 15),
-
-          BounceButton(
-            radius: 60,
-            height: 55,
-            gradient: LinearGradient(
-              colors: [AppColors.primary, Colors.purple],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            onPressed: () async {
-              await sendQuestion();
-            },
-            title: !context.isCurrentLanguageAr() ? 'Answer' : 'جاوب',
-            padding: 20,
-          ),
-        ],
       ),
     );
   }
@@ -675,34 +937,33 @@ class _AnswerQuestionScreenState extends State<AnswerQuestionScreen> {
         question: question,
       ),
       const SizedBox(height: 20),
-      CustomTextField(
-        onChanged: (s) {
-          setState(() {
-            question.answerText = s;
-          });
-        },
-        //  hintStyle: TextStyle(fontSize: 18),
-        style: TextStyle(fontSize: 16),
-        // autoFocus: true,
-        controller: answerController,
-        textInputAction: TextInputAction.newline,
-        minLines: 2,
-        maxLines: 5,
-        hintText: !context.isCurrentLanguageAr()
-            ? 'Write your answer here'
-            : 'إجابتك هنا',
-        lenght: 350,
-        validator: (value) {
-          if (value == null || value.trim().isEmpty) {
-            return '';
-          }
-          if (value.length > 350) {
-            return !context.isCurrentLanguageAr()
-                ? 'Answer must be less than 350 characters'
-                : 'الإجابة يجب أن تكون أقل من 350 حرف';
-          }
-          return null;
-        },
+      CompositedTransformTarget(
+        link: _layerLink,
+        child: CustomTextField(
+          onChanged: _onTextChanged,
+          //  hintStyle: TextStyle(fontSize: 18),
+          style: TextStyle(fontSize: 16),
+          // autoFocus: true,
+          controller: answerController,
+          textInputAction: TextInputAction.newline,
+          minLines: 2,
+          maxLines: 5,
+          hintText: !context.isCurrentLanguageAr()
+              ? 'Write your answer here'
+              : 'إجابتك هنا',
+          lenght: 350,
+          validator: (value) {
+            if (value == null || value.trim().isEmpty) {
+              return '';
+            }
+            if (value.length > 350) {
+              return !context.isCurrentLanguageAr()
+                  ? 'Answer must be less than 350 characters'
+                  : 'الإجابة يجب أن تكون أقل من 350 حرف';
+            }
+            return null;
+          },
+        ),
       ),
       const SizedBox(height: 30),
       Padding(

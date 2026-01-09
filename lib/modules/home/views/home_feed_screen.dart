@@ -127,84 +127,92 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
     return Scaffold(
       appBar: _buildAppBar(context),
       floatingActionButton: _scrollHelper.buildButton(),
-      body: RefreshIndicator.adaptive(
-        color: AppColors.primary,
-        onRefresh: _refresh,
-        child: CustomScrollView(
-          controller: _scrollHelper.scrollController,
-          physics: const AlwaysScrollableScrollPhysics(),
-          slivers: [
-            // 2. Empty State
-            if (!_isLoading && _questions.isEmpty)
-              SliverToBoxAdapter(child: _buildEmptyState()),
+      body: _isLoading
+          ? const Center(
+              child: CupertinoActivityIndicator(color: AppColors.primary),
+            )
+          : RefreshIndicator.adaptive(
+              color: AppColors.primary,
+              onRefresh: _refresh,
+              child: CustomScrollView(
+                controller: _scrollHelper.scrollController,
+                physics: const AlwaysScrollableScrollPhysics(),
+                slivers: [
+                  // 2. Empty State
+                  if (!_isLoading && _questions.isEmpty)
+                    SliverToBoxAdapter(child: _buildEmptyState()),
 
-            // 3. Loading Indicator (Initial)
-            if (_isLoading)
-              SliverToBoxAdapter(
-                child: SizedBox(
-                  height: context.h * 0.7,
-                  child: const Center(
-                    child: CupertinoActivityIndicator(color: AppColors.primary),
-                  ),
-                ),
-              ),
-
-            SliverToBoxAdapter(child: SizedBox(height: 10)),
-            // 4. Questions List (The Infinite List)
-            SliverList(
-              delegate: SliverChildBuilderDelegate((context, index) {
-                return Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 0,
-                  ),
-                  child: Column(
-                    children: [
-                      QuestionCard(
-                        question: _questions[index],
-                        receiverImage: _questions[index].receiver.image,
-                        receiverToken: _questions[index].receiver.token,
-                        currentProfileUserId: _questions[index].receiver.id,
-                        isInProfileScreen: false,
-                      ),
-                      // Separator logic inside builder
-                      const SizedBox(height: 0),
-                    ],
-                  ),
-                );
-              }, childCount: _questions.length),
-            ),
-
-            // 5. Load More Button
-            if (_hasMore && !_isLoading && _questions.isNotEmpty)
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 5),
-                  child: Center(
-                    child: _isMoreLoading
-                        ? const CupertinoActivityIndicator(
+                  // 3. Loading Indicator (Initial)
+                  if (_isLoading)
+                    SliverToBoxAdapter(
+                      child: SizedBox(
+                        height: context.h * 0.7,
+                        child: const Center(
+                          child: CupertinoActivityIndicator(
                             color: AppColors.primary,
-                          )
-                        : ElevatedButton(
-                            onPressed: _fetchQuestions,
-                            child: Text(
-                              !context.isCurrentLanguageAr()
-                                  ? "Load more"
-                                  : "المزيد",
-                            ),
                           ),
+                        ),
+                      ),
+                    ),
+
+                  SliverToBoxAdapter(child: SizedBox(height: 10)),
+                  // 4. Questions List (The Infinite List)
+                  SliverList(
+                    delegate: SliverChildBuilderDelegate((context, index) {
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 0,
+                        ),
+                        child: Column(
+                          children: [
+                            QuestionCard(
+                              question: _questions[index],
+                              receiverImage: _questions[index].receiver.image,
+                              receiverToken: _questions[index].receiver.token,
+                              currentProfileUserId:
+                                  _questions[index].receiver.id,
+                              isInProfileScreen: false,
+                            ),
+                            // Separator logic inside builder
+                            const SizedBox(height: 0),
+                          ],
+                        ),
+                      );
+                    }, childCount: _questions.length),
                   ),
-                ),
+
+                  // 5. Load More Button
+                  if (_hasMore && !_isLoading && _questions.isNotEmpty)
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 5),
+                        child: Center(
+                          child: _isMoreLoading
+                              ? const CupertinoActivityIndicator(
+                                  color: AppColors.primary,
+                                )
+                              : ElevatedButton(
+                                  onPressed: _fetchQuestions,
+                                  child: Text(
+                                    !context.isCurrentLanguageAr()
+                                        ? "Load more"
+                                        : "المزيد",
+                                  ),
+                                ),
+                        ),
+                      ),
+                    ),
+
+                  // 6. Download App Section (Web)
+                  if (kIsWeb)
+                    SliverToBoxAdapter(child: _buildDownloadAppSection()),
+
+                  // Bottom Padding
+                  const SliverToBoxAdapter(child: SizedBox(height: 20)),
+                ],
               ),
-
-            // 6. Download App Section (Web)
-            if (kIsWeb) SliverToBoxAdapter(child: _buildDownloadAppSection()),
-
-            // Bottom Padding
-            const SliverToBoxAdapter(child: SizedBox(height: 20)),
-          ],
-        ),
-      ),
+            ),
     );
   }
 

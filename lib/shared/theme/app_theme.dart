@@ -89,7 +89,7 @@ class AppTheme {
         iconTheme: IconThemeData(color: AppColors.white),
         shadowColor: AppColors.primary,
         // color: AppColors.primary,
-        toolbarHeight: 100,
+        toolbarHeight: 80,
         titleTextStyle: TextStyle(
           fontSize: 24,
           color: AppColors.white,

@@ -76,7 +76,9 @@ class CloudMessagingService {
                       // debugPrint("Error loading restaurant: $e");
                     }
                   });
-                case AppConstance.answer || AppConstance.like:
+                case AppConstance.answer ||
+                    AppConstance.like ||
+                    AppConstance.mention:
                   Future.delayed(Duration(milliseconds: 100), () async {
                     try {
                       final res = await getQuestionData(
@@ -208,7 +210,7 @@ class CloudMessagingService {
               // debugPrint("Error loading restaurant: $e");
             }
           });
-        case AppConstance.answer || AppConstance.like:
+        case AppConstance.answer || AppConstance.like || AppConstance.mention:
           Future.delayed(Duration(milliseconds: 100), () async {
             try {
               final res = await getQuestionData(questionId: data['id']);
