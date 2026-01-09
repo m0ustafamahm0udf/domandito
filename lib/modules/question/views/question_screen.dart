@@ -8,6 +8,7 @@ import 'package:domandito/shared/models/report_model.dart';
 import 'package:domandito/shared/widgets/logo_widg.dart';
 import 'package:domandito/shared/widgets/question_details_card.dart';
 import 'package:domandito/shared/widgets/report_bottom_sheet.dart';
+import 'package:domandito/shared/widgets/user_follow_card.dart';
 import 'package:flutter/material.dart';
 
 class QuestionScreen extends StatefulWidget {
@@ -140,11 +141,24 @@ class _QuestionScreenState extends State<QuestionScreen> {
                             question: widget.question,
                             receiverImage: widget.receiverImage,
                           ),
+                          Padding(
+                            padding: const EdgeInsets.only(
+                              top: 4,
+                              bottom: 0,
+                              right: 4,
+                              left: 4,
+                            ),
+                            child: UserFollowCard(
+                              user: widget.question.receiver,
+                            ),
+                          ),
                           if (widget.question.likesCount > 0)
                             LikesList(
                               questionId: widget.question.id,
                               question: widget.question,
                             ),
+
+                          // Follow Card for the Answerer
                         ],
                       ),
                     ),
