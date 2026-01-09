@@ -1,22 +1,20 @@
 import 'package:animate_do/animate_do.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:domandito/modules/ask/services/ask_service.dart';
+import 'package:domandito/modules/ask/views/widgets/anonymous_switch_section.dart';
+import 'package:domandito/modules/ask/views/widgets/ask_floating_action_buttons.dart';
+import 'package:domandito/modules/ask/views/widgets/ask_input_section.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:domandito/core/constants/app_constants.dart';
 import 'package:domandito/core/constants/app_icons.dart';
 import 'package:svg_flutter/svg_flutter.dart';
-import 'package:uuid/uuid.dart';
-import 'package:domandito/core/services/notifications/send_message_notification.dart';
 import 'package:domandito/core/utils/extentions.dart';
 
 import 'package:domandito/core/utils/shared_prefrences.dart';
 import 'package:domandito/core/utils/utils.dart';
 import 'package:domandito/modules/ask/models/q_model.dart';
-
 import 'package:domandito/shared/style/app_colors.dart';
 import 'package:domandito/shared/widgets/ask_question_details_card.dart';
-import 'package:domandito/shared/widgets/custom_bounce_button.dart';
 import 'package:domandito/shared/widgets/custom_dialog.dart';
-import 'package:domandito/shared/widgets/custom_text_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_overlay_loader/flutter_overlay_loader.dart';
 
@@ -88,98 +86,29 @@ class _AskQuestionScreenState extends State<AskQuestionScreen> {
       isSending = true;
     });
 
-    try {
-      final String questionId = const Uuid().v4();
-      DateTime now = await getNetworkTime() ?? DateTime.now();
-      // log(now.toString() + 'now');
-      final question = QuestionModel(
-        id: questionId,
-        createdAt: now.toUtc(),
-        // answeredAt: Timestamp.fromDate(
-        //   Timestamp.now().toDate().add(const Duration(minutes: 1)),
-        // ),
-        title: questionController.text.trim(),
-        sender: Sender(
-          token: MySharedPreferences.deviceToken,
-          userName: MySharedPreferences.userUserName,
-          id: MySharedPreferences.userId,
-          name: MySharedPreferences.userName,
-          image: MySharedPreferences.image,
-        ),
-        // answerText: 'هنا الاجابه الاجابه الاجابه الاجابه الاجابه الاجابه تيست',
-        isDeleted: false,
-        images: [], // لو هتضيف صور ارسلها هنا
-        isAnonymous: isAnonymous,
-        likesCount: 0,
-        commentCount: 0,
-        receiver: Receiver(
-          token: widget.recipientToken,
-          name: widget.recipientName,
-          userName: widget.recipientUserName,
-          id: widget.recipientId,
-          image: widget.recipientImage,
-        ),
-      );
-
-      // Insert into Supabase
-      // toJson returns sender_id and receiver_id which matches the table
-      // We explicitly pass 'id' here if we want to use the generated UUID for notifications, otherwise we'd let DB gen it and return it.
-      // Since we need the ID for notification below, we'll send it.
-      var data = question.toJson();
-      data['id'] = questionId; // Explicitly set ID
-
-      await Supabase.instance.client.from('questions').insert(data);
-      AppConstance().showSuccesToast(
-        context,
-        msg: !context.isCurrentLanguageAr()
-            ? 'Question sent successfully'
-            : 'تم إرسال السؤال بنجاح',
-      );
-
-      // log('Attempting to send notifications...');
-      try {
-        // Send persistent notification and push notification in parallel
-        // Send push notification only
-        await SendMessageNotificationWithHTTPv1().send2(
-          type: AppConstance.question,
-          urll: '',
-          toToken: widget.recipientToken,
-          message: AppConstance.questioned,
-          title: isAnonymous
-              ? (!context.isCurrentLanguageAr() ? 'Anonymous' : 'مجهول')
-              : MySharedPreferences.userName,
-          id: questionId,
-        );
-        // .then((_) => log('Push notification sent successfully'));
-        // log('All notifications sent.');
-      } catch (e, _) {
-        // log(
-        //   'Error sending notifications: $e\n$stack',
-        //   error: e,
-        //   stackTrace: stack,
-        // );
-      }
-      // log(questionId + 'questionId');
-
-      Loader.hide();
-
-      context.backWithValue(true);
-      // questionController.clear();
-    } catch (e) {
-      Loader.hide();
-      AppConstance().showErrorToast(
-        context,
-        msg: !context.isCurrentLanguageAr()
-            ? 'Something went wrong'
-            : 'حدث خطأ أثناء الإرسال',
-      );
-    } finally {
-      Loader.hide();
-
-      setState(() {
-        isSending = false;
-      });
-    }
+    await AskService.sendQuestion(
+      context: context,
+      questionText: questionController.text,
+      isAnonymous: isAnonymous,
+      recipientToken: widget.recipientToken,
+      recipientName: widget.recipientName,
+      recipientUserName: widget.recipientUserName,
+      recipientId: widget.recipientId,
+      recipientImage: widget.recipientImage,
+      onSuccess: () {
+        Loader.hide();
+        context.backWithValue(true);
+        setState(() {
+          isSending = false;
+        });
+      },
+      onError: () {
+        Loader.hide();
+        setState(() {
+          isSending = false;
+        });
+      },
+    );
   }
 
   late QuestionModel question;
@@ -275,22 +204,6 @@ class _AskQuestionScreenState extends State<AskQuestionScreen> {
         body: SafeArea(
           child: Column(
             children: [
-              // CustomAppbar(
-              //   isBack: true,
-              //   preTitle: 'سؤال لـ',
-              //   // title: 'سؤال',
-              //   isColored: true,
-              //   title: widget.recipientName,
-              //   // actions: Transform.translate(
-              //   //   offset: const Offset(5, -5),
-              //   //   child: CustomNetworkImage(
-              //   //     url: widget.recipientImage,
-              //   //     radius: 999,
-              //   //     height: 35,
-              //   //     width: 35,
-              //   //   ),
-              //   // ),
-              // ),
               Expanded(
                 child: Form(
                   key: _formKey,
@@ -302,75 +215,34 @@ class _AskQuestionScreenState extends State<AskQuestionScreen> {
                       bottom: AppConstance.hPaddingBig * 15,
                     ),
                     children: [
-                      // Text(
-                      // const SizedBox(height: 20),
                       FadeIn(
                         key: Key(question.sender.image.toString()),
                         child: AskQuestionDetailsCard(
                           currentProfileUserId: MySharedPreferences.userId,
-
                           displayName: '',
                           isVerified: widget.isVerified,
-                          // isInAskQuestionScreen: true,
-                          // // isInQuestionScreen: true,
-                          // isInProfileScreen: false,
                           question: question,
                           receiverImage: widget.recipientImage,
                         ),
                       ),
                       const SizedBox(height: 20),
-                      CustomTextField(
-                        // autoFocus: true,
+
+                      AskInputSection(
+                        controller: questionController,
                         onChanged: (s) {
                           setState(() {
                             question.title = s;
                           });
                         },
-                        //  hintStyle: TextStyle(fontSize: 18),
-                        style: TextStyle(fontSize: 16),
-                        controller: questionController,
-                        textInputAction: TextInputAction.newline,
-                        minLines: 2,
-                        maxLines: 5,
-                        hintText: !context.isCurrentLanguageAr()
-                            ? ' Question here'
-                            : 'سؤالك هنا',
-                        lenght: 350,
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return '';
-                          }
-                          if (value.length > 350) {
-                            return !context.isCurrentLanguageAr()
-                                ? 'Question must be less than 350 characters'
-                                : 'السؤال يجب أن يكون أقل من 350 حرف';
-                          }
-                          if (containsBannedWords(value)) {
-                            return !context.isCurrentLanguageAr()
-                                ? 'Your question contains prohibited words'
-                                : 'السؤال يحتوي على كلمات ممنوعة';
-                          }
-                          return null;
-                        },
                       ),
 
                       // const SizedBox(height: 15),
-                      SwitchListTile(
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                        ),
-                        value: isAnonymous,
+                      AnonymousSwitchSection(
+                        isAnonymous: isAnonymous,
+                        canAskedAnonymously: widget.canAskedAnonymously,
+                        recipientName: widget.recipientName,
+                        isRandomLoading: isRandomLoading,
                         onChanged: (value) {
-                          if (isRandomLoading) return;
-                          if (!widget.canAskedAnonymously) {
-                            AppConstance().showInfoToast(
-                              context,
-                              msg: !context.isCurrentLanguageAr()
-                                  ? '"${widget.recipientName}" prevens asking anonymously'
-                                  : '"${widget.recipientName}" لا يسمح بهذه الخاصية',
-                            );
-                            return;
-                          }
                           setState(() {
                             isAnonymous = value;
 
@@ -392,16 +264,8 @@ class _AskQuestionScreenState extends State<AskQuestionScreen> {
                             );
                           });
                         },
-                        title: Text(
-                          !context.isCurrentLanguageAr()
-                              ? 'Anonymous'
-                              : 'مجهول',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                          ),
-                        ),
                       ),
+
                       const SizedBox(height: 15),
                     ],
                   ),
@@ -412,52 +276,12 @@ class _AskQuestionScreenState extends State<AskQuestionScreen> {
         ),
         resizeToAvoidBottomInset: false,
         floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-        floatingActionButton: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Expanded(
-              child: BounceButton(
-                radius: 60,
-                height: 55,
-                gradient: LinearGradient(
-                  colors: [AppColors.primary, Colors.purple],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                onPressed: () async {
-                  if (isRandomLoading) return;
-                  await sendQuestion();
-                },
-                title: !context.isCurrentLanguageAr() ? 'Domandito!' : 'إسأل',
-                padding: 20,
-              ),
-            ),
-
-            // const SizedBox(width: 5),
-            GestureDetector(
-              onTap: isRandomLoading ? null : fetchRandomQuestion,
-              child: Container(
-                height: 55,
-                width: 55,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: LinearGradient(
-                    colors: [AppColors.primary, Colors.purple],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                ),
-                child: isRandomLoading
-                    ? const Padding(
-                        padding: EdgeInsets.all(15.0),
-                        child: CupertinoActivityIndicator(color: Colors.white),
-                      )
-                    : const Icon(Icons.casino, color: Colors.white, size: 28),
-              ),
-            ),
-            const SizedBox(width: 15),
-          ],
+        floatingActionButton: AskFloatingActionButtons(
+          isRandomLoading: isRandomLoading,
+          onAskPressed: () async {
+            await sendQuestion();
+          },
+          onRandomPressed: fetchRandomQuestion,
         ),
       ),
     );

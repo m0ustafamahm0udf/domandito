@@ -810,29 +810,30 @@ class _ProfileScreenState extends State<ProfileScreen>
                         ],
                       ),
                     ),
-                  Padding(
-                    padding: EdgeInsets.only(top: 0, right: 16, left: 16),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.push_pin,
-                          color: AppColors.primary,
-                          size: 20,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          context.isCurrentLanguageAr()
-                              ? 'الأسئلة المثبتة'
-                              : 'Pinned Question',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
+                  if (pinnedQuestions.isNotEmpty)
+                    Padding(
+                      padding: EdgeInsets.only(top: 0, right: 16, left: 16),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.push_pin,
                             color: AppColors.primary,
+                            size: 20,
                           ),
-                        ),
-                      ],
+                          const SizedBox(width: 8),
+                          Text(
+                            context.isCurrentLanguageAr()
+                                ? 'الأسئلة المثبتة'
+                                : 'Pinned Question',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
                   // PinnedQuestionsSection(
                   //   pinnedQuestions: pinnedQuestions,
                   //   currentProfileUserId: widget.userId,
