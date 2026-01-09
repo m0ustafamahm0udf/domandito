@@ -253,8 +253,8 @@ class _ProfileScreenState extends State<ProfileScreen>
         return bTime.compareTo(aTime);
       });
 
-      // pinnedQuestions = questions.where((q) => q.isPinned).toList();
-      // unpinnedQuestions = questions.where((q) => !q.isPinned).toList();
+      pinnedQuestions = questions.where((q) => q.isPinned).toList();
+      unpinnedQuestions = questions.where((q) => !q.isPinned).toList();
 
       // No need for separate LikeService call (RPC handles is_liked)
 
@@ -878,12 +878,9 @@ class _ProfileScreenState extends State<ProfileScreen>
                               questions.removeWhere(
                                 (element) => element.id == id,
                               );
-                              // pinnedQuestions.removeWhere(
-                              //   (element) => element.id == id,
-                              // );
-                              // unpinnedQuestions.removeWhere(
-                              //   (element) => element.id == id,
-                              // );
+                              pinnedQuestions = questions
+                                  .where((q) => q.isPinned)
+                                  .toList();
                             });
                           }
                         },
@@ -925,6 +922,10 @@ class _ProfileScreenState extends State<ProfileScreen>
                             final bTime = b.answeredAt ?? b.createdAt;
                             return bTime.compareTo(aTime);
                           });
+
+                          pinnedQuestions = questions
+                              .where((q) => q.isPinned)
+                              .toList();
                           setState(() {});
                         },
                       ),
