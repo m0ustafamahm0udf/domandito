@@ -810,10 +810,34 @@ class _AnswerQuestionScreenState extends State<AnswerQuestionScreen> {
 
   late QuestionModel question;
 
+  Future<void> _warmUpVideoCompress() async {
+    if (PlatformService.platform == AppPlatform.androidApp) {
+      return;
+    }
+    try {
+      // Copy asset to temp file
+      final byteData = await rootBundle.load('assets/images/start.MOV');
+      final tempDir = await getTemporaryDirectory();
+      final tempFile = File('${tempDir.path}/start.MOV');
+      await tempFile.writeAsBytes(byteData.buffer.asUint8List());
+
+      // Warm up the encoder
+      await VideoCompress.compressVideo(
+        tempFile.path,
+        quality: VideoQuality.LowQuality,
+      );
+
+      // Delete temp file
+      await tempFile.delete();
+    } catch (e) {
+      debugPrint('Warm up failed: $e');
+    }
+  }
+
   @override
   void initState() {
     super.initState();
-
+    _warmUpVideoCompress();
     // Pre-fill answer text if in edit mode
     if (widget.answerText != null) {
       answerController.text = widget.answerText!;
