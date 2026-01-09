@@ -6,7 +6,6 @@ import 'package:flutter/services.dart';
 import 'package:get/utils.dart';
 import 'package:svg_flutter/svg.dart';
 
-
 class QRScreen extends StatelessWidget {
   const QRScreen({super.key});
 
@@ -27,11 +26,10 @@ class QRScreen extends StatelessWidget {
           child: FadeIn(
             duration: const Duration(seconds: 5),
             child: GestureDetector(
-              onTap:
-                  () => LaunchUrlsService().launchBrowesr(
-                    uri: 'https://www.m0ustafamahm0ud.com',
-                    context: context,
-                  ),
+              onTap: () => LaunchUrlsService().launchBrowesr(
+                uri: 'https://m0ustafamahm0ud.com',
+                context: context,
+              ),
               child: SvgPicture.asset(
                 AppIcons.qr,
                 height: context.height / 3.5,
