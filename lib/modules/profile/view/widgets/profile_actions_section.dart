@@ -145,7 +145,7 @@ class _PulseGlowState extends State<PulseGlow>
 
     _animation = Tween<double>(
       begin: 2.0,
-      end: 10.0,
+      end: 6.0,
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 

@@ -35,13 +35,14 @@ class _LandingScreenState extends State<LandingScreen> {
       item: ItemConfig(
         icon: SvgPicture.asset(
           AppIcons.anonymous,
-          height: 28,
+          height: 26,
           color: currentIndex == 0
               ? AppColors.primary
               : AppColors.primary.withOpacity(0.15),
         ),
-        title: "Domandito",
-        textStyle: TextStyle(fontFamily: 'Dancing_Script', fontSize: 14),
+        title: "",
+        // title: "Domanditos",
+        textStyle: TextStyle(fontFamily: 'Rubik', fontSize: 12),
         activeForegroundColor: AppColors.primary,
       ),
     ),
@@ -82,8 +83,8 @@ class _LandingScreenState extends State<LandingScreen> {
           icon: CustomNetworkImage(
             url: MySharedPreferences.image,
             radius: 99,
-            height: 28,
-            width: 28,
+            height: 24,
+            width: 24,
           ),
           // icon: SvgPicture.asset(
           //   AppIcons.profile,
@@ -93,8 +94,10 @@ class _LandingScreenState extends State<LandingScreen> {
           // ),
           // title: MySharedPreferences.userUserName,
           // title: !context.isCurrentLanguageAr() ? 'Profile' : 'الملف الشخصي',
-          title: '@${MySharedPreferences.userUserName}',
-          textStyle: TextStyle(fontFamily: 'Dancing_Script', fontSize: 13),
+          // title: '@me',
+          title: '',
+          // title: '@${MySharedPreferences.userUserName}',
+          textStyle: TextStyle(fontFamily: 'Rubik', fontSize: 13),
 
           activeForegroundColor: AppColors.primary,
         ),
@@ -109,12 +112,11 @@ class _LandingScreenState extends State<LandingScreen> {
                 ? AppColors.primary
                 : AppColors.primary.withOpacity(0.15),
           ),
-          title: !context.isCurrentLanguageAr() ? "New Questions" : "جديد",
+          // title: !context.isCurrentLanguageAr() ? "New" : "جديد",
+          title: "",
           textStyle: TextStyle(
-            fontFamily: context.isCurrentLanguageAr()
-                ? 'Rubik'
-                : 'Dancing_Script',
-            fontSize: 14,
+            fontFamily: context.isCurrentLanguageAr() ? 'Rubik' : 'Rubik',
+            fontSize: 12,
           ),
 
           activeForegroundColor: AppColors.primary,
@@ -130,12 +132,11 @@ class _LandingScreenState extends State<LandingScreen> {
                 ? AppColors.primary
                 : AppColors.primary.withOpacity(0.15),
           ),
-          title: !context.isCurrentLanguageAr() ? "Notifications" : "الاشعارات",
+          title: '',
+          // title: !context.isCurrentLanguageAr() ? "Notifications" : "الاشعارات",
           textStyle: TextStyle(
-            fontFamily: context.isCurrentLanguageAr()
-                ? 'Rubik'
-                : 'Dancing_Script',
-            fontSize: 14,
+            fontFamily: context.isCurrentLanguageAr() ? 'Rubik' : 'Rubik',
+            fontSize: 12,
           ),
           activeForegroundColor: AppColors.primary,
         ),
@@ -168,10 +169,25 @@ class _LandingScreenState extends State<LandingScreen> {
               });
             },
             controller: landingCubit.controller,
-            navBarBuilder: (navBarConfig) => Style10BottomNavBar(
-              height: 60,
+            avoidBottomPadding: false,
+            // margin: EdgeInsets.only(top: 20),
+            screenTransitionAnimation: ScreenTransitionAnimation(
+              curve: Curves.easeInOut,
+              duration: Duration(milliseconds: 500),
+            ),
+            navBarBuilder: (navBarConfig) => Style12BottomNavBar(
+              height: 70,
+
               navBarConfig: navBarConfig,
-              navBarDecoration: NavBarDecoration(color: Colors.white),
+              navBarDecoration: NavBarDecoration(
+                color: Colors.white,
+                padding: EdgeInsets.only(
+                  left: 10,
+                  right: 10,
+                  bottom: 5,
+                  top: 15,
+                ),
+              ),
             ),
             // navBarHeight: 60,
             // navBarOverlap: NavBarOverlap.full(),
