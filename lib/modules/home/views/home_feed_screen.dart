@@ -6,6 +6,7 @@ import 'package:domandito/core/utils/shared_prefrences.dart';
 import 'package:domandito/modules/ask/models/q_model.dart';
 import 'package:domandito/modules/search/search.dart';
 import 'package:domandito/modules/signin/signin_screen.dart';
+import 'package:domandito/shared/services/like_service.dart';
 import 'package:domandito/shared/style/app_colors.dart';
 import 'package:domandito/shared/widgets/logo_widg.dart';
 import 'package:domandito/shared/widgets/q_card.dart';
@@ -36,6 +37,7 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
   bool _hasMore = true;
   int _pageOffset = 0;
   final int _pageSize = 10;
+  bool _isSuggestedMode = false;
 
   // Scroll to top helper
   late ScrollToTopHelper _scrollHelper;
@@ -70,7 +72,7 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
 
     try {
       // 3. Fetch Questions using RPC (Server-side optimization)
-      final List<dynamic> data = await Supabase.instance.client.rpc(
+      final response = await Supabase.instance.client.rpc(
         'get_home_feed',
         params: {
           'p_user_id': MySharedPreferences.userId,
@@ -78,6 +80,31 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
           'p_offset': _pageOffset,
         },
       );
+
+      List<dynamic> data = response as List<dynamic>;
+
+      // We are in suggest mode if:
+      // 1. We already decided we are in suggested mode (pagination)
+      // 2. Or if it's the first page and normal feed is empty.
+      if (!_isSuggestedMode &&
+          data.isEmpty &&
+          _questions.isEmpty &&
+          _pageOffset == 0) {
+        _isSuggestedMode = true;
+      }
+
+      if (_isSuggestedMode) {
+        final suggestedResponse = await Supabase.instance.client
+            .rpc(
+              'get_suggested_feed',
+              params: {'limit_count': 20, 'offset_count': _pageOffset},
+            )
+            .select(
+              '*, sender:sender_id(id, name, username, image, is_verified), receiver:receiver_id(id, name, username, image, is_verified)',
+            );
+
+        data = suggestedResponse as List<dynamic>;
+      }
 
       if (!mounted) return;
 
@@ -91,16 +118,27 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
 
       final newQuestions = data.map((e) => QuestionModel.fromJson(e)).toList();
 
-      // Note: isLiked is already calculated by the RPC!
+      // If suggested feed, we need to calculate isLiked manually
+      if (_isSuggestedMode) {
+        final ids = newQuestions.map((e) => e.id).toList();
+        final likedIds = await LikeService.getLikedQuestions(
+          questionIds: ids,
+          userId: MySharedPreferences.userId,
+        );
+
+        for (var q in newQuestions) {
+          q.isLiked = likedIds.contains(q.id);
+        }
+      }
 
       setState(() {
         _questions.addAll(newQuestions);
         _pageOffset += newQuestions.length;
-        _hasMore = data.length == _pageSize;
+        _hasMore = data.length == (_isSuggestedMode ? 20 : _pageSize);
         _isMoreLoading = false;
       });
-    } catch (e) {
-      debugPrint("Error fetching questions: $e");
+    } catch (e, st) {
+      debugPrint("Error fetching questions: $e\n$st");
       if (mounted) {
         setState(() => _isMoreLoading = false);
         AppConstance().showErrorToast(
@@ -117,6 +155,7 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
     _questions.clear();
     _pageOffset = 0;
     _hasMore = true;
+    _isSuggestedMode = false; // Reset mode to check normal feed again
 
     await _initFeed();
   }
