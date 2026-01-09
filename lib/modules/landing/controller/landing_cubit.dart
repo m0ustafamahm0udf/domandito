@@ -3,7 +3,6 @@
 import 'package:domandito/core/constants/app_constants.dart';
 import 'package:domandito/core/constants/app_platforms_serv.dart';
 import 'package:domandito/core/services/get_device_serv.dart';
-import 'package:domandito/core/services/global_privacy_service.dart';
 import 'package:domandito/core/services/launch_urls.dart';
 import 'package:domandito/core/utils/extentions.dart';
 import 'package:domandito/core/utils/shared_prefrences.dart';
@@ -138,10 +137,7 @@ class LandingCubit extends Cubit<LandingState> {
                     ),
                   );
                 }
-                return;
               }
-              MySharedPreferences.isVerified = value['is_verified'];
-              GlobalPrivacyService().evaluatePrivacyParameters();
             });
       } catch (e) {
         debugPrint("Error checking blocked status: $e");
