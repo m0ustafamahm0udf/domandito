@@ -85,12 +85,23 @@ class AppConstance {
   // static const String CART_ITEM_BOX = 'CART_ITEM_BOX';
 
   // For uploading images
-  static const String accessKey = 'DO00LTAVLD67VPDZPH68';
-  static const String secretKey = 'jE7BgwyXs6KAaBpOTwEX1toE6gnKvzptPRxA0Z92WoA';
-  static const String region = 'ams3';
-  static const String bucketName = 'domandito';
+  // For uploading images
+  static const String accessKey = String.fromEnvironment('DO_SPACES_KEY');
+  static const String secretKey = String.fromEnvironment(
+    'DO_SPACES_SECRET',
+    // defaultValue: 'jE7BgwyXs6KAaBpOTwEX1toE6gnKvzptPRxA0Z92WoA',
+  );
+  static const String region = String.fromEnvironment(
+    'DO_SPACES_REGION',
+    // defaultValue: 'ams3',
+  );
+  static const String bucketName = String.fromEnvironment(
+    'DO_SPACES_BUCKET',
+    // defaultValue: 'domandito',
+  );
+  // Endpoint and other derived values typically depend on region/bucket, but if endpoint structure is constant:
   static const String endpoint =
-      'https://domandito.ams3.digitaloceanspaces.com/';
+      'https://$bucketName.$region.digitaloceanspaces.com/';
   static const String destinationPath = 'profiles';
   static const String phonePrefix = '+2';
 
