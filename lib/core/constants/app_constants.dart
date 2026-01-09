@@ -72,7 +72,7 @@ class AppConstance {
   }
 
   static const double textFieldH = 18;
-  static const String appVersion = "1.0.5+30";
+  static const String appVersion = "1.0.6+31";
   static const String question = "question";
   static const String like = "like";
   static const String follow = "follow";
