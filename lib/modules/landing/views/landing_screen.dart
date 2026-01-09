@@ -169,6 +169,7 @@ class _LandingScreenState extends State<LandingScreen> {
             },
             controller: landingCubit.controller,
             navBarBuilder: (navBarConfig) => Style10BottomNavBar(
+              height: 60,
               navBarConfig: navBarConfig,
               navBarDecoration: NavBarDecoration(color: Colors.white),
             ),

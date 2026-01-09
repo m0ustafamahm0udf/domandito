@@ -333,7 +333,7 @@ class _AskQuestionScreenState extends State<AskQuestionScreen> {
                         minLines: 2,
                         maxLines: 5,
                         hintText: !context.isCurrentLanguageAr()
-                            ? 'Ask a question'
+                            ? ' Question here'
                             : 'سؤالك هنا',
                         lenght: 350,
                         validator: (value) {
@@ -429,7 +429,7 @@ class _AskQuestionScreenState extends State<AskQuestionScreen> {
                   if (isRandomLoading) return;
                   await sendQuestion();
                 },
-                title: !context.isCurrentLanguageAr() ? 'Ask' : 'إسأل',
+                title: !context.isCurrentLanguageAr() ? 'Domandito!' : 'إسأل',
                 padding: 20,
               ),
             ),

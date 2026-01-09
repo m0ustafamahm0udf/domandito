@@ -60,10 +60,10 @@ class ProfileActionsSection extends StatelessWidget {
               },
               title: isMe
                   ? !context.isCurrentLanguageAr()
-                        ? 'Ask yourself'
+                        ? 'Domandito!'
                         : 'إسأل نفسك'
                   : !context.isCurrentLanguageAr()
-                  ? 'Ask'
+                  ? 'Domandito!'
                   : 'إسأل',
               textSize: 18,
             ),

@@ -25,6 +25,6 @@ class ShareService {
 
     await Share.shareXFiles([
       XFile(file.path),
-    ], text: 'Ask me at ${AppConstance.shareLink}$username');
+    ], text: 'Domandito ${AppConstance.shareLink}$username');
   }
 }

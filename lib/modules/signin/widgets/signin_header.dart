@@ -51,7 +51,7 @@ class SignInHeader extends StatelessWidget {
           child: Text(
             context.isCurrentLanguageAr()
                 ? 'قول اللي في نفسك'
-                : 'Ask anoynmously',
+                : 'Domandito! anoynmously',
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.bold,

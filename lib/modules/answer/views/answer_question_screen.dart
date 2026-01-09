@@ -417,34 +417,36 @@ class _AnswerQuestionScreenState extends State<AnswerQuestionScreen> {
 
     final data = List<Map<String, dynamic>>.from(response);
 
-    for (var item in data) {
-      final user = item['users'];
-      final userId = user['id'];
-      final token = user['token'];
+    await Future.wait(
+      data.map((item) async {
+        final user = item['users'];
+        final userId = user['id'];
+        final token = user['token'];
 
-      // Don't notify self
-      if (userId == MySharedPreferences.userId) continue;
+        // Don't notify self
+        if (userId == MySharedPreferences.userId) return;
 
-      // Send persistent notification
-      await NotificationsRepository().sendNotification(
-        senderId: MySharedPreferences.userId,
-        receiverId: userId,
-        type: AppConstance.mention,
-        entityId: widget.question.id,
-        title: MySharedPreferences.userName,
-        body: AppConstance.mentioned,
-      );
+        // Send persistent notification
+        await NotificationsRepository().sendNotification(
+          senderId: MySharedPreferences.userId,
+          receiverId: userId,
+          type: AppConstance.mention,
+          entityId: widget.question.id,
+          title: MySharedPreferences.userName,
+          body: AppConstance.mentioned,
+        );
 
-      // Send push notification
-      await SendMessageNotificationWithHTTPv1().send2(
-        type: AppConstance.mention,
-        urll: '',
-        toToken: token,
-        message: AppConstance.mentioned,
-        title: MySharedPreferences.userName,
-        id: widget.question.id,
-      );
-    }
+        // Send push notification
+        await SendMessageNotificationWithHTTPv1().send2(
+          type: AppConstance.mention,
+          urll: '',
+          toToken: token,
+          message: AppConstance.mentioned,
+          title: MySharedPreferences.userName,
+          id: widget.question.id,
+        );
+      }),
+    );
   }
 
   OverlayEntry? _overlayEntry;

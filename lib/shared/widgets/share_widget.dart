@@ -37,7 +37,7 @@ class _ShareWidgetState extends State<ShareWidget> {
         if (kIsWeb) {
           if (widget.userUserName.isNotEmpty) {
             await ShareService1.shareContent(
-              data: 'Ask me at ${AppConstance.shareLink}${widget.userUserName}',
+              data: 'Domandito ${AppConstance.shareLink}${widget.userUserName}',
               context: context,
             );
           }
