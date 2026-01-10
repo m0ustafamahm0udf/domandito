@@ -21,130 +21,99 @@ class UserShareCard extends StatelessWidget {
       child: Stack(
         alignment: Alignment.center,
         children: [
-          Container(
-            width: 400,
-            height: 400,
-            padding: const EdgeInsets.all(24),
-            margin: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              // image: DecorationImage(
-              //   image: NetworkImage(userImage),
-              //   fit: BoxFit.cover,
-              //   opacity: 0.25,
-              // ),
-              shape: BoxShape.circle,
-              // gradient: LinearGradient(
-              //       colors: [Colors.purple, AppColors.primary, AppColors.primary],
-              //       begin: Alignment.topLeft,
-              //       end: Alignment.bottomRight,
-              //     ),
-              gradient: LinearGradient(
-                colors: [AppColors.primary, Colors.black],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-              ),
-              // borderRadius: BorderRadius.circular(24),
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+          AspectRatio(
+            aspectRatio: 1,
+            child: Stack(
+              alignment: Alignment.center,
               children: [
-                // const Spacer(),
-                Opacity(
-                  opacity: 0.7,
-                  child: SvgPicture.asset(
-                    AppIcons.anonymous,
-                    height: 155,
-                    width: 100,
-                    color: Colors.white,
+                Container(
+                  margin: const EdgeInsets.all(20),
+                  clipBehavior: Clip.antiAlias,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: LinearGradient(
+                      colors: [AppColors.primary, Colors.black],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                    ),
+                  ),
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      Opacity(
+                        opacity: 0.25,
+                        child: CustomNetworkImage(
+                          url: userImage,
+                          radius: 0,
+                          boxFit: BoxFit.cover,
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(24),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Opacity(
+                              opacity: 0.7,
+                              child: SvgPicture.asset(
+                                AppIcons.anonymous,
+                                height: 155,
+                                width: 100,
+                                color: Colors.white,
+                              ),
+                            ),
+                            Transform.translate(
+                              offset: const Offset(0, -30),
+                              child: Text(
+                                'Domandito',
+                                style: const TextStyle(
+                                  fontFamily: 'Dancing_Script',
+                                  color: Colors.white70,
+                                  fontSize: 38,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            Transform.translate(
+                              offset: const Offset(0, -25),
+                              child: Text(
+                                '@$username',
+                                maxLines: 1,
+                                style: const TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                // LogoWidg(color: Colors.white),
-                // const Spacer(),
-                Transform.translate(
-                  offset: const Offset(0, -30),
-                  child: Text(
-                    'Domandito',
-                    style: const TextStyle(
-                      fontFamily: 'Dancing_Script',
-                      color: Colors.white70,
-                      fontSize: 38,
-                      fontWeight: FontWeight.bold,
+                Align(
+                  alignment: const Alignment(-0.7, -0.8),
+                  child: Container(
+                    height: 60,
+                    width: 60,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: AppColors.white, width: 3),
+                    ),
+                    child: ClipOval(
+                      child: CustomNetworkImage(
+                        radius: 999,
+                        url: userImage,
+                        height: 175,
+                        width: 175,
+                        boxFit: BoxFit.cover,
+                      ),
                     ),
                   ),
                 ),
-
-                Transform.translate(
-                  offset: const Offset(0, -25),
-                  child: Text(
-                    '@$username',
-                    maxLines: 1,
-                    style: const TextStyle(
-                      color: Colors.white70,
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-
-                // Transform.translate(
-                //   offset: const Offset(0, -5),
-                //   child: const Text(
-                //     'Ask me anonymously',
-                //     textAlign: TextAlign.center,
-                //     style: TextStyle(color: Colors.white70, fontSize: 18),
-                //   ),
-                // ),
-                const SizedBox(height: 20),
-
-                // // const Spacer(),
-
-                // Container(
-                //   padding: const EdgeInsets.all(12),
-                //   decoration: BoxDecoration(
-                //     color: Colors.white,
-                //     borderRadius: BorderRadius.circular(16),
-                //   ),
-                //   child: Text(
-                //     'domandito.app/$username',
-                //     style: TextStyle(
-                //       color: AppColors.primary,
-                //       fontWeight: FontWeight.bold,
-                //     ),
-                //   ),
-                // ),
               ],
-            ),
-          ),
-          Opacity(
-            opacity: 0.25,
-            child: CustomNetworkImage(
-              url: userImage,
-              radius: 999,
-              height: 390,
-              width: 390,
-              boxFit: BoxFit.cover,
-            ),
-          ),
-          Positioned(
-            top: 15,
-            right: 400 - 120,
-            child: Container(
-              height: 60,
-              width: 60,
-              margin: const EdgeInsets.all(12.0),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: AppColors.white, width: 3),
-              ),
-              child: ClipOval(
-                child: CustomNetworkImage(
-                  radius: 999,
-                  url: userImage,
-                  height: 175,
-                  width: 175,
-                  boxFit: BoxFit.cover,
-                ),
-              ),
             ),
           ),
         ],
